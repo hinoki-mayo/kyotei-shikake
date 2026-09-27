@@ -1,0 +1,42 @@
+name: 展示の進入を反映
+
+on:
+  schedule:
+    - cron: "*/5 23,0-12 * * *"   # 日本時間 8:00〜21:59 に5分おき
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-update
+  cancel-in-progress: false
+
+jobs:
+  entry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python scripts/entry.py
+      - id: chk
+        run: git diff --quiet data || echo "changed=1" >> $GITHUB_OUTPUT
+      - run: python scripts/build_site.py
+      - if: steps.chk.outputs.changed == '1'
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add data
+          git commit -m "展示反映 $(TZ=Asia/Tokyo date +%H:%M)"
+          git pull --rebase
+          git push
+      - if: vars.CF_PROJECT != ''
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy site --project-name=${{ vars.CF_PROJECT }} --branch=main

@@ -1,0 +1,41 @@
+name: 過去データ一括取得
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "開始日 (例 2020-10-01)"
+        required: true
+        default: "2020-10-01"
+      end:
+        description: "終了日 (例 2021-09-30)"
+        required: true
+        default: "2021-09-30"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: data-update
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python scripts/backfill.py --start ${{ inputs.start }} --end ${{ inputs.end }}
+      - name: 取得したデータを保存
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add data
+          git diff --cached --quiet || git commit -m "過去データ ${{ inputs.start }}〜${{ inputs.end }}"
+          git pull --rebase
+          git push
