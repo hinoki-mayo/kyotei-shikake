@@ -16,7 +16,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: data-update
+  group: backfill-data
   cancel-in-progress: false
 
 jobs:

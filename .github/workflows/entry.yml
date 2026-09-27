@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: data-update
+  group: live-data
   cancel-in-progress: false
 
 jobs:
