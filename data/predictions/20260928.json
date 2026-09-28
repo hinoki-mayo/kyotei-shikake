@@ -8368,8 +8368,8 @@
 "race": 1,
 "rtype": "ツッキーレー",
 "deadline": "10:33",
-"version": "pre",
-"predicted_at": "2026-09-28 10:00",
+"version": "final",
+"predicted_at": "2026-09-28 10:29",
 "boats": [
 {
 "course": 1,
@@ -10469,8 +10469,8 @@
 "race": 1,
 "rtype": "朝からセンプ",
 "deadline": "10:36",
-"version": "pre",
-"predicted_at": "2026-09-28 10:00",
+"version": "final",
+"predicted_at": "2026-09-28 10:29",
 "boats": [
 {
 "course": 1,
@@ -13461,8 +13461,8 @@
 "race": 6,
 "rtype": "予選",
 "deadline": "10:51",
-"version": "pre",
-"predicted_at": "2026-09-28 10:00",
+"version": "final",
+"predicted_at": "2026-09-28 10:29",
 "boats": [
 {
 "course": 1,
@@ -16783,8 +16783,8 @@
 "race": 1,
 "rtype": "予選",
 "deadline": "10:41",
-"version": "pre",
-"predicted_at": "2026-09-28 10:00",
+"version": "final",
+"predicted_at": "2026-09-28 10:29",
 "boats": [
 {
 "course": 1,
@@ -21673,8 +21673,8 @@
 "race": 5,
 "rtype": "サンライズZ",
 "deadline": "10:32",
-"version": "pre",
-"predicted_at": "2026-09-28 10:00",
+"version": "final",
+"predicted_at": "2026-09-28 10:29",
 "boats": [
 {
 "course": 1,
