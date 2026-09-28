@@ -184,14 +184,18 @@ def info_page(date, info, boats, season, series, n_series, pred, races):
                  f'<div style="grid-column:span 3"><span>節間成績・得点率（目安）</span>{ser}</div></div></div></div>')
     entry = ("展示の進入：" + " ".join(str(w) for w in order)) if order else "展示の進入が出たら、スタートスリットと1マークの展開予想を公開します（締切の約20分前）。"
     body = (race_head(date, v, info, "info", locked, base) + (f'<div class="card">{labels(pred)}</div>' if not locked else "")
-            + f'<div class="card">{rows}</div><p class="sub">{entry}</p>' + ad() + rnav(date, info["jcd"], info["race"], races, ""))
+            + f'<div class="card">{rows}</div><p class="sub">{entry}</p>' + (NUDGE if not order else "")
+            + ad() + rnav(date, info["jcd"], info["race"], races, ""))
     return page(f"{v}{info['race']}R 出走表・展開予想 {jp(date)}", body,
                 f"{v}{info['race']}Rの出走表と1マーク展開予想。今期勝率・節間成績つき。", f"/{date}/{info['jcd']}/{base}.html")
 
 
+NUDGE = '<script>fetch("/api/nudge",{method:"POST",keepalive:true}).catch(()=>{})</script>'
+
+
 def locked_body():
     return ('<div class="card lock"><b>展示の進入が出たら公開します</b><br>'
-            '<span class="sub">締切の約20分前に更新されます</span></div>')
+            '<span class="sub">締切の約20分前に更新されます</span></div>' + NUDGE)
 
 
 def slit_page(date, info, pred, races):
