@@ -27,7 +27,7 @@ def main():
     ap.add_argument("--start", required=True)
     ap.add_argument("--end", required=True)
     ap.add_argument("--kinds", default="K,B", help="K=競走成績, B=番組表")
-    ap.add_argument("--sleep", type=float, default=1.0)
+    ap.add_argument("--sleep", type=float, default=0.83)
     a = ap.parse_args()
     start, end = dt.date.fromisoformat(a.start), dt.date.fromisoformat(a.end)
     days = list(daterange(start, end))
