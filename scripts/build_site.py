@@ -28,7 +28,7 @@ BC = ["#FFFFFF", "#222222", "#D9453F", "#3A7FD5", "#E8A83A", "#4E9A3E"]
 TC = ["#222", "#fff", "#fff", "#fff", "#222", "#fff"]
 WD = "月火水木金土日"
 PTS = {"01": 10, "02": 8, "03": 6, "04": 4, "05": 2, "06": 1}
-DAYS_BACK = 7
+DAYS_BACK = 0
 
 CSS = """
 :root{--bg:#f4f5f7;--card:#fff;--tx:#1f2328;--sub:#6b7079;--bd:#e3e5e9;--navy:#1B2A4A;--ac:#185FA5;--hot:#E8742E;--red:#A32D2D;--green:#0F6E56;--off:#eceef1}
