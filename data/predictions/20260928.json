@@ -1407,8 +1407,8 @@
 "race": 9,
 "rtype": "戸田特賞",
 "deadline": "14:48",
-"version": "pre",
-"predicted_at": "2026-09-28 13:40",
+"version": "final",
+"predicted_at": "2026-09-28 14:32",
 "boats": [
 {
 "course": 1,
@@ -11885,8 +11885,8 @@
 "race": 9,
 "rtype": "一般",
 "deadline": "14:44",
-"version": "pre",
-"predicted_at": "2026-09-28 13:40",
+"version": "final",
+"predicted_at": "2026-09-28 14:32",
 "boats": [
 {
 "course": 1,
@@ -17994,8 +17994,8 @@
 "race": 8,
 "rtype": "予選",
 "deadline": "14:37",
-"version": "pre",
-"predicted_at": "2026-09-28 13:40",
+"version": "final",
+"predicted_at": "2026-09-28 14:32",
 "boats": [
 {
 "course": 1,
