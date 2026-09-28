@@ -191,6 +191,7 @@ def info_page(date, info, boats, season, series, n_series, pred, races):
 
 
 NUDGE = '<script>fetch("/api/nudge",{method:"POST",keepalive:true}).catch(()=>{})</script>'
+NUDGE_UPDATE = '<script>fetch("/api/nudge-update",{method:"POST",keepalive:true}).catch(()=>{})</script>'
 
 
 def locked_body():
@@ -293,7 +294,7 @@ def grid_page(date, dates, prog_day, preds, now, path):
                  for d, j, r in sorted(hot_list))
     hot_html = f"<h2>いま展開予想が出ているレース</h2><div class='card list'>{hl}</div>" if hl else ""
     body = (f'<div class="dnav">{prev}<b>{jp(date)}</b>{nxt}</div><div class="grid">{tiles}</div>'
-            f'<p class="sub">展示の進入が出たレースから順に、スタートスリットと1マークの展開予想を公開します。</p>{hot_html}{ad()}')
+            f'<p class="sub">展示の進入が出たレースから順に、スタートスリットと1マークの展開予想を公開します。</p>{hot_html}{ad()}{NUDGE_UPDATE}')
     return page(f"{jp(date)} 全24場の展開予想", body, "全24場のスタートスリット・1マーク展開予想を展示後に公開", path)
 
 
