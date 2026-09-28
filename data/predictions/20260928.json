@@ -1049,8 +1049,8 @@
 "race": 7,
 "rtype": "ウインウイン",
 "deadline": "13:45",
-"version": "pre",
-"predicted_at": "2026-09-28 12:42",
+"version": "final",
+"predicted_at": "2026-09-28 13:39",
 "boats": [
 {
 "course": 1,
@@ -5237,8 +5237,8 @@
 "race": 7,
 "rtype": "予選",
 "deadline": "13:54",
-"version": "pre",
-"predicted_at": "2026-09-28 12:42",
+"version": "final",
+"predicted_at": "2026-09-28 13:39",
 "boats": [
 {
 "course": 1,
@@ -14339,8 +14339,8 @@
 "race": 11,
 "rtype": "特選",
 "deadline": "13:40",
-"version": "pre",
-"predicted_at": "2026-09-28 12:42",
+"version": "final",
+"predicted_at": "2026-09-28 13:39",
 "boats": [
 {
 "course": 1,
@@ -17820,8 +17820,8 @@
 "race": 7,
 "rtype": "予選",
 "deadline": "14:04",
-"version": "pre",
-"predicted_at": "2026-09-28 12:42",
+"version": "final",
+"predicted_at": "2026-09-28 13:39",
 "boats": [
 {
 "course": 1,
@@ -22730,8 +22730,8 @@
 "race": 11,
 "rtype": "準優勝戦",
 "deadline": "13:51",
-"version": "pre",
-"predicted_at": "2026-09-28 12:42",
+"version": "final",
+"predicted_at": "2026-09-28 13:39",
 "boats": [
 {
 "course": 1,
