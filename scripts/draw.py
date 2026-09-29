@@ -18,16 +18,18 @@ DEFS = ('<defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth
 HULL = "M-17,-8 L6,-8 Q15,-5 18,0 Q15,5 6,8 L-17,8 Z"
 BUOY = (200, 128)
 
-# 1マークの実際の隊形(広がり)を、コース×決まり手から連続的な位置として計算する。
-# 角度は buoy を中心に「+40°=まだ手前(進入)」→「0°=マーク横」→「-90°=真上(回頭中)」
-# →「-170°=回り切って直線へ(脱出)」の順に減っていく(実際のターンの向きと一致)。
-ANGLE_APPROACH, ANGLE_EXIT = 40, -170
+# マーク際で実際に絡んでいるのは主役級の2〜3艇だけ。その艇だけをマーク周りの弧に置き、
+# 残りはまだ手前を直線で追い上げてきている途中として描く(全艇がマークを回るわけではない)。
+# 角度は buoy を中心に「+25°=マークに掛かる直前」→「-90°=真上(回頭中)」
+# →「-145°=回り切って直線へ(脱出)」の順に減っていく(実際のターンの向きと一致)。
+ANGLE_APPROACH, ANGLE_EXIT = 25, -145
 BASE_RADIUS = [28, 46, 64, 84, 104, 124]          # コース1〜6の基準半径(内をタイトに、外を広く)
 RADIUS_ADJUST = {"まくり": -20, "まくり外": -20, "まくり差し": -14, "差し": -16, "隙間": -10}
 COURSE_DELAY = [0, 10, 22, 36, 52, 70]             # 外のコースほど「マークまでまだ距離がある」分の遅れ
 PROGRESS_CUT = {"まくり": -20, "まくり外": -20, "まくり差し": -15, "差し": -11, "隙間": -8,
                 "叩かれ注意": 8, "流れて残す": 4}
 LATE_PENALTY, BAD_PENALTY = 12, 16
+APPROACH_LANE = (18, 236, 176, 158)   # まだマークに絡んでいない艇を置く直線(x0,y0,x1,y1)
 
 
 def _boat(x, y, a, i, stroke="#777", sw=0.5):
@@ -100,45 +102,41 @@ def slit_svg(st, waku, tags, late):
 
 
 def _turn_geometry(sc):
-    """各艇の(半径, 角度)を「実際にどこにいそうか」から連続的に計算する。
-    半径=マークからの距離(コース+仕掛けで内外が動く)、角度=回頭の進み具合。"""
-    pressed, shu, mv, sub, smv = sc["pressed"], sc["shu"], sc["move"], sc["sub"], sc["sub_move"]
+    """マークに絡む主役級(1号艇・主役・2番手)だけをマーク周りの弧に置き、
+    残りはまだ手前を直線で追い上げてきている途中として置く。"""
+    pressed, shu, sub = sc["pressed"], sc["shu"], sc["sub"]
     roles = sc["roles"]
+    active = {0, shu, sub}
     radius, progress = {}, {}
-    for k in range(6):
+    for k in active:
         role = roles.get(k)
-        r = BASE_RADIUS[k] + RADIUS_ADJUST.get(role, 0)
-        p = COURSE_DELAY[k] + PROGRESS_CUT.get(role, 0)
-        if k in sc["bad"]:
-            r += BAD_PENALTY * 0.6
-            p += BAD_PENALTY
-        if k in sc["late"] and role not in PROGRESS_CUT:
-            r += LATE_PENALTY * 0.5
-            p += LATE_PENALTY
         if k == 0:
-            r = BASE_RADIUS[0] + (6 if pressed else 0)
-            p = COURSE_DELAY[0] + (10 if pressed else -6)
-        radius[k], progress[k] = r, p
+            radius[k] = BASE_RADIUS[0] + (6 if pressed else 0)
+            progress[k] = COURSE_DELAY[0] + (10 if pressed else -6)
+        else:
+            radius[k] = BASE_RADIUS[k] + RADIUS_ADJUST.get(role, 0)
+            progress[k] = COURSE_DELAY[k] + PROGRESS_CUT.get(role, 0)
     lo, hi = min(progress.values()), max(progress.values())
     span = max(hi - lo, 1e-6)
     angle = {}
-    for k in range(6):
+    for k in active:
         t = (progress[k] - lo) / span   # 0=最も進んでいる, 1=最も遅れている
         angle[k] = ANGLE_EXIT + t * (ANGLE_APPROACH - ANGLE_EXIT)
-    # 近すぎる艇を半径方向にずらして衝突を避ける
-    order = sorted(range(6), key=lambda k: angle[k])
+    order = sorted(active, key=lambda k: angle[k])
     for a, b in zip(order, order[1:]):
-        da = angle[a] - angle[b]
-        dr = radius[a] - radius[b]
-        if abs(da) < 9 and abs(dr) < 22:
+        if abs(angle[a] - angle[b]) < 11 and abs(radius[a] - radius[b]) < 22:
             radius[a] += 11
             radius[b] -= 11
-    return radius, angle
+    behind = [k for k in range(6) if k not in active]
+    delay = {k: COURSE_DELAY[k] + (BAD_PENALTY if k in sc["bad"] else 0)
+             + (LATE_PENALTY if k in sc["late"] else 0) for k in behind}
+    behind.sort(key=lambda k: delay[k])   # 遅れが小さい順=マークに近い順
+    return active, radius, angle, behind
 
 
 def turn_svg(sc, waku):
     pressed, shu, mv = sc["pressed"], sc["shu"], sc["move"]
-    radius, angle = _turn_geometry(sc)
+    active, radius, angle, behind = _turn_geometry(sc)
     s = [f'<svg viewBox="0 0 380 304" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">'
          f'<title>1マーク隊形</title>', DEFS, '<rect width="380" height="272" rx="10" fill="#1B4560"/>',
          f'<circle cx="{BUOY[0]}" cy="{BUOY[1]}" r="11" fill="#E8742E"/>'
@@ -146,30 +144,46 @@ def turn_svg(sc, waku):
     paths, boats = [], []
     obs = [(BUOY[0] - 13, BUOY[1] - 13, BUOY[0] + 13, BUOY[1] + 13)]
     pos = {}
-    for k in range(6):
-        i = waku[k] - 1
+    for k in active:
         i2, r, a = waku[k] - 1, radius[k], angle[k]
         rad = math.radians(a)
-        x = BUOY[0] + r * math.cos(rad)
-        y = BUOY[1] + r * math.sin(rad)
-        x = max(20, min(360, x))
-        y = max(16, min(252, y))
+        x = max(20, min(360, BUOY[0] + r * math.cos(rad)))
+        y = max(16, min(252, BUOY[1] + r * math.sin(rad)))
         heading = a - 90
         main = k == shu
-        # 軌道: 同じ半径の円弧を、少し手前の角度から現在地まで描く(実際に辿ってきた道筋)
+        # 曲がり始め(スリット直後・半透明)は自コースの並びのまま、まだ絞っていない広い半径。
+        # そこから現在の半径(決まり手で絞った分だけ内側)まで、絞り込みが見える曲線でつなぐ。
         trail_deg = 42 if main else 30
-        a0 = a + trail_deg
-        rad0 = math.radians(a0)
-        x0, y0 = BUOY[0] + r * math.cos(rad0), BUOY[1] + r * math.sin(rad0)
-        large = 0
-        sweep = 1 if a0 > a else 0
+        r0 = BASE_RADIUS[k]
+        rad0 = math.radians(a + trail_deg)
+        x0, y0 = BUOY[0] + r0 * math.cos(rad0), BUOY[1] + r0 * math.sin(rad0)
+        mid_a = math.radians(a + trail_deg / 2)
+        cx, cy = BUOY[0] + r0 * math.cos(mid_a), BUOY[1] + r0 * math.sin(mid_a)
         w = 4 if main else 2.2
         op = "" if main else ' opacity="0.6"'
-        paths.append(f'<path d="M{x0:.0f} {y0:.0f} A{r:.0f} {r:.0f} 0 {large} {sweep} {x:.0f} {y:.0f}" '
-                     f'stroke="{LC[i]}" stroke-width="{w}" fill="none" stroke-linecap="round"{op} '
+        paths.append(f'<path d="M{x0:.0f} {y0:.0f} Q{cx:.0f} {cy:.0f} {x:.0f} {y:.0f}" '
+                     f'stroke="{LC[i2]}" stroke-width="{w}" fill="none" stroke-linecap="round"{op} '
                      f'marker-end="url(#ah)"/>')
+        boats.append(f'<g opacity="0.4">{_boat(x0, y0, a + trail_deg - 90, i2)}</g>')
         boats.append(_boat(x, y, heading, i2, "#fff" if main else "#777", 1.5 if main else 0.5))
-        pos[k] = (x, y, a)
+        pos[k] = (x, y, math.cos(rad), math.sin(rad))
+        obs.append((x - 17, y - 17, x + 17, y + 17))
+    lx0, ly0, lx1, ly1 = APPROACH_LANE
+    ldx, ldy = lx1 - lx0, ly1 - ly0
+    lhead = math.degrees(math.atan2(ldy, ldx))
+    llen = math.hypot(ldx, ldy)
+    pdx, pdy = -ldy / llen, ldx / llen   # 車線に垂直な向き(艇をばらけさせる用)
+    for j, k in enumerate(behind):
+        frac = [0.8, 0.5, 0.2][j] if j < 3 else 0.1
+        side = (-1) ** j
+        x = lx0 + frac * ldx + side * 10
+        y = ly0 + frac * ldy + side * 6
+        i2 = waku[k] - 1
+        boats.append(f'<g opacity="0.6">{_boat(x, y, lhead, i2)}</g>')
+        bx, by = x - 0.28 * ldx, y - 0.28 * ldy
+        paths.append(f'<path d="M{bx:.0f} {by:.0f} L{x:.0f} {y:.0f}" stroke="{LC[i2]}" stroke-width="1.8" '
+                     f'fill="none" stroke-linecap="round" opacity="0.45" marker-end="url(#ah)"/>')
+        pos[k] = (x, y, pdx, pdy)
         obs.append((x - 17, y - 17, x + 17, y + 17))
     lab = Labeler(obs, 268)
     for k in range(6):
@@ -193,10 +207,9 @@ def turn_svg(sc, waku):
                 text = f"{i + 1} {'凹み' if sc['tags'].get(k) == '凹み' else '届かない'}"
         if not text:
             continue
-        x, y, a = pos[k]
-        rad = math.radians(a)
-        lx, ly = x + 30 * math.cos(rad), y + 30 * math.sin(rad)
-        lab.add(lx, ly - 10, text, col, "#D3D1C7" if col == DARK else "#fff", right=math.cos(rad) < 0)
+        x, y, dx, dy = pos[k]
+        lx, ly = x + 30 * dx, y + 30 * dy
+        lab.add(lx, ly - 10, text, col, "#D3D1C7" if col == DARK else "#fff", right=dx < 0)
     legend = (f'<rect x="0" y="284" width="12" height="12" rx="2" fill="{RED}"/><text x="17" y="294" font-size="12" '
               f'fill="currentColor" {FONT}>主役・展開が向く</text>'
               f'<rect x="130" y="284" width="12" height="12" rx="2" fill="{GREEN}"/><text x="147" y="294" font-size="12" '
