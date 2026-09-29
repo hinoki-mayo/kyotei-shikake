@@ -40,7 +40,8 @@ main{max-width:760px;margin:0 auto;padding:10px}h1{font-size:19px;margin:10px 0}
 .dnav{display:flex;justify-content:space-between;align-items:center;margin:8px 0}.dnav a,.dnav span.x{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:4px 14px;font-size:14px}
 .dnav span.x{opacity:.35}
 .grid{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--bd);border-radius:6px;overflow:hidden;background:var(--bd);gap:1px}
-.tile{background:var(--card);min-height:92px;padding:6px 4px;text-align:center;display:flex;flex-direction:column;justify-content:center}
+.tile{position:relative;background:var(--card);min-height:92px;padding:6px 4px;text-align:center;display:flex;flex-direction:column;justify-content:center}
+.headb{position:absolute;top:-8px;right:-6px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;border:2px solid var(--card);box-shadow:0 1px 3px rgba(0,0,0,.3)}
 .tile b{font-size:16px}.tile .d{font-size:12px;color:var(--sub)}.tile .st{font-size:12px;font-weight:700;color:var(--sub)}
 .tile.none{background:var(--off);color:var(--sub);opacity:.55}.tile.none b{font-weight:500}
 .tile.hot{background:var(--hot);color:#fff}.tile.hot .d,.tile.hot .st{color:#fff}
@@ -175,13 +176,15 @@ def info_page(date, info, boats, season, series, n_series, pred, races):
     for b in boats:
         s = series.get(b["toban"], {})
         sea = season.get(b["toban"])
-        ser = (f'{s["seq"]}<br>{s["pt"]:.2f}（{s["pos"]}位/{n_series}）' if s else "―")
-        rows += (f'<div class="boat">{chip(b["waku"])}<div style="flex:1"><b>{html.escape(b["name"])}</b> '
-                 f'<span class="sub">{b["toban"]}・{b["grade"]}・{b["age"]}歳・{html.escape(b["branch"])}・{b["weight"]}kg</span>'
-                 f'<div class="nums"><div><span>今期勝率</span>{f"{sea:.2f}" if sea is not None else "―"}</div>'
-                 f'<div><span>全国／当地</span>{b["nat_win"]:.2f}／{b["loc_win"]:.2f}</div>'
-                 f'<div><span>モーター2連</span>{b["motor_2r"]:.1f}%</div>'
-                 f'<div style="grid-column:span 3"><span>節間成績・得点率（目安）</span>{ser}</div></div></div></div>')
+        sea_s = f"{sea:.2f}" if sea is not None else "―"
+        ser_s = f'節間{s["pt"]:.2f}（{s["pos"]}位/{n_series}）' if s else "節間―"
+        rows += (f'<div class="boat">{chip(b["waku"])}<div style="flex:1;min-width:0">'
+                 f'<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline">'
+                 f'<b style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{html.escape(b["name"])}</b>'
+                 f'<span class="sub" style="flex:none">今期{sea_s}</span></div>'
+                 f'<div class="sub" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
+                 f'{b["grade"]}・{b["age"]}歳・{html.escape(b["branch"])}｜全国{b["nat_win"]:.2f}/当地{b["loc_win"]:.2f}｜'
+                 f'モ{b["motor_2r"]:.1f}%｜{ser_s}</div></div></div>')
     entry = ("展示の進入：" + " ".join(str(w) for w in order)) if order else "展示の進入が出たら、スタートスリットと1マークの展開予想を公開します（締切の約20分前）。"
     body = (race_head(date, v, info, "info", locked, base) + (f'<div class="card">{labels(pred)}</div>' if not locked else "")
             + f'<div class="card">{rows}</div><p class="sub">{entry}</p>' + (NUDGE if not order else "")
@@ -243,18 +246,23 @@ def turn_page(date, info, pred, races):
 def venue_page(date, jcd, infos, preds, now):
     v = VENUES[jcd]
     items = ""
+    cur_marked = False
     for i, info in enumerate(infos):
         pred = preds.get(f"{jcd}-{info['race']:02d}")
         st = race_status(date, info, pred, now)
         badge = {"hot": '<span class="rst s-hot">展開予想！</span>', "wait": '<span class="rst s-wait">展示待ち</span>',
                  "done": '<span class="rst s-done">締切</span>'}[st]
-        link = f"/{date}/{jcd}/{info['race']:02d}{'-turn' if st == 'hot' else ''}.html"
-        items += (f'<a href="{link}"><span class="rno">{info["race"]}R</span><span><span class="sub">{info["deadline"]}</span> '
-                  f'{html.escape(info["rtype"])}</span>{badge}</a>')
+        cur_id = ""
+        if not cur_marked and st in ("hot", "wait"):
+            cur_id = ' id="cur"'
+            cur_marked = True
+        items += (f'<a{cur_id} href="/{date}/{jcd}/{info["race"]:02d}.html"><span class="rno">{info["race"]}R</span>'
+                  f'<span><span class="sub">{info["deadline"]}</span> {html.escape(info["rtype"])}</span>{badge}</a>')
         if i == 5:
             items += f"</div>{ad()}<div class='card list'>"
     head = f'<h1>{v} {jp(date)}</h1><p class="sub">{html.escape(infos[0]["title"])}・{infos[0]["day"]}日目</p>'
-    return page(f"{v} {jp(date)} 出走表・展開予想", head + f"<div class='card list'>{items}</div>",
+    scroll = '<script>document.getElementById("cur")?.scrollIntoView({block:"center"})</script>'
+    return page(f"{v} {jp(date)} 出走表・展開予想", head + f"<div class='card list'>{items}</div>" + scroll,
                 f"{v}の全レースの出走表と1マーク展開予想", f"/{date}/{jcd}/")
 
 
@@ -276,8 +284,14 @@ def grid_page(date, dates, prog_day, preds, now, path):
             ic = '<span class="tag" style="background:#3C3489">ナイター</span>'
         elif min(infos.deadline) <= "09:30":
             ic = '<span class="tag" style="background:#1D9E75">モーニング</span>'
+        headb = ""
         if hot:
             cls, st = "hot", '<span class="hotb">展開予想！</span>'
+            hp = preds.get(f"{j}-{hot[0].race:02d}")
+            heads = hp["scene"]["head"] if hp else []
+            if heads:
+                w = hp["boats"][heads[0]]["waku"]
+                headb = f'<span class="headb" style="background:{BC[w - 1]};color:{TC[w - 1]}">{w}</span>'
         elif now >= max(dls):
             cls, st = "done", '<span class="st">開催終了</span>'
         elif now < min(dls) - dt.timedelta(minutes=40):
@@ -285,7 +299,7 @@ def grid_page(date, dates, prog_day, preds, now, path):
         else:
             nxt = next((r for r, d in zip(infos.itertuples(), dls) if d > now), None)
             cls, st = "", f'<span class="st">{nxt.race}R展示待ち</span>' if nxt else ""
-        tiles += (f'<a class="tile {cls}" href="/{date}/{j}/"><b>{v}</b><span class="d">{infos.day.iloc[0]}日目 {ic}</span>{st}</a>')
+        tiles += (f'<a class="tile {cls}" href="/{date}/{j}/">{headb}<b>{v}</b><span class="d">{infos.day.iloc[0]}日目 {ic}</span>{st}</a>')
     i = dates.index(date)
     prev = f'<a href="/{dates[i - 1]}/">◀ 前日</a>' if i > 0 else '<span class="x">◀ 前日</span>'
     nxt = f'<a href="/{dates[i + 1]}/">翌日 ▶</a>' if i + 1 < len(dates) else '<span class="x">翌日 ▶</span>'
