@@ -127,16 +127,24 @@ def _turn_geometry(sc):
         if abs(angle[a] - angle[b]) < 11 and abs(radius[a] - radius[b]) < 22:
             radius[a] += 11
             radius[b] -= 11
+    # ゴースト(曲がり始め)はまだ決まり手で動く前、コース順のスリットなりの並び。
+    gdelay = {k: COURSE_DELAY[0] if k == 0 else COURSE_DELAY[k] for k in active}
+    glo, ghi = min(gdelay.values()), max(gdelay.values())
+    gspan = max(ghi - glo, 1e-6)
+    ghost_angle = {}
+    for k in active:
+        t = (gdelay[k] - glo) / gspan
+        ghost_angle[k] = ANGLE_EXIT + t * (ANGLE_APPROACH - ANGLE_EXIT)
     behind = [k for k in range(6) if k not in active]
     delay = {k: COURSE_DELAY[k] + (BAD_PENALTY if k in sc["bad"] else 0)
              + (LATE_PENALTY if k in sc["late"] else 0) for k in behind}
     behind.sort(key=lambda k: delay[k])   # 遅れが小さい順=マークに近い順
-    return active, radius, angle, behind
+    return active, radius, angle, ghost_angle, behind
 
 
 def turn_svg(sc, waku):
     pressed, shu, mv = sc["pressed"], sc["shu"], sc["move"]
-    active, radius, angle, behind = _turn_geometry(sc)
+    active, radius, angle, ghost_angle, behind = _turn_geometry(sc)
     s = [f'<svg viewBox="0 0 380 304" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">'
          f'<title>1マーク隊形</title>', DEFS, '<rect width="380" height="272" rx="10" fill="#1B4560"/>',
          f'<circle cx="{BUOY[0]}" cy="{BUOY[1]}" r="11" fill="#E8742E"/>'
@@ -151,20 +159,20 @@ def turn_svg(sc, waku):
         y = max(16, min(252, BUOY[1] + r * math.sin(rad)))
         heading = a - 90
         main = k == shu
-        # 曲がり始め(スリット直後・半透明)は自コースの並びのまま、まだ絞っていない広い半径。
-        # そこから現在の半径(決まり手で絞った分だけ内側)まで、絞り込みが見える曲線でつなぐ。
-        trail_deg = 42 if main else 30
-        r0 = BASE_RADIUS[k]
-        rad0 = math.radians(a + trail_deg)
+        # 曲がり始め(スタートスリットなりの並び・半透明)は自コースの順で揃った位置。
+        # そこから現在地(決まり手で絞った分だけ内側)まで、絞り込みが見える曲線でつなぐ。
+        r0, ga = BASE_RADIUS[k], ghost_angle[k]
+        rad0 = math.radians(ga)
         x0, y0 = BUOY[0] + r0 * math.cos(rad0), BUOY[1] + r0 * math.sin(rad0)
-        mid_a = math.radians(a + trail_deg / 2)
-        cx, cy = BUOY[0] + r0 * math.cos(mid_a), BUOY[1] + r0 * math.sin(mid_a)
+        mid_a = math.radians((ga + a) / 2)
+        mid_r = (r0 + r) / 2
+        cx, cy = BUOY[0] + mid_r * math.cos(mid_a), BUOY[1] + mid_r * math.sin(mid_a)
         w = 4 if main else 2.2
         op = "" if main else ' opacity="0.6"'
         paths.append(f'<path d="M{x0:.0f} {y0:.0f} Q{cx:.0f} {cy:.0f} {x:.0f} {y:.0f}" '
                      f'stroke="{LC[i2]}" stroke-width="{w}" fill="none" stroke-linecap="round"{op} '
                      f'marker-end="url(#ah)"/>')
-        boats.append(f'<g opacity="0.4">{_boat(x0, y0, a + trail_deg - 90, i2)}</g>')
+        boats.append(f'<g opacity="0.4">{_boat(x0, y0, ga - 90, i2)}</g>')
         boats.append(_boat(x, y, heading, i2, "#fff" if main else "#777", 1.5 if main else 0.5))
         pos[k] = (x, y, math.cos(rad), math.sin(rad))
         obs.append((x - 17, y - 17, x + 17, y + 17))
