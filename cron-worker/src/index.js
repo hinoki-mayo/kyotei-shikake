@@ -8,6 +8,12 @@ const REPO = "kyotei-shikake";
 const UPDATE_SLOTS_UTC_MIN = [22 * 60, 12 * 60, 15 * 60 + 30];
 const UPDATE_WINDOW_MIN = 10; // この5分間隔cronなら10分あれば1回は当たる
 
+// レースがある時間帯だけentry.ymlを起こす(元のentry.yml本来のcronと同じ 8:00〜21:59 JST = 23:00〜12:59 UTC)
+function inRaceHours(now) {
+  const m = now.getUTCHours() * 60 + now.getUTCMinutes();
+  return m >= 23 * 60 || m < 13 * 60;
+}
+
 function headers(token) {
   return {
     Authorization: `Bearer ${token}`,
@@ -36,8 +42,11 @@ function inUpdateWindow(now) {
 
 export default {
   async scheduled(event, env, ctx) {
-    ctx.waitUntil(dispatch(env.GH_PAT, "entry.yml"));
-    if (inUpdateWindow(new Date())) {
+    const now = new Date();
+    if (inRaceHours(now)) {
+      ctx.waitUntil(dispatch(env.GH_PAT, "entry.yml"));
+    }
+    if (inUpdateWindow(now)) {
       ctx.waitUntil(dispatch(env.GH_PAT, "update.yml"));
     }
   },
