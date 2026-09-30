@@ -6822,8 +6822,8 @@
 "race": 4,
 "rtype": "一般",
 "deadline": "12:31",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 12:22",
 "boats": [
 {
 "course": 1,
@@ -22295,8 +22295,8 @@
 "race": 9,
 "rtype": "予選",
 "deadline": "12:41",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 12:22",
 "boats": [
 {
 "course": 1,
