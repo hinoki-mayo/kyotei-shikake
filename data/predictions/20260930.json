@@ -3164,8 +3164,8 @@
 "race": 7,
 "rtype": "一般",
 "deadline": "13:56",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 13:46",
 "boats": [
 {
 "course": 1,
@@ -7340,8 +7340,8 @@
 "race": 7,
 "rtype": "一般",
 "deadline": "13:59",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 13:46",
 "boats": [
 {
 "course": 1,
@@ -16563,8 +16563,8 @@
 "race": 12,
 "rtype": "特選",
 "deadline": "14:10",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 13:46",
 "boats": [
 {
 "course": 1,
