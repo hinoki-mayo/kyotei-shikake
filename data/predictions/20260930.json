@@ -4712,8 +4712,8 @@
 "race": 4,
 "rtype": "予選",
 "deadline": "12:23",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 12:11",
 "boats": [
 {
 "course": 1,
@@ -13265,8 +13265,8 @@
 "race": 5,
 "rtype": "5ールドレー",
 "deadline": "12:25",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 12:11",
 "boats": [
 {
 "course": 1,
@@ -16042,8 +16042,8 @@
 "race": 9,
 "rtype": "特賞",
 "deadline": "12:27",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 12:11",
 "boats": [
 {
 "course": 1,
