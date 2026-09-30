@@ -1237,8 +1237,8 @@
 "race": 8,
 "rtype": "一般戦",
 "deadline": "14:16",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 14:02",
 "boats": [
 {
 "course": 1,
@@ -9431,8 +9431,8 @@
 "race": 7,
 "rtype": "予選",
 "deadline": "14:18",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 14:02",
 "boats": [
 {
 "course": 1,
