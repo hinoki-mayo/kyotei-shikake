@@ -50,7 +50,8 @@ def run(date, only=None, model=None, allow_late=False):
         old = store["races"].get(key)
         g = g.sort_values("waku")
         deadline = g.deadline.iloc[0]
-        order = entries_override.get(key)          # 展示の進入(枠番をコース順に)
+        live = entries_override.get(key)            # 展示の進入・展示タイム・天候(揃うまではNone)
+        order = live.get("order") if live else None
         version = "final" if order else "pre"
         if old and (closed(date, deadline) or (old["version"] == "final" and version == "final" and not only)):
             continue
@@ -61,7 +62,15 @@ def run(date, only=None, model=None, allow_late=False):
         order = order or [1, 2, 3, 4, 5, 6]
         byw = {int(r.waku): r for r in g.itertuples()}
         ents = [byw[w] for w in order]
-        P, st, fc, rate = model.race(jcd, [dict(course=c + 1, toban=e.toban) for c, e in enumerate(ents)])
+        tenji = (live or {}).get("tenji")
+        weather = None
+        if live and live.get("wind_dir") is not None:
+            weather = dict(wind_dir=live.get("wind_dir"), wind=live.get("wind", 0.0),
+                            wave=live.get("wave", 0.0), rain=live.get("rain", False))
+        entries_in = [dict(course=c + 1, toban=e.toban, motor=int(e.motor), boat=int(e.boat),
+                            tenji=(tenji[order[c] - 1] if tenji else None))
+                      for c, e in enumerate(ents)]
+        P, st, fc, rate = model.race(jcd, entries_in, weather=weather)
         sc = build_scene(P, st, fc)
         store["races"][key] = dict(
             jcd=jcd, venue=g.venue.iloc[0], race=int(race), rtype=g.rtype.iloc[0], deadline=deadline,
