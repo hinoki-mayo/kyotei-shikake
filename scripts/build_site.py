@@ -97,7 +97,7 @@ def load_results(since):
     for y in range(int(since[:4]), now_jst().year + 1):
         p = DATA / "results" / f"{y}.parquet"
         if p.exists():
-            fr.append(pd.read_parquet(p, columns=["date", "jcd", "race", "rank", "toban"]))
+            fr.append(pd.read_parquet(p, columns=["date", "jcd", "race", "rank", "toban", "waku", "kimarite"]))
     if not fr:
         return pd.DataFrame(columns=["date", "jcd", "race", "rank", "toban", "pt"])
     r = pd.concat(fr)
@@ -130,6 +130,12 @@ class Stats:
         g["pos"] = g.pt.rank(ascending=False, method="min").astype(int)
         return g.to_dict("index"), len(g)
 
+    def race_result(self, jcd, date, race):
+        r = self.res[(self.res.jcd == jcd) & (self.res.date == date) & (self.res.race == race)]
+        if len(r) != 6:
+            return None
+        return dict(by_waku=dict(zip(r.waku.astype(int), r["rank"])), kimarite=r.kimarite.iloc[0])
+
 
 # ---------- ページ ----------
 def race_status(date, r, pred, now):
@@ -140,17 +146,20 @@ def race_status(date, r, pred, now):
     return "wait"
 
 
-def tabs(base, cur, locked):
+def tabs(base, cur, locked, result_ready):
     lk = '<br><span class="lk">展示後に公開</span>' if locked else ""
-    items = [("出走表", f"{base}.html", "info"), ("スタートスリット", f"{base}-slit.html", "slit"), ("1マーク", f"{base}-turn.html", "turn")]
+    rlk = "" if result_ready else '<br><span class="lk">結果発表後に公開</span>'
+    items = [("出走表", f"{base}.html", "info", ""), ("スタートスリット", f"{base}-slit.html", "slit", lk),
+             ("1マーク", f"{base}-turn.html", "turn", lk), ("結果", f"{base}-result.html", "result", rlk)]
     return '<nav class="tabs">' + "".join(
-        f'<a class="{"on" if k == cur else ""}" href="{u}">{t}{lk if k != "info" else ""}</a>' for t, u, k in items) + "</nav>"
+        f'<a class="{"on" if k == cur else ""}" href="{u}">{t}{x}</a>' for t, u, k, x in items) + "</nav>"
 
 
-def race_head(date, v, info, cur, locked, base):
+def race_head(date, v, info, cur, locked, base, result_ready=False):
     return (f'<p class="sub"><a href="/{date}/">{jp(date)}</a> ＞ <a href="/{date}/{info["jcd"]}/">{v}</a></p>'
             f'<h1>{v} {info["race"]}R <span class="sub">{html.escape(info["rtype"])}</span></h1>'
-            f'<p class="sub">締切 {info["deadline"]}・{html.escape(info["title"])} {info["day"]}日目</p>{tabs(base, cur, locked)}')
+            f'<p class="sub">締切 {info["deadline"]}・{html.escape(info["title"])} {info["day"]}日目</p>'
+            f'{tabs(base, cur, locked, result_ready)}')
 
 
 def rnav(date, jcd, race, races, suffix):
@@ -167,7 +176,7 @@ def labels(pred):
             f'<span class="lab" style="background:#444441">展開不向き {f(sc["bad"])}</span>')
 
 
-def info_page(date, info, boats, season, series, n_series, pred, races):
+def info_page(date, info, boats, season, series, n_series, pred, races, result_ready=False):
     v = VENUES[info["jcd"]]
     base = f'{info["race"]:02d}'
     locked = not (pred and pred.get("version") == "final")
@@ -186,7 +195,7 @@ def info_page(date, info, boats, season, series, n_series, pred, races):
                  f'{b["grade"]}・{b["age"]}歳・{html.escape(b["branch"])}｜全国{b["nat_win"]:.2f}/当地{b["loc_win"]:.2f}｜'
                  f'モ{b["motor_2r"]:.1f}%｜{ser_s}</div></div></div>')
     entry = ("展示の進入：" + " ".join(str(w) for w in order)) if order else "展示の進入が出たら、スタートスリットと1マークの展開予想を公開します（締切の約20分前）。"
-    body = (race_head(date, v, info, "info", locked, base) + (f'<div class="card">{labels(pred)}</div>' if not locked else "")
+    body = (race_head(date, v, info, "info", locked, base, result_ready) + (f'<div class="card">{labels(pred)}</div>' if not locked else "")
             + f'<div class="card">{rows}</div><p class="sub">{entry}</p>' + (NUDGE if not order else "")
             + ad() + rnav(date, info["jcd"], info["race"], races, ""))
     return page(f"{v}{info['race']}R 出走表・展開予想 {jp(date)}", body,
@@ -202,7 +211,7 @@ def locked_body():
             '<span class="sub">締切の約20分前に更新されます</span></div>' + NUDGE)
 
 
-def slit_page(date, info, pred, races):
+def slit_page(date, info, pred, races, result_ready=False):
     v = VENUES[info["jcd"]]
     base = f'{info["race"]:02d}'
     locked = not (pred and pred.get("version") == "final")
@@ -220,12 +229,12 @@ def slit_page(date, info, pred, races):
         content = (slit_svg(pred["st"], waku, tags, sc["late"])
                    + '<p class="sub">右ほどスタートが速い予想。選手ごとのコース別STとF持ちから予想しています。</p>'
                    + f'<h2>スリットの並び</h2><div class="card">{rank}</div>')
-    body = race_head(date, v, info, "slit", locked, base) + content + ad() + rnav(date, info["jcd"], info["race"], races, "-slit")
+    body = race_head(date, v, info, "slit", locked, base, result_ready) + content + ad() + rnav(date, info["jcd"], info["race"], races, "-slit")
     return page(f"{v}{info['race']}R スタートスリット予想 {jp(date)}", body, f"{v}{info['race']}Rのスタートスリット隊形予想",
                 f"/{date}/{info['jcd']}/{base}-slit.html")
 
 
-def turn_page(date, info, pred, races):
+def turn_page(date, info, pred, races, result_ready=False):
     v = VENUES[info["jcd"]]
     base = f'{info["race"]:02d}'
     locked = not (pred and pred.get("version") == "final")
@@ -238,9 +247,57 @@ def turn_page(date, info, pred, races):
         lines = "".join(f'<div class="boat">{chip(b["waku"])}<div><span class="sub">{html.escape(b["name"])}</span><br>'
                         f'{html.escape(sc["lines"].get(str(k), "展開待ち"))}</div></div>' for k, b in enumerate(pred["boats"]))
         content = f'<div class="card">{labels(pred)}</div>{turn_svg(sc2, waku)}<h2>各艇の展開</h2><div class="card">{lines}</div>'
-    body = race_head(date, v, info, "turn", locked, base) + content + ad() + rnav(date, info["jcd"], info["race"], races, "-turn")
+    body = race_head(date, v, info, "turn", locked, base, result_ready) + content + ad() + rnav(date, info["jcd"], info["race"], races, "-turn")
     return page(f"{v}{info['race']}R 1マーク展開予想 {jp(date)}", body, f"{v}{info['race']}Rの1マーク仕掛け・展開予想",
                 f"/{date}/{info['jcd']}/{base}-turn.html")
+
+
+def _verdict_card(pred, by_waku):
+    """展開予想の答え合わせ。順位を予想したわけではないので「的中/ハズレ」ではなく
+    「仕掛け成功/不発」のように、あくまで仕掛け・展開の当たり外れとして書く。"""
+    sc, boats = pred["scene"], pred["boats"]
+
+    def rank_of(k):
+        return by_waku.get(boats[k]["waku"])
+
+    rows = []
+    for k in sc.get("head", []):
+        ok = rank_of(k) == "01"
+        rows.append((boats[k]["waku"], "頭注目", "仕掛け成功！" if ok else "不発", ok))
+    for k in sc.get("ren", []):
+        ok = rank_of(k) in ("01", "02", "03")
+        rows.append((boats[k]["waku"], "連絡み注目", "連絡み成功" if ok else "絡めず", ok))
+    for k in sc.get("bad", []):
+        ok = rank_of(k) != "01"
+        rows.append((boats[k]["waku"], "展開不向き", "想定通り" if ok else "番狂わせ", ok))
+    if not rows:
+        return ""
+    items = "".join(
+        f'<div class="boat">{chip(w)}<div><b>{lab}</b><br>'
+        f'<span class="sub" style="color:{"var(--green)" if ok else "var(--red)"}">{txt}</span></div></div>'
+        for w, lab, txt, ok in rows)
+    return f'<h2>展開予想の答え合わせ</h2><div class="card">{items}</div>'
+
+
+def result_page(date, info, pred, races, result):
+    v = VENUES[info["jcd"]]
+    base = f'{info["race"]:02d}'
+    locked = not (pred and pred.get("version") == "final")
+    if result is None:
+        content = ('<div class="card lock"><b>結果はまだ発表されていません</b><br>'
+                   '<span class="sub">レース終了後、しばらくしてから反映されます</span></div>')
+    else:
+        by_waku, kimarite = result["by_waku"], result["kimarite"]
+        order = sorted(by_waku.items(), key=lambda kv: kv[1])
+        rows = "".join(f'<div class="boat">{chip(w)}<div><b>{r.lstrip("0") if r.isdigit() else r}着</b></div></div>'
+                       for w, r in order)
+        content = f'<h2>着順（決まり手：{html.escape(kimarite) or "―"}）</h2><div class="card">{rows}</div>'
+        if pred and not locked:
+            content += _verdict_card(pred, by_waku)
+    body = race_head(date, v, info, "result", locked, base, result is not None) + content + ad() \
+        + rnav(date, info["jcd"], info["race"], races, "-result")
+    return page(f"{v}{info['race']}R 結果 {jp(date)}", body, f"{v}{info['race']}Rの結果と展開予想の答え合わせ",
+                f"/{date}/{info['jcd']}/{base}-result.html")
 
 
 def venue_page(date, jcd, infos, preds, now):
@@ -359,10 +416,13 @@ def main():
                 boats = x.to_dict("records")
                 pred = preds.get(f"{jcd}-{info['race']:02d}")
                 base = f'{info["race"]:02d}'
-                (d / f"{base}.html").write_text(info_page(date, info, boats, season, series, n_series, pred, races))
-                (d / f"{base}-slit.html").write_text(slit_page(date, info, pred, races))
-                (d / f"{base}-turn.html").write_text(turn_page(date, info, pred, races))
-                urls += [f"/{date}/{jcd}/{base}{s}.html" for s in ("", "-slit", "-turn")]
+                result = stats.race_result(jcd, date, info["race"])
+                ready = result is not None
+                (d / f"{base}.html").write_text(info_page(date, info, boats, season, series, n_series, pred, races, ready))
+                (d / f"{base}-slit.html").write_text(slit_page(date, info, pred, races, ready))
+                (d / f"{base}-turn.html").write_text(turn_page(date, info, pred, races, ready))
+                (d / f"{base}-result.html").write_text(result_page(date, info, pred, races, result))
+                urls += [f"/{date}/{jcd}/{base}{s}.html" for s in ("", "-slit", "-turn", "-result")]
             (d / "index.html").write_text(venue_page(date, jcd, infos, preds, now))
             urls.append(f"/{date}/{jcd}/")
         (OUT / date).mkdir(exist_ok=True)
