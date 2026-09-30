@@ -8033,8 +8033,8 @@
 "race": 11,
 "rtype": "選抜戦",
 "deadline": "16:08",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 15:51",
 "boats": [
 {
 "course": 1,
@@ -14475,8 +14475,8 @@
 "race": 12,
 "rtype": "ドリーム戦",
 "deadline": "16:12",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 15:51",
 "boats": [
 {
 "course": 1,
@@ -17087,8 +17087,8 @@
 "race": 3,
 "rtype": "一般",
 "deadline": "16:06",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 15:51",
 "boats": [
 {
 "course": 1,
