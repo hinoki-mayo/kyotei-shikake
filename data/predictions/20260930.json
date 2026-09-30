@@ -1061,8 +1061,8 @@
 "race": 7,
 "rtype": "ウインウイン",
 "deadline": "13:45",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 13:26",
 "boats": [
 {
 "course": 1,
@@ -22638,8 +22638,8 @@
 "race": 11,
 "rtype": "宝当特選",
 "deadline": "13:43",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 13:26",
 "boats": [
 {
 "course": 1,
