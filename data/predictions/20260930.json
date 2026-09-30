@@ -4889,8 +4889,8 @@
 "race": 5,
 "rtype": "東京ベイラン",
 "deadline": "12:52",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 12:41",
 "boats": [
 {
 "course": 1,
@@ -13431,8 +13431,8 @@
 "race": 6,
 "rtype": "予選",
 "deadline": "12:54",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 12:41",
 "boats": [
 {
 "course": 1,
@@ -16216,8 +16216,8 @@
 "race": 10,
 "rtype": "特賞",
 "deadline": "12:57",
-"version": "pre",
-"predicted_at": "2026-09-30 07:06",
+"version": "final",
+"predicted_at": "2026-09-30 12:41",
 "boats": [
 {
 "course": 1,
