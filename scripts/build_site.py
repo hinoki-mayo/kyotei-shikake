@@ -50,10 +50,11 @@ main{max-width:760px;margin:0 auto;padding:10px}h1{font-size:19px;margin:10px 0}
 .list a{display:flex;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--bd)}.list a:last-child{border:0}
 .rno{width:46px;font-weight:700;font-size:16px}.rst{margin-left:auto;font-size:12px;font-weight:700;border-radius:12px;padding:2px 10px;white-space:nowrap}
 .s-hot{background:var(--hot);color:#fff}.s-wait{background:var(--off);color:var(--sub)}.s-done{color:var(--sub)}
-.tabs{display:flex;border-bottom:2px solid var(--bd);margin:8px 0}.tabs a{flex:1;text-align:center;padding:10px 0;font-size:14px;font-weight:700;color:var(--sub)}
+.tabs{display:flex;border-bottom:2px solid var(--bd);margin:8px 0}.tabs a{flex:1;text-align:center;padding:10px 0;font-size:12.5px;font-weight:700;color:var(--sub);white-space:nowrap}
 .tabs a.on{color:var(--tx);border-bottom:3px solid var(--hot);margin-bottom:-2px}.tabs a .lk{font-size:11px;font-weight:500}
 .boat{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}.boat:last-child{border:0}
 .chip{width:30px;height:30px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;border:1px solid var(--bd)}
+.face{width:32px;height:44px;object-fit:cover;border-radius:4px;flex:none;background:var(--off)}
 .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:2px 8px;font-size:13px;margin-top:4px}.nums span{color:var(--sub);font-size:11px;display:block}
 .lab{display:inline-block;font-size:12px;padding:2px 8px;border-radius:6px;color:#fff;margin:2px 4px 2px 0}
 .lock{text-align:center;padding:36px 12px}.rnav{display:flex;justify-content:space-between;margin:14px 0}.rnav a{color:var(--ac)}
@@ -187,7 +188,10 @@ def info_page(date, info, boats, season, series, n_series, pred, races, result_r
         sea = season.get(b["toban"])
         sea_s = f"{sea:.2f}" if sea is not None else "―"
         ser_s = f'節間{s["pt"]:.2f}（{s["pos"]}位/{n_series}）' if s else "節間―"
-        rows += (f'<div class="boat">{chip(b["waku"])}<div style="flex:1;min-width:0">'
+        rows += (f'<div class="boat">{chip(b["waku"])}'
+                 f'<img class="face" src="https://www.boatrace.jp/racerphoto/{b["toban"]}.jpg" loading="lazy" '
+                 f'alt="" onerror="this.remove()">'
+                 f'<div style="flex:1;min-width:0">'
                  f'<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline">'
                  f'<b style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{html.escape(b["name"])}</b>'
                  f'<span class="sub" style="flex:none">今期{sea_s}</span></div>'
