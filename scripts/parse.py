@@ -8,6 +8,7 @@ VENUES = {"01": "桐生", "02": "戸田", "03": "江戸川", "04": "平和島", 
           "19": "下関", "20": "若松", "21": "芦屋", "22": "福岡", "23": "唐津", "24": "大村"}
 
 K_HDR = re.compile(r"\s+(\d+)R\s+(\S+)\s+H(\d+)m\s+(\S+)\s+風\s+(\S+)\s+(\d+)m\s+波\s+(\d+)cm")
+PAYOUT_RE = re.compile(r"(\d+)R\s+(\d-\d-\d)\s+(\d+)")
 K_BOAT = re.compile(r"\s+(\S\S|\S )\s*(\d)\s+(\d{4})\s+(.{8})\s*(\d+)\s+(\d+)\s+([\d.]+)\s+(\d)\s+(\S+)")
 B_BOAT = re.compile(r"^([1-6]) (\d{4})(.{4})(\d{2})(.{2})(\d{2})([AB][12])"
                     r"\s*(\d+\.\d{2})\s*(\d+\.\d{2})\s*(\d+\.\d{2})\s*(\d+\.\d{2})"  # 全国勝率・2率・当地勝率・2率
@@ -27,14 +28,23 @@ def parse_results(text: str, date: str):
     """競走成績 → 1行=1艇"""
     rows = []
     for jcd, body in re.findall(r"(\d\d)KBGN(.*?)\d\dKEND", text, re.S):
+        payout = {}
+        pi = body.find("[払戻金]")
+        if pi >= 0:
+            pj = body.find("着 艇", pi)
+            seg = body[pi:pj] if pj >= 0 else body[pi:pi + 2000]
+            for r, combo, amt in PAYOUT_RE.findall(seg):
+                payout[int(r)] = (combo, int(amt))
         race = None
         info = {}
         for line in body.splitlines():
             m = K_HDR.match(line)
             if m:
                 race = int(m.group(1))
+                combo3t, payout3t = payout.get(race, (None, None))
                 info = dict(rtype=m.group(2), distance=int(m.group(3)), weather=m.group(4),
-                            wind_dir=m.group(5), wind=int(m.group(6)), wave=int(m.group(7)), kimarite="")
+                            wind_dir=m.group(5), wind=int(m.group(6)), wave=int(m.group(7)), kimarite="",
+                            combo3t=combo3t, payout3t=payout3t)
                 continue
             if race and "ﾚｰｽﾀｲﾑ" in line:
                 info["kimarite"] = line.split("ﾚｰｽﾀｲﾑ")[1].strip()

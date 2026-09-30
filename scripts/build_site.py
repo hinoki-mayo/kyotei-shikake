@@ -100,12 +100,25 @@ def chip(w):
 
 
 # ---------- 集計(今期勝率・節間成績) ----------
+RES_COLS = ["date", "jcd", "race", "rank", "toban", "waku", "kimarite", "combo3t", "payout3t"]
+
+
+def _read_results_year(p):
+    """combo3t/payout3t列がまだ無い古いファイル(追加前に書かれたもの)にも対応する"""
+    try:
+        return pd.read_parquet(p, columns=RES_COLS)
+    except Exception:
+        df = pd.read_parquet(p, columns=[c for c in RES_COLS if c not in ("combo3t", "payout3t")])
+        df["combo3t"], df["payout3t"] = None, None
+        return df
+
+
 def load_results(since):
     fr = []
     for y in range(int(since[:4]), now_jst().year + 1):
         p = DATA / "results" / f"{y}.parquet"
         if p.exists():
-            fr.append(pd.read_parquet(p, columns=["date", "jcd", "race", "rank", "toban", "waku", "kimarite"]))
+            fr.append(_read_results_year(p))
     if not fr:
         return pd.DataFrame(columns=["date", "jcd", "race", "rank", "toban", "pt"])
     r = pd.concat(fr)
@@ -143,6 +156,11 @@ class Stats:
         if len(r) != 6:
             return None
         return dict(by_waku=dict(zip(r.waku.astype(int), r["rank"])), kimarite=r.kimarite.iloc[0])
+
+    def big_payouts(self, date, thr=10000):
+        """その日の万舟以上(3連単)を配当が高い順に返す"""
+        r = self.res[(self.res.date == date) & (self.res.payout3t >= thr)].drop_duplicates(["jcd", "race"])
+        return r.sort_values("payout3t", ascending=False)[["jcd", "race", "combo3t", "payout3t"]].to_dict("records")
 
 
 # ---------- ページ ----------
@@ -350,7 +368,30 @@ def venue_page(date, jcd, infos, preds, now):
                 f"{v}の全レースの出走表と1マーク展開予想", f"/{date}/{jcd}/")
 
 
-def grid_page(date, dates, prog_day, preds, now, path):
+def _trifecta_matches(pred, combo3t):
+    tri = pred.get("scene", {}).get("trifecta") if pred else None
+    if not tri or not combo3t:
+        return False
+    waku = [b["waku"] for b in pred["boats"]]
+    want = tuple(int(x) for x in combo3t.split("-"))
+    top = tuple(waku[i] for i in tri[0][:3])
+    return top == want
+
+
+def _payout_html(date, payouts, preds):
+    if not payouts:
+        return ""
+    rows = ""
+    for p in payouts:
+        jcd, race, combo, amt = p["jcd"], int(p["race"]), p["combo3t"], int(p["payout3t"])
+        pred = preds.get(f"{jcd}-{race:02d}")
+        badge = '<span class="rst s-hot">本命シナリオ的中！</span>' if _trifecta_matches(pred, combo) else ""
+        rows += (f'<a href="/{date}/{jcd}/{race:02d}-result.html"><span class="rno" style="width:80px">{VENUES[jcd]} {race}R</span>'
+                 f'<span>{combo} <b>{amt:,}円</b></span>{badge}</a>')
+    return f"<h2>本日の高配当（万舟以上）</h2><div class='card list'>{rows}</div>"
+
+
+def grid_page(date, dates, prog_day, preds, now, path, payouts=None):
     tiles = ""
     hot_list = []
     for j in [f"{i:02d}" for i in range(1, 25)]:
@@ -392,7 +433,8 @@ def grid_page(date, dates, prog_day, preds, now, path):
                  for d, j, r in sorted(hot_list))
     hot_html = f"<h2>いま展開予想が出ているレース</h2><div class='card list'>{hl}</div>" if hl else ""
     body = (f'<div class="dnav">{prev}<b>{jp(date)}</b>{nxt}</div><div class="grid">{tiles}</div>'
-            f'<p class="sub">展示の進入が出たレースから順に、スタートスリットと1マークの展開予想を公開します。</p>{hot_html}{ad()}{NUDGE_UPDATE}')
+            f'<p class="sub">展示の進入が出たレースから順に、スタートスリットと1マークの展開予想を公開します。</p>{hot_html}'
+            f'{_payout_html(date, payouts, preds)}{ad()}{NUDGE_UPDATE}')
     return page(f"{jp(date)} 全24場の展開予想", body, "全24場のスタートスリット・1マーク展開予想を展示後に公開", path)
 
 
@@ -431,6 +473,7 @@ def main():
         preds = json.loads(pd_path.read_text())["races"] if pd_path.exists() else {}
         day = prog[prog.date == date]
         season = stats.season(date)
+        payouts = stats.big_payouts(date)
         for jcd, g in day.groupby("jcd"):
             infos = [dict(jcd=jcd, race=int(r), rtype=x.rtype.iloc[0], deadline=x.deadline.iloc[0], title=x.title.iloc[0],
                           day=int(x.day.iloc[0])) for r, x in g.groupby("race")]
@@ -453,13 +496,14 @@ def main():
             (d / "index.html").write_text(venue_page(date, jcd, infos, preds, now))
             urls.append(f"/{date}/{jcd}/")
         (OUT / date).mkdir(exist_ok=True)
-        (OUT / date / "index.html").write_text(grid_page(date, dates, day, preds, now, f"/{date}/"))
+        (OUT / date / "index.html").write_text(grid_page(date, dates, day, preds, now, f"/{date}/", payouts))
         urls.append(f"/{date}/")
     top = today if today in dates else (dates[-1] if dates else None)
     if top:
         tp = DATA / "predictions" / f"{top}.json"
         preds = json.loads(tp.read_text())["races"] if tp.exists() else {}
-        (OUT / "index.html").write_text(grid_page(top, dates, prog[prog.date == top], preds, now, "/"))
+        (OUT / "index.html").write_text(grid_page(top, dates, prog[prog.date == top], preds, now, "/",
+                                                    stats.big_payouts(top)))
     else:
         (OUT / "index.html").write_text(page("準備中", "<h1>準備中です</h1>", "", "/"))
     for name, (title, body) in STATIC.items():
