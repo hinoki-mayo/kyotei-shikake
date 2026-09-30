@@ -1,0 +1,11 @@
+{
+ "as_of_date": "20260928",
+ "global_attack_rate": 0.048992875362828744,
+ "global_st_std": 0.07221549116694968,
+ "K_CLUTCH": 40,
+ "K_NEIGH": 30,
+ "CLUTCH_THR": 0.011,
+ "n_clutch_players": 1887,
+ "n_neighbor_players": 1890,
+ "note": "close_indicator(|dIn|<CLUTCH_THR or |dOut|<CLUTCH_THR)はmodel.py側でその場のstから計算し、clutch_table[toban]と掛け合わせて使う想定。テーブルに無いtobanはclutch=0, neighbor attack_rate=0/st_std=0(=全体平均並み)にフォールバックすること。"
+}

@@ -21,9 +21,15 @@ WC = ["w_" + m for m in M]
 K, KS = PRM["K"], PRM["KS"]
 EQUIP_K = 50    # モーター/ボートの勝率シュリンケージ
 WTHR_K = 40     # 風向つき場・コース勝率のシュリンケージ
+CLUTCH_THR = 0.011   # |dIn|または|dOut|がこれ未満なら「際どい局面」
 PTS = {"01": 10, "02": 8, "03": 6, "04": 4, "05": 2, "06": 1}
 PT_NEUTRAL = sum(PTS.values()) / 6   # 節間データがまだ無い選手に当てる中立値
 R2 = PRM.get("round2_features")      # round2の追加特徴量(無ければ従来通り動く)
+R3 = PRM.get("round3_features")      # round3(際どい局面の個人スコア・隣接艇タイプ)
+
+_LT = ROOT / "scripts" / "live_tables"
+CLUTCH_TABLE = json.loads((_LT / "clutch_table.json").read_text()) if R3 else {}
+NEIGHBOR_TABLE = json.loads((_LT / "neighbor_table.json").read_text()) if R3 else {}
 
 
 def load_results(until: str, years: int = 6) -> pd.DataFrame:
@@ -159,7 +165,8 @@ class Model:
                          motor_edge=motor_edge, boat_edge=boat_edge, momentum=momentum,
                          wind=(weather or {}).get("wind", 0.0) if weather else 0.0,
                          wave=(weather or {}).get("wave", 0.0) if weather else 0.0,
-                         rain=float((weather or {}).get("rain", False)) if weather else 0.0)
+                         rain=float((weather or {}).get("rain", False)) if weather else 0.0,
+                         toban=[e["toban"] for e in entries])
         return self._probs(rate, st, ab, extra), st, fc, rate
 
     @staticmethod
@@ -168,6 +175,9 @@ class Model:
         out = np.r_[st[1:], st[-1]]
         d_in, d_mean, d_out = inn - st, st.mean() - st, out - st
         abc = ab - ab.mean()
+        close = (np.abs(d_in) < CLUTCH_THR) | (np.abs(d_out) < CLUTCH_THR)
+        close[0] = abs(d_out[0]) < CLUTCH_THR    # 1コースにd_inの実体は無い(常に0のダミー)
+        close[5] = abs(d_in[5]) < CLUTCH_THR     # 6コースにd_outの実体は無い(常に0のダミー)
         thr = np.array(PRM["makuri_thr"])
         mk = (rate[:, 1] + rate[:, 3]) >= thr
         clash = float(mk[2] and mk[3]) * (1 + 10 * max(st[2] - st[3], 0))
@@ -178,7 +188,35 @@ class Model:
         for i in range(3, 6):
             no[i] = float(not mk[1:i].any())
 
-        if R2 and extra is not None:
+        if R3 and extra is not None:
+            p = np.array(R3["theta"])
+            a0, a1 = p[:4], p[4:8]
+            b = p[8:80].reshape(-1, 4)
+            tenji_z = np.zeros(6)
+            if extra["tenji"] is not None:
+                tj = extra["tenji"]
+                sd = tj.std() + 1e-3
+                tenji_z = (tj.mean() - tj) / sd
+            mom = extra["momentum"] / 3.0
+            mom_z = mom - mom.mean()
+            wind_b = np.full(6, extra["wind"] / 5.0)
+            wave_b = np.full(6, extra["wave"] / 10.0)
+            rain_b = np.full(6, extra["rain"])
+            toban = extra["toban"]
+            clutch = np.array([CLUTCH_TABLE.get(t, 0.0) for t in toban]) * close.astype(float)
+            attack = np.array([NEIGHBOR_TABLE.get(t, {}).get("attack_rate", 0.0) for t in toban])
+            std = np.array([NEIGHBOR_TABLE.get(t, {}).get("st_std", 0.0) for t in toban])
+            nb_in_attack = np.r_[0.0, attack[:-1]]
+            nb_out_attack = np.r_[attack[1:], 0.0]
+            nb_in_std = np.r_[0.0, std[:-1]]
+            nb_out_std = np.r_[std[1:], 0.0]
+            feats = (d_in, d_mean, d_out, abc, cl, no, tenji_z,
+                     extra["motor_edge"], extra["boat_edge"], wind_b, wave_b, rain_b, mom_z,
+                     clutch, nb_in_attack, nb_out_attack, nb_in_std, nb_out_std)
+            s = a0 * np.log(rate + 1e-4) + a1 * np.log(extra["wrate"] + 1e-4)
+            for j, f in enumerate(feats):
+                s = s + b[j] * f[:, None]
+        elif R2 and extra is not None:
             p = np.array(R2["theta"])
             a0, a1 = p[:4], p[4:8]
             b = p[8:60].reshape(-1, 4)
