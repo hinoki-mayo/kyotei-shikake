@@ -51,6 +51,8 @@ def run(date, only=None, model=None, allow_late=False):
         g = g.sort_values("waku")
         deadline = g.deadline.iloc[0]
         live = entries_override.get(key)            # 展示の進入・展示タイム・天候(揃うまではNone)
+        if isinstance(live, list):                   # 旧フォーマット(進入順のリストのみ)との互換
+            live = dict(order=live)
         order = live.get("order") if live else None
         version = "final" if order else "pre"
         if old and (closed(date, deadline) or (old["version"] == "final" and version == "final" and not only)):
