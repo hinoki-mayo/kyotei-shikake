@@ -55,6 +55,13 @@ main{max-width:760px;margin:0 auto;padding:10px}h1{font-size:19px;margin:10px 0}
 .boat{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}.boat:last-child{border:0}
 .chip{width:30px;height:30px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;border:1px solid var(--bd)}
 .face{width:32px;height:44px;object-fit:cover;border-radius:4px;flex:none;background:var(--off)}
+.trifecta{background:linear-gradient(135deg,var(--hot),#B8511E);color:#fff;text-align:center;padding:16px 12px}
+.trifecta .sub{color:rgba(255,255,255,.85)}
+.tri-main{display:flex;align-items:center;justify-content:center;gap:6px;font-size:26px;font-weight:800;margin-bottom:8px}
+.tri-chip{background:#fff;color:var(--hot);border-radius:8px;padding:2px 10px;min-width:36px}
+.tri-ar{font-size:18px;opacity:.8}
+.tri-pct{font-size:15px;font-weight:700;margin-left:8px;background:rgba(0,0,0,.2);border-radius:12px;padding:2px 10px}
+.tri-subrow{font-size:13px;opacity:.9;margin-top:2px}
 .nums{display:grid;grid-template-columns:repeat(3,1fr);gap:2px 8px;font-size:13px;margin-top:4px}.nums span{color:var(--sub);font-size:11px;display:block}
 .lab{display:inline-block;font-size:12px;padding:2px 8px;border-radius:6px;color:#fff;margin:2px 4px 2px 0}
 .lock{text-align:center;padding:36px 12px}.rnav{display:flex;justify-content:space-between;margin:14px 0}.rnav a{color:var(--ac)}
@@ -250,7 +257,8 @@ def turn_page(date, info, pred, races, result_ready=False):
         waku = [b["waku"] for b in pred["boats"]]
         lines = "".join(f'<div class="boat">{chip(b["waku"])}<div><span class="sub">{html.escape(b["name"])}</span><br>'
                         f'{html.escape(sc["lines"].get(str(k), "展開待ち"))}</div></div>' for k, b in enumerate(pred["boats"]))
-        content = f'<div class="card">{labels(pred)}</div>{turn_svg(sc2, waku)}<h2>各艇の展開</h2><div class="card">{lines}</div>'
+        content = (f'<div class="card">{labels(pred)}</div>{turn_svg(sc2, waku)}<h2>各艇の展開</h2><div class="card">{lines}</div>'
+                   + _trifecta_card(pred))
     body = race_head(date, v, info, "turn", locked, base, result_ready) + content + ad() + rnav(date, info["jcd"], info["race"], races, "-turn")
     return page(f"{v}{info['race']}R 1マーク展開予想 {jp(date)}", body, f"{v}{info['race']}Rの1マーク仕掛け・展開予想",
                 f"/{date}/{info['jcd']}/{base}-turn.html")
@@ -302,6 +310,21 @@ def result_page(date, info, pred, races, result):
         + rnav(date, info["jcd"], info["race"], races, "-result")
     return page(f"{v}{info['race']}R 結果 {jp(date)}", body, f"{v}{info['race']}Rの結果と展開予想の答え合わせ",
                 f"/{date}/{info['jcd']}/{base}-result.html")
+
+
+def _trifecta_card(pred):
+    tri = pred["scene"].get("trifecta")
+    if not tri:
+        return ""
+    waku = [b["waku"] for b in pred["boats"]]
+    i1, j1, k1, p1 = tri[0]
+    arrow = '<span class="tri-ar">→</span>'
+    chips = arrow.join(f'<span class="tri-chip">{waku[x]}</span>' for x in (i1, j1, k1))
+    main = f'<div class="tri-main">{chips}<span class="tri-pct">{p1 * 100:.1f}%</span></div>'
+    sub = "".join(f'<div class="tri-subrow">{waku[i]}-{waku[j]}-{waku[k]} <span class="sub">{p * 100:.1f}%</span></div>'
+                  for i, j, k, p in tri[1:])
+    return (f'<h2>本命シナリオ</h2><div class="card trifecta">{main}{sub}'
+            f'<p class="sub" style="margin-top:8px">展開予想から機械的に導いた参考の着順です。的中や払戻を保証するものではありません。</p></div>')
 
 
 def venue_page(date, jcd, infos, preds, now):

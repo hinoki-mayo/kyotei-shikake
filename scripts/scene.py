@@ -2,6 +2,7 @@
 
 図・ラベル・コメントはすべてここで決めた役割から作るので、食い違いが起きない。
 """
+import itertools
 import json
 import pathlib
 
@@ -99,6 +100,27 @@ def build_scene(P, st, fc):
         if fc[k] >= 1 and k in lines:
             lines[k] += f"（F{fc[k]}持ち）"
 
+    head_prob = P.sum(1)
     return dict(pressed=pressed, nige=round(nige, 3), shu=shu, move=mv, sub=sub, sub_move=smv,
                 roles=roles, tags=tags, late=late, head=head, ren=ren, bad=bad, lines=lines,
-                head_prob=[round(float(x), 3) for x in P.sum(1)])
+                head_prob=[round(float(x), 3) for x in head_prob],
+                trifecta=build_trifecta(head_prob))
+
+
+def build_trifecta(head_prob, top=3):
+    """1着確率(head_prob、コース順6値)から、Plackett-Luceで2着・3着を順番に
+    積み上げて、3連単の確率が高い組み合わせを返す。[(1着,2着,3着,確率), ...]
+    (コースは0始まり)。着順そのものを主張する予想ではなく、あくまで
+    展開予想から機械的に導いた参考値として使う。"""
+    w = list(head_prob)
+    total = sum(w)
+    combos = []
+    for i, j, k in itertools.permutations(range(6), 3):
+        rest1 = total - w[i]
+        rest2 = rest1 - w[j]
+        if rest1 <= 1e-9 or rest2 <= 1e-9:
+            continue
+        p = (w[i] / total) * (w[j] / rest1) * (w[k] / rest2)
+        combos.append((i, j, k, p))
+    combos.sort(key=lambda x: -x[3])
+    return [(i, j, k, round(float(p), 4)) for i, j, k, p in combos[:top]]
