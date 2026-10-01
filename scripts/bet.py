@@ -27,7 +27,7 @@ from place import PERMS
 
 URL = "https://www.boatrace.jp/owpc/pc/race/odds3t?rno={race}&jcd={jcd}&hd={date}"
 ODDS_RE = re.compile(r'class="oddsPoint[^"]*">([^<]*)<')
-BLEND = (0.17, 0.98)    # 確率の混ぜ方(モデル, 市場)の重み。過去693レースの締切時オッズで推定した仮の値
+BLEND = (0.13, 0.99)    # 確率の混ぜ方(モデル, 市場)の重み。2025-26年のランダム1,500レースの締切時オッズで推定(モデル0.13±0.05)
 WINDOW = (2, 9)         # 締切の何分前のレースを対象にするか
 ANA_ODDS = 60           # 穴狙いの対象にするオッズの下限
 ANA_MAX = 10            # 穴狙いの最大点数
