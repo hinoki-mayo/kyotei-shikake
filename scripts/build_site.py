@@ -199,7 +199,8 @@ def labels(pred):
     f = lambda ks: "・".join(str(bs[k]["waku"]) for k in ks) or "なし"
     return (f'<span class="lab" style="background:var(--red)">頭注目 {f(sc["head"])}</span>'
             f'<span class="lab" style="background:var(--green)">連絡み注目 {f(sc["ren"])}</span>'
-            f'<span class="lab" style="background:#444441">展開不向き {f(sc["bad"])}</span>')
+            f'<span class="lab" style="background:#444441">展開不向き {f(sc["bad"])}</span>'
+            f'<p class="sub" style="margin:4px 2px 0">展開不向き＝1着になりにくい、という意味です（2・3着まで否定するものではありません）。</p>')
 
 
 def info_page(date, info, boats, season, series, n_series, pred, races, result_ready=False):
