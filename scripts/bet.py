@@ -182,7 +182,16 @@ def make_bet(pred, odds_w):
                          scenario=_scenario(name, pred, p, w, s, idx, waku), tickets=tickets)
     # 締切前オッズそのもの(公式表の並び)も残す。締切時オッズとの差の分析用
     raw = [odds_w.get(c) for c in ODDS_ORDER]
-    return dict(plans=out, odds=raw)
+    return dict(plans=out, odds=raw, cond=_conditions(pred, waku))
+
+
+def _conditions(pred, waku):
+    """あとで「どんなレースで当たるか」を分析するための条件"""
+    bs, sc = pred["boats"], pred["scene"]
+    return dict(g1=bs[0]["grade"], na1=sum(b["grade"] == "A1" for b in bs),
+                wingap=round(bs[0]["nat_win"] - max(b["nat_win"] for b in bs[1:]), 2),
+                p1=round(sum(pred["prob"][0]), 3), head=[waku[k] for k in sc["head"]],
+                pressed=sc["pressed"], stgap=round(min(pred["st"][1:]) - pred["st"][0], 3))
 
 
 def run(now=None):
