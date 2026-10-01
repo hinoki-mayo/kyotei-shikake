@@ -14,9 +14,9 @@ import urllib.request
 import pandas as pd
 
 import bet
+import live_result
 import predict
-from common import DATA, JST, UA, download, now_jst
-from store import upsert
+from common import DATA, JST, UA, now_jst
 
 URL = "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno={race}&jcd={jcd}&hd={date}"
 TENJI_RE = re.compile(r'toban=(\d+)">.*?<td rowspan="2">[\d.]+kg</td>\s*<td rowspan="4">([\d.]+)</td>', re.S)
@@ -109,19 +109,10 @@ def main():
     print(f"展示反映: {len(todo)}レース {todo}")
     bet.run(now)   # 締切直前のレースは、オッズを見て試験用の買い目を決める
 
-    # 締切を過ぎたばかり(2〜20分以内)のレースがあれば、結果をレース単位の
-    # 待ち時間で取り直す(以前は1日3回のupdate.yml頼みで、最後にまとめて
-    # しか結果が反映されなかった)
-    just_closed = any(
-        r.deadline and dt.timedelta(minutes=0) <= now - dt.datetime.strptime(
-            date + r.deadline, "%Y%m%d%H:%M").replace(tzinfo=JST) <= dt.timedelta(minutes=20)
-        for r in prog.itertuples()
-    )
-    if just_closed:
-        today = now.date()
-        if download("K", today, force=True):
-            upsert("K", [today])
-        print("結果を更新しました")
+    # 締切後のレースは、公式サイトのレース結果ページから結果を取り込む。
+    # (以前は当日の成績ファイルを取り直していたが、成績ファイルは全レース終了後に
+    #  まとめて公開されるので日中は毎回空振りしていた)
+    live_result.run(prog, now)
 
 
 if __name__ == "__main__":

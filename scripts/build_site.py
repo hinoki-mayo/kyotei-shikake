@@ -14,6 +14,7 @@ import shutil
 import pandas as pd
 
 import bet as bet_mod
+import live_result
 from common import DATA, ROOT, now_jst
 from draw import slit_svg, turn_svg
 from parse import VENUES
@@ -448,7 +449,10 @@ def bets_summary_page():
         return page("試験用買い目の収支", "<h1>試験用買い目の収支</h1><p>まだデータがありません</p>", "", "/bets.html", noindex=True)
     res = load_results(files[0].stem)
     keyed = {(r.date, r.jcd, int(r.race)): dict(combo3t=r.combo3t, payout3t=r.payout3t)
-             for r in res.drop_duplicates(["date", "jcd", "race"]).itertuples()}
+             for r in res.drop_duplicates(["date", "jcd", "race"]).itertuples() if r.combo3t}
+    for f in files:   # 成績ファイルがまだの日は、レース結果ページから取り込んだ結果で補う
+        for k, v in live_result.load(f.stem).items():
+            keyed.setdefault((f.stem, k[:2], int(k[3:])), v)
     tot = {n: [0, 0, 0, 0, 0] for n in bet_mod.PLANS}    # 買ったレース, 的中, 投資, 払戻, 見送り
     days = []
     for f in reversed(files):
@@ -530,6 +534,16 @@ def _payout_html(date, payouts, preds):
         rows += (f'<a href="/{date}/{jcd}/{race:02d}-result.html"><span class="rno" style="width:80px">{VENUES[jcd]} {race}R</span>'
                  f'<span>{combo} <b>{amt:,}円</b></span>{badge}</a>')
     return f"<h2>本日の高配当（万舟以上）</h2><div class='card list'>{rows}</div>"
+
+
+def _with_live_payouts(payouts, date, thr=10000):
+    """成績ファイルがまだのレースの万舟を、レース結果ページから取り込んだ結果で補う"""
+    have = {(p["jcd"], int(p["race"])) for p in payouts}
+    for k, v in live_result.load(date).items():
+        jcd, race = k[:2], int(k[3:])
+        if (jcd, race) not in have and v.get("payout3t") and v["payout3t"] >= thr:
+            payouts.append(dict(jcd=jcd, race=race, combo3t=v["combo3t"], payout3t=v["payout3t"]))
+    return sorted(payouts, key=lambda p: -p["payout3t"])
 
 
 def grid_page(date, dates, prog_day, preds, now, path, payouts=None):
@@ -614,9 +628,10 @@ def main():
         preds = json.loads(pd_path.read_text())["races"] if pd_path.exists() else {}
         bp = DATA / "bets" / f"{date}.json"
         bets = json.loads(bp.read_text()) if bp.exists() else {}
+        live = live_result.load(date)   # 成績ファイルが出るまでのつなぎ(レース結果ページから取り込んだ結果)
         day = prog[prog.date == date]
         season = stats.season(date)
-        payouts = stats.big_payouts(date)
+        payouts = _with_live_payouts(stats.big_payouts(date), date)
         for jcd, g in day.groupby("jcd"):
             infos = [dict(jcd=jcd, race=int(r), rtype=x.rtype.iloc[0], deadline=x.deadline.iloc[0], title=x.title.iloc[0],
                           day=int(x.day.iloc[0])) for r, x in g.groupby("race")]
@@ -629,7 +644,7 @@ def main():
                 boats = x.to_dict("records")
                 pred = preds.get(f"{jcd}-{info['race']:02d}")
                 base = f'{info["race"]:02d}'
-                result = stats.race_result(jcd, date, info["race"])
+                result = stats.race_result(jcd, date, info["race"]) or live.get(f"{jcd}-{base}")
                 ready = result is not None
                 (d / f"{base}.html").write_text(info_page(date, info, boats, season, series, n_series, pred, races, ready))
                 (d / f"{base}-slit.html").write_text(slit_page(date, info, pred, races, ready))
@@ -647,7 +662,7 @@ def main():
         tp = DATA / "predictions" / f"{top}.json"
         preds = json.loads(tp.read_text())["races"] if tp.exists() else {}
         (OUT / "index.html").write_text(grid_page(top, dates, prog[prog.date == top], preds, now, "/",
-                                                    stats.big_payouts(top)))
+                                                    _with_live_payouts(stats.big_payouts(top), top)))
     else:
         (OUT / "index.html").write_text(page("準備中", "<h1>準備中です</h1>", "", "/"))
     (OUT / "bets.html").write_text(bets_summary_page())   # 自分用なのでサイトマップには入れない
