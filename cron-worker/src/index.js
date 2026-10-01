@@ -8,10 +8,12 @@ const REPO = "kyotei-shikake";
 const UPDATE_SLOTS_UTC_MIN = [22 * 60, 12 * 60, 15 * 60 + 30];
 const UPDATE_WINDOW_MIN = 10; // この5分間隔cronなら10分あれば1回は当たる
 
-// レースがある時間帯だけentry.ymlを起こす(元のentry.yml本来のcronと同じ 8:00〜21:59 JST = 23:00〜12:59 UTC)
+// 以前は8:00〜21:59 JSTだけに絞っていたが、ミッドナイトボートレース(大村・児島等)の
+// 23時台締切のレースが展示反映されないバグになっていた。entry.py側で「締切2〜30分前」
+// の実際の判定をしているので、ここでの時間帯しぼりは安全側に倒して常にtrueにする
+// (public repoでActionsの実行は無料なので、空振りのコストは実質ゼロ)。
 function inRaceHours(now) {
-  const m = now.getUTCHours() * 60 + now.getUTCMinutes();
-  return m >= 23 * 60 || m < 13 * 60;
+  return true;
 }
 
 function headers(token) {
