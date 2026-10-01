@@ -13,6 +13,7 @@ import shutil
 
 import pandas as pd
 
+import bet as bet_mod
 from common import DATA, ROOT, now_jst
 from draw import slit_svg, turn_svg
 from parse import VENUES
@@ -50,8 +51,8 @@ main{max-width:760px;margin:0 auto;padding:10px}h1{font-size:19px;margin:10px 0}
 .list a{display:flex;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--bd)}.list a:last-child{border:0}
 .rno{width:46px;font-weight:700;font-size:16px}.rst{margin-left:auto;font-size:12px;font-weight:700;border-radius:12px;padding:2px 10px;white-space:nowrap}
 .s-hot{background:var(--hot);color:#fff}.s-wait{background:var(--off);color:var(--sub)}.s-done{color:var(--sub)}
-.tabs{display:flex;border-bottom:2px solid var(--bd);margin:8px 0}.tabs a{flex:1;text-align:center;padding:10px 0;font-size:12.5px;font-weight:700;color:var(--sub);white-space:nowrap}
-.tabs a.on{color:var(--tx);border-bottom:3px solid var(--hot);margin-bottom:-2px}.tabs a .lk{font-size:11px;font-weight:500}
+.tabs{display:flex;border-bottom:2px solid var(--bd);margin:8px 0}.tabs a{flex:1 1 auto;min-width:0;text-align:center;padding:10px 0;font-size:12.5px;font-weight:700;color:var(--sub);white-space:nowrap}
+.tabs a.on{color:var(--tx);border-bottom:3px solid var(--hot);margin-bottom:-2px}.tabs a .lk{font-size:10px;font-weight:500;white-space:normal;display:block;line-height:1.3}
 .boat{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}.boat:last-child{border:0}
 .chip{width:30px;height:30px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;border:1px solid var(--bd)}
 .face{width:32px;height:44px;object-fit:cover;border-radius:4px;flex:none;background:var(--off)}
@@ -70,8 +71,9 @@ footer{max-width:760px;margin:24px auto;padding:12px;font-size:12px;color:var(--
 """
 
 
-def page(title, body, desc="", path=""):
-    return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8">
+def page(title, body, desc="", path="", noindex=False):
+    robots = '<meta name="robots" content="noindex">' if noindex else ""
+    return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8">{robots}
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(title)}｜{CFG['site_name']}</title><meta name="description" content="{html.escape(desc)}">
 <link rel="canonical" href="{CFG['base_url']}{path}"><meta property="og:title" content="{html.escape(title)}">
@@ -155,7 +157,8 @@ class Stats:
         r = self.res[(self.res.jcd == jcd) & (self.res.date == date) & (self.res.race == race)]
         if len(r) != 6:
             return None
-        return dict(by_waku=dict(zip(r.waku.astype(int), r["rank"])), kimarite=r.kimarite.iloc[0])
+        return dict(by_waku=dict(zip(r.waku.astype(int), r["rank"])), kimarite=r.kimarite.iloc[0],
+                    combo3t=r.combo3t.iloc[0], payout3t=r.payout3t.iloc[0])
 
     def big_payouts(self, date, thr=10000):
         """その日の万舟以上(3連単)を配当が高い順に返す"""
@@ -173,10 +176,11 @@ def race_status(date, r, pred, now):
 
 
 def tabs(base, cur, locked, result_ready):
-    lk = '<br><span class="lk">展示後に公開</span>' if locked else ""
-    rlk = "" if result_ready else '<br><span class="lk">結果発表後に公開</span>'
+    lk = '<span class="lk">展示後に公開</span>' if locked else ""
+    rlk = "" if result_ready else '<span class="lk">結果発表後に公開</span>'
     items = [("出走表", f"{base}.html", "info", ""), ("スタートスリット", f"{base}-slit.html", "slit", lk),
-             ("1マーク", f"{base}-turn.html", "turn", lk), ("結果", f"{base}-result.html", "result", rlk)]
+             ("1マーク", f"{base}-turn.html", "turn", lk), ("結果", f"{base}-result.html", "result", rlk),
+             ("試験買い目", f"{base}-bet.html", "bet", "")]
     return '<nav class="tabs">' + "".join(
         f'<a class="{"on" if k == cur else ""}" href="{u}">{t}{x}</a>' for t, u, k, x in items) + "</nav>"
 
@@ -363,6 +367,89 @@ def _trifecta_card(pred):
             f'<p class="sub" style="margin-top:8px">展開予想から機械的に導いた参考の着順です。的中や払戻を保証するものではありません。</p></div>')
 
 
+def settle(bet, result):
+    """試験用買い目の収支。(投資, 払戻) / 結果待ちはNone。払戻は100円あたりの配当×口数"""
+    if not bet or bet.get("skip"):
+        return None
+    if not result or not result.get("combo3t") or pd.isna(result.get("payout3t")):
+        return None
+    ret = sum(t["units"] * int(result["payout3t"]) for t in bet["tickets"] if t["combo"] == result["combo3t"])
+    return bet["stake"], ret
+
+
+TRIAL_NOTE = ('<div class="card" style="border:2px dashed var(--hot)"><b style="color:var(--hot)">試験運用中</b>'
+              '<br><span class="sub" style="color:var(--tx)">買い目モデルを検証するために、試験的に公開しています。'
+              '成績はまだ検証中で、回収を保証するものではありません。参考程度にご覧ください。</span></div>')
+
+
+def bet_page(date, info, pred, races, result, bet):
+    v = VENUES[info["jcd"]]
+    base = f'{info["race"]:02d}'
+    if bet is None:
+        content = ('<div class="card lock"><b>買い目はまだ決まっていません</b><br>'
+                   '<span class="sub">締切の約2〜9分前にオッズを見て、1レース1回だけ決めます</span></div>')
+    elif bet.get("skip"):
+        content = (f'<div class="card lock"><b>見送り</b><br><span class="sub">{bet["odds_at"]}時点のオッズでは、'
+                   f'的中確率{bet_mod.MIN_HIT:.0%}以上で期待回収率が{bet_mod.MIN_EV:.0%}を超える組み合わせがありませんでした</span></div>')
+    else:
+        himo = "".join(str(x) for x in bet["himo"])
+        head = (f'<div class="card trifecta"><div class="tri-main"><span class="tri-chip">{bet["head"]}</span>'
+                f'<span class="tri-ar">→</span><span class="tri-chip">{himo}</span><span class="tri-ar">→</span>'
+                f'<span class="tri-chip">{himo}</span></div>'
+                f'<p class="sub">投資 {bet["stake"]:,}円・的中確率 {bet["hit"]:.0%}・期待回収率 {bet["ev"]:.0%}'
+                f'（{bet["odds_at"]}時点のオッズ）</p></div>')
+        rows = "".join(
+            f'<div class="boat"><div style="flex:1"><b>{t["combo"]}</b> <span class="sub">× {t["units"]}口（{t["units"] * 100:,}円）</span><br>'
+            f'<span class="sub">オッズ {t["odds"]:.1f}・確率 {t["prob"]:.1%}・期待値 {t["prob"] * t["odds"]:.2f}</span></div></div>'
+            for t in bet["tickets"])
+        content = head + f'<h2>買い目</h2><div class="card">{rows}</div>'
+        st = settle(bet, result)
+        if st:
+            stake, ret = st
+            col = "var(--green)" if ret >= stake else "var(--red)"
+            content += (f'<h2>収支</h2><div class="card"><b>結果 {html.escape(result["combo3t"])}</b>'
+                        f'（{int(result["payout3t"]):,}円）<br><span style="color:{col};font-weight:700">'
+                        f'{"的中" if ret else "不的中"}　払戻 {ret:,}円 / 投資 {stake:,}円（{ret - stake:+,}円）</span></div>')
+    content = TRIAL_NOTE + content
+    content += ('<p class="sub">展開予想とは別に、モデルの確率と締切前のオッズから機械的に組んでいます。'
+                'オッズは締切までに動くため、表示の期待回収率は目安です。<a href="/bets.html" style="color:var(--ac)">通算の収支</a></p>')
+    body = race_head(date, v, info, "bet", False, base, result is not None) + content \
+        + rnav(date, info["jcd"], info["race"], races, "-bet")
+    return page(f"{v}{info['race']}R 試験用買い目 {jp(date)}", body, "", f"/{date}/{info['jcd']}/{base}-bet.html", noindex=True)
+
+
+def bets_summary_page():
+    """試験用買い目の日別・通算の収支"""
+    files = sorted((DATA / "bets").glob("*.json"))
+    if not files:
+        return page("試験用買い目の収支", "<h1>試験用買い目の収支</h1><p>まだデータがありません</p>", "", "/bets.html", noindex=True)
+    res = load_results(files[0].stem)
+    keyed = {(r.date, r.jcd, int(r.race)): dict(combo3t=r.combo3t, payout3t=r.payout3t)
+             for r in res.drop_duplicates(["date", "jcd", "race"]).itertuples()}
+    rows, tot = "", [0, 0, 0, 0, 0]   # 買ったレース, 的中, 投資, 払戻, 見送り
+    for f in reversed(files):
+        date = f.stem
+        day = [0, 0, 0, 0, 0]
+        for key, b in json.loads(f.read_text()).items():
+            if b.get("skip"):
+                day[4] += 1
+                continue
+            jcd, race = key.split("-")
+            st = settle(b, keyed.get((date, jcd, int(race))))
+            if st is None:
+                continue
+            day[0] += 1; day[1] += st[1] > 0; day[2] += st[0]; day[3] += st[1]
+        tot = [a + b for a, b in zip(tot, day)]
+        roi = f"{day[3] / day[2]:.0%}" if day[2] else "―"
+        rows += (f'<div class="boat"><div style="flex:1"><b>{jp(date)}</b> <span class="sub">{day[0]}R購入・{day[1]}R的中・見送り{day[4]}R</span><br>'
+                 f'投資 {day[2]:,}円 → 払戻 {day[3]:,}円　<b>回収率 {roi}</b></div></div>')
+    roi = f"{tot[3] / tot[2]:.0%}" if tot[2] else "―"
+    head = (f'<h1>試験用買い目の収支</h1>{TRIAL_NOTE}<div class="card trifecta"><div class="tri-main">{roi}</div>'
+            f'<p class="sub">通算 {tot[0]}R購入・{tot[1]}R的中・投資 {tot[2]:,}円 → 払戻 {tot[3]:,}円（{tot[3] - tot[2]:+,}円）</p></div>')
+    return page("試験用買い目の収支", head + f'<h2>日別</h2><div class="card">{rows}</div>'
+                '<p class="sub">結果が出たレースのみ集計しています。</p>', "", "/bets.html", noindex=True)
+
+
 def venue_page(date, jcd, infos, preds, now):
     v = VENUES[jcd]
     items = ""
@@ -489,6 +576,8 @@ def main():
     for date in dates:
         pd_path = DATA / "predictions" / f"{date}.json"
         preds = json.loads(pd_path.read_text())["races"] if pd_path.exists() else {}
+        bp = DATA / "bets" / f"{date}.json"
+        bets = json.loads(bp.read_text()) if bp.exists() else {}
         day = prog[prog.date == date]
         season = stats.season(date)
         payouts = stats.big_payouts(date)
@@ -510,6 +599,7 @@ def main():
                 (d / f"{base}-slit.html").write_text(slit_page(date, info, pred, races, ready))
                 (d / f"{base}-turn.html").write_text(turn_page(date, info, pred, races, ready))
                 (d / f"{base}-result.html").write_text(result_page(date, info, pred, races, result))
+                (d / f"{base}-bet.html").write_text(bet_page(date, info, pred, races, result, bets.get(f"{jcd}-{base}")))
                 urls += [f"/{date}/{jcd}/{base}{s}.html" for s in ("", "-slit", "-turn", "-result")]
             (d / "index.html").write_text(venue_page(date, jcd, infos, preds, now))
             urls.append(f"/{date}/{jcd}/")
@@ -524,6 +614,7 @@ def main():
                                                     stats.big_payouts(top)))
     else:
         (OUT / "index.html").write_text(page("準備中", "<h1>準備中です</h1>", "", "/"))
+    (OUT / "bets.html").write_text(bets_summary_page())   # 自分用なのでサイトマップには入れない
     for name, (title, body) in STATIC.items():
         (OUT / name).write_text(page(title, body.format(about=CFG.get("about", ""), contact=CFG.get("contact", "")), title, "/" + name))
         urls.append("/" + name)

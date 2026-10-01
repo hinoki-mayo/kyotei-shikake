@@ -13,6 +13,7 @@ import urllib.request
 
 import pandas as pd
 
+import bet
 import predict
 from common import DATA, JST, UA, download, now_jst
 from store import upsert
@@ -106,6 +107,7 @@ def main():
         ep.write_text(json.dumps(entries))
         predict.run(date, only=set(todo))
     print(f"展示反映: {len(todo)}レース {todo}")
+    bet.run(now)   # 締切直前のレースは、オッズを見て試験用の買い目を決める
 
     # 締切を過ぎたばかり(2〜20分以内)のレースがあれば、結果をレース単位の
     # 待ち時間で取り直す(以前は1日3回のupdate.yml頼みで、最後にまとめて

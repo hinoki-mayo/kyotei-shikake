@@ -13,6 +13,7 @@ import pandas as pd
 
 from common import DATA, JST, now_jst, today_jst
 from model import Model, load_results
+from place import trifecta_probs
 from scene import build_scene
 
 
@@ -72,8 +73,9 @@ def run(date, only=None, model=None, allow_late=False):
         entries_in = [dict(course=c + 1, toban=e.toban, motor=int(e.motor), boat=int(e.boat),
                             tenji=(tenji[order[c] - 1] if tenji else None))
                       for c, e in enumerate(ents)]
-        P, st, fc, rate = model.race(jcd, entries_in, weather=weather)
+        P, st, fc, rate, pin = model.race(jcd, entries_in, weather=weather)
         sc = build_scene(P, st, fc)
+        tri = trifecta_probs(P, st, pin["ab"], pin["tenji_z"], pin["motor"])
         store["races"][key] = dict(
             jcd=jcd, venue=g.venue.iloc[0], race=int(race), rtype=g.rtype.iloc[0], deadline=deadline,
             version=version, predicted_at=now_jst().strftime("%Y-%m-%d %H:%M"),
@@ -81,7 +83,8 @@ def run(date, only=None, model=None, allow_late=False):
                         age=int(e.age), branch=e.branch, nat_win=float(e.nat_win), motor_2r=float(e.motor_2r))
                    for c, e in enumerate(ents)],
             st=[round(float(x), 3) for x in st], fcnt=[int(x) for x in fc],
-            prob=np.round(P, 4).tolist(), scene=_jsonable(sc))
+            prob=np.round(P, 4).tolist(), scene=_jsonable(sc),
+            tri=[round(float(x), 5) for x in tri])   # 3連単120通り(place.PERMSの順、コース基準)
         n += 1
     out_p.write_text(json.dumps(store, ensure_ascii=False, indent=0))
     print(f"{date}: {n}レース予想")

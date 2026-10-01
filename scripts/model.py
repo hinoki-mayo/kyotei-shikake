@@ -167,7 +167,11 @@ class Model:
                          wave=(weather or {}).get("wave", 0.0) if weather else 0.0,
                          rain=float((weather or {}).get("rain", False)) if weather else 0.0,
                          toban=[e["toban"] for e in entries])
-        return self._probs(rate, st, ab, extra), st, fc, rate
+        tenji_z = np.zeros(6)
+        if have_tenji:
+            tenji_z = (tenji.mean() - tenji) / (tenji.std() + 1e-3)
+        place_in = dict(ab=ab, tenji_z=tenji_z, motor=motor_edge)   # 2・3着モデル(place.py)の入力
+        return self._probs(rate, st, ab, extra), st, fc, rate, place_in
 
     @staticmethod
     def _probs(rate, st, ab, extra=None):
