@@ -264,6 +264,23 @@ def slit_page(date, info, pred, races, result_ready=False):
                 f"/{date}/{info['jcd']}/{base}-slit.html")
 
 
+def _narrative(pred):
+    """各艇のコメント(scene.pyのlines)を、主役→2番手→残りの順でひとつの文章につなげる。
+    新しい展開判定は増やさず、既にある材料を読みやすくまとめるだけ。"""
+    sc, boats = pred["scene"], pred["boats"]
+    lines = sc["lines"]
+    order = [sc["shu"], sc["sub"]] + [k for k in range(6) if k not in (sc["shu"], sc["sub"])]
+    parts = []
+    for k in order:
+        txt = lines.get(str(k))
+        if not txt:
+            continue
+        parts.append(f'{boats[k]["waku"]}号艇は{txt}')
+    if not parts:
+        return ""
+    return f'<h2>展開まとめ</h2><div class="card"><p class="sub" style="color:var(--tx)">{"。".join(parts)}。</p></div>'
+
+
 def turn_page(date, info, pred, races, result_ready=False):
     v = VENUES[info["jcd"]]
     base = f'{info["race"]:02d}'
@@ -277,7 +294,7 @@ def turn_page(date, info, pred, races, result_ready=False):
         lines = "".join(f'<div class="boat">{chip(b["waku"])}<div><span class="sub">{html.escape(b["name"])}</span><br>'
                         f'{html.escape(sc["lines"].get(str(k), "展開待ち"))}</div></div>' for k, b in enumerate(pred["boats"]))
         content = (f'<div class="card">{labels(pred)}</div>{turn_svg(sc2, waku)}<h2>各艇の展開</h2><div class="card">{lines}</div>'
-                   + _trifecta_card(pred))
+                   + _trifecta_card(pred) + _narrative(pred))
     body = race_head(date, v, info, "turn", locked, base, result_ready) + content + ad() + rnav(date, info["jcd"], info["race"], races, "-turn")
     return page(f"{v}{info['race']}R 1マーク展開予想 {jp(date)}", body, f"{v}{info['race']}Rの1マーク仕掛け・展開予想",
                 f"/{date}/{info['jcd']}/{base}-turn.html")
