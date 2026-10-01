@@ -367,19 +367,58 @@ def _trifecta_card(pred):
             f'<p class="sub" style="margin-top:8px">展開予想から機械的に導いた参考の着順です。的中や払戻を保証するものではありません。</p></div>')
 
 
-def settle(bet, result):
-    """試験用買い目の収支。(投資, 払戻) / 結果待ちはNone。払戻は100円あたりの配当×口数"""
-    if not bet or bet.get("skip"):
+def plans_of(bet):
+    """保存された買い目を {買い方: 内容} に。5通り化する前の形式(6点1通り)は「バランス」として扱う"""
+    if not bet:
+        return {}
+    return bet["plans"] if "plans" in bet else {"balance": bet}
+
+
+def settle(plan, result):
+    """買い方1つ分の収支。(投資, 払戻) / 見送り・結果待ちはNone。払戻は100円あたりの配当×口数"""
+    if not plan or plan.get("skip"):
         return None
     if not result or not result.get("combo3t") or pd.isna(result.get("payout3t")):
         return None
-    ret = sum(t["units"] * int(result["payout3t"]) for t in bet["tickets"] if t["combo"] == result["combo3t"])
-    return bet["stake"], ret
+    ret = sum(t["units"] * int(result["payout3t"]) for t in plan["tickets"] if t["combo"] == result["combo3t"])
+    return plan["stake"], ret
 
 
 TRIAL_NOTE = ('<div class="card" style="border:2px dashed var(--hot)"><b style="color:var(--hot)">試験運用中</b>'
               '<br><span class="sub" style="color:var(--tx)">買い目モデルを検証するために、試験的に公開しています。'
               '成績はまだ検証中で、回収を保証するものではありません。参考程度にご覧ください。</span></div>')
+SKIP_TEXT = {"balance": "的中確率30%以上で期待回収率100%を超える組み合わせがありませんでした",
+             "in_hit": "1コース頭で期待回収率80%以上の組み合わせがありませんでした",
+             "in_ev": "1コース頭で的中確率15%以上の組み合わせがありませんでした",
+             "out_hit": "1コース以外の頭で期待回収率70%以上の組み合わせがありませんでした",
+             "out_ana": f"1コース以外が頭で{bet_mod.ANA_ODDS}倍以上の目がありませんでした"}
+
+
+def _plan_card(name, pl, result):
+    title = f'<h2>{bet_mod.PLANS[name]}</h2>'
+    if pl.get("skip"):
+        return title + f'<div class="card"><b>見送り</b><br><span class="sub">{SKIP_TEXT[name]}</span></div>'
+    if pl.get("himo"):
+        himo = "".join(str(x) for x in pl["himo"])
+        form = (f'<div class="tri-main"><span class="tri-chip">{pl["head"]}</span><span class="tri-ar">→</span>'
+                f'<span class="tri-chip">{himo}</span><span class="tri-ar">→</span><span class="tri-chip">{himo}</span></div>')
+    else:
+        form = f'<div class="tri-main" style="font-size:20px">{len(pl["tickets"])}点</div>'
+    head = (f'<div class="card trifecta">{form}<p class="sub">投資 {pl["stake"]:,}円・的中確率 {pl["hit"]:.0%}・'
+            f'期待回収率 {pl["ev"]:.0%}</p></div>')
+    scen = f'<p style="margin:6px 2px">{html.escape(pl["scenario"])}</p>' if pl.get("scenario") else ""
+    rows = "".join(
+        f'<div class="boat"><div style="flex:1"><b>{t["combo"]}</b> <span class="sub">× {t["units"]}口（{t["units"] * 100:,}円）</span><br>'
+        f'<span class="sub">オッズ {t["odds"]:.1f}・確率 {t["prob"]:.1%}・期待値 {t["prob"] * t["odds"]:.2f}</span></div></div>'
+        for t in pl["tickets"])
+    out = title + head + scen + f'<details class="card"><summary class="sub">買い目 {len(pl["tickets"])}点を見る</summary>{rows}</details>'
+    st = settle(pl, result)
+    if st:
+        stake, ret = st
+        col = "var(--green)" if ret >= stake else "var(--red)"
+        out += (f'<div class="card"><span style="color:{col};font-weight:700">{"的中" if ret else "不的中"}　'
+                f'払戻 {ret:,}円 / 投資 {stake:,}円（{ret - stake:+,}円）</span></div>')
+    return out
 
 
 def bet_page(date, info, pred, races, result, bet):
@@ -388,30 +427,14 @@ def bet_page(date, info, pred, races, result, bet):
     if bet is None:
         content = ('<div class="card lock"><b>買い目はまだ決まっていません</b><br>'
                    '<span class="sub">締切の約2〜9分前にオッズを見て、1レース1回だけ決めます</span></div>')
-    elif bet.get("skip"):
-        content = (f'<div class="card lock"><b>見送り</b><br><span class="sub">{bet["odds_at"]}時点のオッズでは、'
-                   f'的中確率{bet_mod.MIN_HIT:.0%}以上で期待回収率が{bet_mod.MIN_EV:.0%}を超える組み合わせがありませんでした</span></div>')
     else:
-        himo = "".join(str(x) for x in bet["himo"])
-        head = (f'<div class="card trifecta"><div class="tri-main"><span class="tri-chip">{bet["head"]}</span>'
-                f'<span class="tri-ar">→</span><span class="tri-chip">{himo}</span><span class="tri-ar">→</span>'
-                f'<span class="tri-chip">{himo}</span></div>'
-                f'<p class="sub">投資 {bet["stake"]:,}円・的中確率 {bet["hit"]:.0%}・期待回収率 {bet["ev"]:.0%}'
-                f'（{bet["odds_at"]}時点のオッズ）</p></div>')
-        rows = "".join(
-            f'<div class="boat"><div style="flex:1"><b>{t["combo"]}</b> <span class="sub">× {t["units"]}口（{t["units"] * 100:,}円）</span><br>'
-            f'<span class="sub">オッズ {t["odds"]:.1f}・確率 {t["prob"]:.1%}・期待値 {t["prob"] * t["odds"]:.2f}</span></div></div>'
-            for t in bet["tickets"])
-        content = head + f'<h2>買い目</h2><div class="card">{rows}</div>'
-        st = settle(bet, result)
-        if st:
-            stake, ret = st
-            col = "var(--green)" if ret >= stake else "var(--red)"
-            content += (f'<h2>収支</h2><div class="card"><b>結果 {html.escape(result["combo3t"])}</b>'
-                        f'（{int(result["payout3t"]):,}円）<br><span style="color:{col};font-weight:700">'
-                        f'{"的中" if ret else "不的中"}　払戻 {ret:,}円 / 投資 {stake:,}円（{ret - stake:+,}円）</span></div>')
+        content = f'<p class="sub">{bet.get("odds_at", "")}時点のオッズで決めた買い目です（買い方ごとに1,000〜2,000円）</p>'
+        if result and result.get("combo3t"):
+            pay = "" if pd.isna(result.get("payout3t")) else f'（{int(result["payout3t"]):,}円）'
+            content += f'<div class="card"><b>結果 {html.escape(result["combo3t"])}</b>{pay}</div>'
+        content += "".join(_plan_card(n, pl, result) for n, pl in plans_of(bet).items())
     content = TRIAL_NOTE + content
-    content += ('<p class="sub">展開予想とは別に、モデルの確率と締切前のオッズから機械的に組んでいます。'
+    content += ('<p class="sub">展開予想とは別に、モデルの確率とオッズから読んだ市場の確率を混ぜて機械的に組んでいます。'
                 'オッズは締切までに動くため、表示の期待回収率は目安です。<a href="/bets.html" style="color:var(--ac)">通算の収支</a></p>')
     body = race_head(date, v, info, "bet", False, base, result is not None) + content \
         + rnav(date, info["jcd"], info["race"], races, "-bet")
@@ -419,35 +442,48 @@ def bet_page(date, info, pred, races, result, bet):
 
 
 def bets_summary_page():
-    """試験用買い目の日別・通算の収支"""
+    """試験用買い目の買い方別・日別の収支"""
     files = sorted((DATA / "bets").glob("*.json"))
     if not files:
         return page("試験用買い目の収支", "<h1>試験用買い目の収支</h1><p>まだデータがありません</p>", "", "/bets.html", noindex=True)
     res = load_results(files[0].stem)
     keyed = {(r.date, r.jcd, int(r.race)): dict(combo3t=r.combo3t, payout3t=r.payout3t)
              for r in res.drop_duplicates(["date", "jcd", "race"]).itertuples()}
-    rows, tot = "", [0, 0, 0, 0, 0]   # 買ったレース, 的中, 投資, 払戻, 見送り
+    tot = {n: [0, 0, 0, 0, 0] for n in bet_mod.PLANS}    # 買ったレース, 的中, 投資, 払戻, 見送り
+    days = []
     for f in reversed(files):
         date = f.stem
-        day = [0, 0, 0, 0, 0]
+        day = {n: [0, 0, 0, 0, 0] for n in bet_mod.PLANS}
         for key, b in json.loads(f.read_text()).items():
-            if b.get("skip"):
-                day[4] += 1
-                continue
             jcd, race = key.split("-")
-            st = settle(b, keyed.get((date, jcd, int(race))))
-            if st is None:
-                continue
-            day[0] += 1; day[1] += st[1] > 0; day[2] += st[0]; day[3] += st[1]
-        tot = [a + b for a, b in zip(tot, day)]
-        roi = f"{day[3] / day[2]:.0%}" if day[2] else "―"
-        rows += (f'<div class="boat"><div style="flex:1"><b>{jp(date)}</b> <span class="sub">{day[0]}R購入・{day[1]}R的中・見送り{day[4]}R</span><br>'
-                 f'投資 {day[2]:,}円 → 払戻 {day[3]:,}円　<b>回収率 {roi}</b></div></div>')
-    roi = f"{tot[3] / tot[2]:.0%}" if tot[2] else "―"
-    head = (f'<h1>試験用買い目の収支</h1>{TRIAL_NOTE}<div class="card trifecta"><div class="tri-main">{roi}</div>'
-            f'<p class="sub">通算 {tot[0]}R購入・{tot[1]}R的中・投資 {tot[2]:,}円 → 払戻 {tot[3]:,}円（{tot[3] - tot[2]:+,}円）</p></div>')
-    return page("試験用買い目の収支", head + f'<h2>日別</h2><div class="card">{rows}</div>'
-                '<p class="sub">結果が出たレースのみ集計しています。</p>', "", "/bets.html", noindex=True)
+            result = keyed.get((date, jcd, int(race)))
+            for n, pl in plans_of(b).items():
+                if pl.get("skip"):
+                    day[n][4] += 1
+                    continue
+                st = settle(pl, result)
+                if st is None:
+                    continue
+                d = day[n]
+                d[0] += 1; d[1] += st[1] > 0; d[2] += st[0]; d[3] += st[1]
+        for n in tot:
+            tot[n] = [a + b for a, b in zip(tot[n], day[n])]
+        days.append((date, day))
+
+    def line(t):
+        roi = f"{t[3] / t[2]:.0%}" if t[2] else "―"
+        return (f'<b>回収率 {roi}</b> <span class="sub">{t[0]}R購入・{t[1]}R的中・見送り{t[4]}R<br>'
+                f'投資 {t[2]:,}円 → 払戻 {t[3]:,}円（{t[3] - t[2]:+,}円）</span>')
+
+    head = '<h1>試験用買い目の収支</h1>' + TRIAL_NOTE + '<h2>買い方別（通算）</h2><div class="card">' + "".join(
+        f'<div class="boat"><div style="flex:1"><b>{bet_mod.PLANS[n]}</b><br>{line(t)}</div></div>' for n, t in tot.items()) + "</div>"
+    body = "".join(
+        f'<h2>{jp(date)}</h2><div class="card">' + "".join(
+            f'<div class="boat"><div style="flex:1"><span class="sub">{bet_mod.PLANS[n]}</span><br>{line(t)}</div></div>'
+            for n, t in day.items() if t[0] or t[4]) + "</div>"
+        for date, day in days)
+    return page("試験用買い目の収支", head + body + '<p class="sub">結果が出たレースのみ集計しています。</p>',
+                "", "/bets.html", noindex=True)
 
 
 def venue_page(date, jcd, infos, preds, now):
