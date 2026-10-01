@@ -14,7 +14,8 @@ import urllib.request
 import pandas as pd
 
 import predict
-from common import DATA, JST, UA, now_jst
+from common import DATA, JST, UA, download, now_jst
+from store import upsert
 
 URL = "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno={race}&jcd={jcd}&hd={date}"
 TENJI_RE = re.compile(r'toban=(\d+)">.*?<td rowspan="2">[\d.]+kg</td>\s*<td rowspan="4">([\d.]+)</td>', re.S)
@@ -105,6 +106,20 @@ def main():
         ep.write_text(json.dumps(entries))
         predict.run(date, only=set(todo))
     print(f"展示反映: {len(todo)}レース {todo}")
+
+    # 締切を過ぎたばかり(2〜20分以内)のレースがあれば、結果をレース単位の
+    # 待ち時間で取り直す(以前は1日3回のupdate.yml頼みで、最後にまとめて
+    # しか結果が反映されなかった)
+    just_closed = any(
+        r.deadline and dt.timedelta(minutes=0) <= now - dt.datetime.strptime(
+            date + r.deadline, "%Y%m%d%H:%M").replace(tzinfo=JST) <= dt.timedelta(minutes=20)
+        for r in prog.itertuples()
+    )
+    if just_closed:
+        today = now.date()
+        if download("K", today, force=True):
+            upsert("K", [today])
+        print("結果を更新しました")
 
 
 if __name__ == "__main__":
