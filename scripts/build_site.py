@@ -286,6 +286,31 @@ def _narrative(pred):
     return f'<h2>展開まとめ</h2><div class="card"><p class="sub" style="color:var(--tx)">{"。".join(parts)}。</p></div>'
 
 
+def _scenarios_html(pred):
+    """展開シナリオ集: 起こりうる勝ち方ごとの図・文章・買い目の形と、全艇の勝ち方"""
+    sc = pred.get("scenarios")
+    if not sc or not sc.get("list"):
+        return ""
+    waku = [b["waku"] for b in pred["boats"]]
+    cards = ""
+    for i, s in enumerate(sc["list"], 1):
+        scene = dict(s["scene"], roles={int(k): v for k, v in s["scene"]["roles"].items()})
+        try:
+            svg = turn_svg(scene, waku)
+        except Exception:
+            svg = ""   # ボートが重なって描けない配置のときは図なしで出す
+        cards += (f'<div class="card"><b>シナリオ{i}　{waku[s["w"]]}の{s["m"]}</b> '
+                  f'<span class="sub">（起こる確率 {s["prob"]:.0%}）</span>{svg}'
+                  f'<p style="margin:6px 0">{html.escape("。".join(s["lines"]))}。</p>'
+                  f'<p class="sub" style="margin:0">買い目の形 <b style="color:var(--tx);font-size:16px">{s["combo"]}</b></p></div>')
+    heads = "".join(
+        f'<div class="boat">{chip(waku[h["w"]])}<div><b>{h["m"]}</b>が本線 <span class="sub">勝つ確率 {h["prob"]:.0%}</span></div></div>'
+        for h in sorted(sc["heads"], key=lambda h: -h["prob"]))
+    return (f'<h2>展開シナリオ</h2><p class="sub">起こりうる勝ち方を確率の高い順に並べています。'
+            f'2・3着は、その勝ち方になったときに残りやすい艇です。決まり手は4種類(逃げ・まくり・差し・まくり差し)で区別しています。</p>'
+            f'{cards}<h2>全艇、頭ならこう勝つ</h2><div class="card">{heads}</div>')
+
+
 def turn_page(date, info, pred, races, result_ready=False):
     v = VENUES[info["jcd"]]
     base = f'{info["race"]:02d}'
@@ -299,7 +324,7 @@ def turn_page(date, info, pred, races, result_ready=False):
         lines = "".join(f'<div class="boat">{chip(b["waku"])}<div><span class="sub">{html.escape(b["name"])}</span><br>'
                         f'{html.escape(sc["lines"].get(str(k), "展開待ち"))}</div></div>' for k, b in enumerate(pred["boats"]))
         content = (f'<div class="card">{labels(pred)}</div>{turn_svg(sc2, waku)}<h2>各艇の展開</h2><div class="card">{lines}</div>'
-                   + _trifecta_card(pred) + _narrative(pred))
+                   + _trifecta_card(pred) + _narrative(pred) + _scenarios_html(pred))
     body = race_head(date, v, info, "turn", locked, base, result_ready) + content + ad() + rnav(date, info["jcd"], info["race"], races, "-turn")
     return page(f"{v}{info['race']}R 1マーク展開予想 {jp(date)}", body, f"{v}{info['race']}Rの1マーク仕掛け・展開予想",
                 f"/{date}/{info['jcd']}/{base}-turn.html")
