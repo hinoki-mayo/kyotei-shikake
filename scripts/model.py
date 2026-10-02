@@ -26,6 +26,7 @@ PTS = {"01": 10, "02": 8, "03": 6, "04": 4, "05": 2, "06": 1}
 PT_NEUTRAL = sum(PTS.values()) / 6   # 節間データがまだ無い選手に当てる中立値
 R2 = PRM.get("round2_features")      # round2の追加特徴量(無ければ従来通り動く)
 R3 = PRM.get("round3_features")      # round3(際どい局面の個人スコア・隣接艇タイプ)
+R4 = PRM.get("round4_features")      # round4(round3 + 内側の隣との実力・展示・モーターの差)
 
 _LT = ROOT / "scripts" / "live_tables"
 CLUTCH_TABLE = json.loads((_LT / "clutch_table.json").read_text()) if R3 else {}
@@ -193,9 +194,9 @@ class Model:
             no[i] = float(not mk[1:i].any())
 
         if R3 and extra is not None:
-            p = np.array(R3["theta"])
+            p = np.array((R4 or R3)["theta"])
             a0, a1 = p[:4], p[4:8]
-            b = p[8:80].reshape(-1, 4)
+            b = p[8:].reshape(-1, 4)
             tenji_z = np.zeros(6)
             if extra["tenji"] is not None:
                 tj = extra["tenji"]
@@ -217,6 +218,9 @@ class Model:
             feats = (d_in, d_mean, d_out, abc, cl, no, tenji_z,
                      extra["motor_edge"], extra["boat_edge"], wind_b, wave_b, rain_b, mom_z,
                      clutch, nb_in_attack, nb_out_attack, nb_in_std, nb_out_std)
+            if R4:
+                gap_in = lambda x: np.r_[0.0, x[1:] - x[:-1]]   # 自分 − 内側の隣(1コースは0)
+                feats += (gap_in(abc), gap_in(tenji_z), gap_in(extra["motor_edge"]))
             s = a0 * np.log(rate + 1e-4) + a1 * np.log(extra["wrate"] + 1e-4)
             for j, f in enumerate(feats):
                 s = s + b[j] * f[:, None]
