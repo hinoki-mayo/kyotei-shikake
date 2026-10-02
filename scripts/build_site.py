@@ -467,52 +467,117 @@ def bet_page(date, info, pred, races, result, bet):
     return page(f"{v}{info['race']}R 試験用買い目 {jp(date)}", body, "", f"/{date}/{info['jcd']}/{base}-bet.html", noindex=True)
 
 
-def bets_summary_page():
-    """試験用買い目の買い方別・日別の収支"""
+EXTRA_PLANS = {"switch": "切り替え(頭注目1→イン的中/他→以外的中)", "flow": "頭-連-流し(頭注目→連絡み→総流し)"}
+
+
+def _flow(pred, result):
+    """頭-連-流し: 頭注目→連絡み→残り全部。(投資, 払戻)"""
+    sc, waku = pred["scene"], [b["waku"] for b in pred["boats"]]
+    h = waku[sc["head"][0]]
+    ren = [waku[k] for k in sc["ren"] if waku[k] != h]
+    pts = [f"{h}-{a}-{x}" for a in ren for x in range(1, 7) if x not in (h, a)]
+    if not pts:
+        return None
+    return 100 * len(pts), (int(result["payout3t"]) if result["combo3t"] in pts else 0)
+
+
+def bets_records():
+    """集計画面用に、結果が出たレースごとの記録を作る(買い方ごとの投資・払戻と、絞り込み用の条件)"""
     files = sorted((DATA / "bets").glob("*.json"))
     if not files:
-        return page("試験用買い目の収支", "<h1>試験用買い目の収支</h1><p>まだデータがありません</p>", "", "/bets.html", noindex=True)
+        return []
     res = load_results(files[0].stem)
     keyed = {(r.date, r.jcd, int(r.race)): dict(combo3t=r.combo3t, payout3t=r.payout3t)
              for r in res.drop_duplicates(["date", "jcd", "race"]).itertuples() if r.combo3t}
-    for f in files:   # 成績ファイルがまだの日は、レース結果ページから取り込んだ結果で補う
-        for k, v in live_result.load(f.stem).items():
-            keyed.setdefault((f.stem, k[:2], int(k[3:])), v)
-    tot = {n: [0, 0, 0, 0, 0] for n in bet_mod.PLANS}    # 買ったレース, 的中, 投資, 払戻, 見送り
-    days = []
-    for f in reversed(files):
+    out = []
+    for f in files:
         date = f.stem
-        day = {n: [0, 0, 0, 0, 0] for n in bet_mod.PLANS}
+        live = live_result.load(date)   # 成績ファイルがまだの日は、レース結果ページから取り込んだ結果で補う
+        pp = DATA / "predictions" / f"{date}.json"
+        preds = json.loads(pp.read_text())["races"] if pp.exists() else {}
         for key, b in json.loads(f.read_text()).items():
             jcd, race = key.split("-")
-            result = keyed.get((date, jcd, int(race)))
-            for n, pl in plans_of(b).items():
-                if pl.get("skip"):
-                    day[n][4] += 1
-                    continue
-                st = settle(pl, result)
-                if st is None:
-                    continue
-                d = day[n]
-                d[0] += 1; d[1] += st[1] > 0; d[2] += st[0]; d[3] += st[1]
-        for n in tot:
-            tot[n] = [a + b for a, b in zip(tot[n], day[n])]
-        days.append((date, day))
+            result = keyed.get((date, jcd, int(race))) or live.get(key)
+            if not result or not result.get("combo3t") or pd.isna(result.get("payout3t")):
+                continue
+            plans = plans_of(b)
+            st = {}
+            for n, pl in plans.items():
+                st[n] = 0 if pl.get("skip") else list(settle(pl, result))
+            pred = preds.get(key)
+            rec = dict(d=date, v=jcd, r=int(race), res=result["combo3t"], pay=int(result["payout3t"]), s=st)
+            if pred and pred.get("scene"):
+                h1 = pred["scene"]["head"][0] == 0
+                rec.update(h1=h1, mae=any(bb["waku"] != bb["course"] for bb in pred["boats"]),
+                           g1=pred["boats"][0]["grade"])
+                pick = plans.get("in_hit" if h1 else "out_hit")
+                st["switch"] = 0 if (not pick or pick.get("skip")) else list(settle(pick, result))
+                fl = _flow(pred, result)
+                if fl:
+                    st["flow"] = list(fl)
+            out.append(rec)
+    return out
 
-    def line(t):
-        roi = f"{t[3] / t[2]:.0%}" if t[2] else "―"
-        return (f'<b>回収率 {roi}</b> <span class="sub">{t[0]}R購入・{t[1]}R的中・見送り{t[4]}R<br>'
-                f'投資 {t[2]:,}円 → 払戻 {t[3]:,}円（{t[3] - t[2]:+,}円）</span>')
 
-    head = '<h1>試験用買い目の収支</h1>' + TRIAL_NOTE + '<h2>買い方別（通算）</h2><div class="card">' + "".join(
-        f'<div class="boat"><div style="flex:1"><b>{bet_mod.PLANS[n]}</b><br>{line(t)}</div></div>' for n, t in tot.items()) + "</div>"
-    body = "".join(
-        f'<h2>{jp(date)}</h2><div class="card">' + "".join(
-            f'<div class="boat"><div style="flex:1"><span class="sub">{bet_mod.PLANS[n]}</span><br>{line(t)}</div></div>'
-            for n, t in day.items() if t[0] or t[4]) + "</div>"
-        for date, day in days)
-    return page("試験用買い目の収支", head + body + '<p class="sub">結果が出たレースのみ集計しています。</p>',
-                "", "/bets.html", noindex=True)
+BETS_JS = r"""
+const PL=__PLANS__, VN=__VENUES__;
+let D=[];
+const $=id=>document.getElementById(id), yen=n=>n.toLocaleString();
+function filt(){
+  const per=$('per').value, cond=$('cond').value;
+  const ds=[...new Set(D.map(x=>x.d))].sort(), last=ds[ds.length-1];
+  const keep=per==='all'?null:new Set(ds.slice(-({today:1,d7:7,d30:30})[per]));
+  return D.filter(x=>(!keep||keep.has(x.d))&&(cond==='all'||(cond==='h1'&&x.h1===true)||(cond==='h2'&&x.h1===false)
+    ||(cond==='mae'&&x.mae)||(cond==='mae2'&&x.mae&&x.h1===false)||(cond==='b'&&(x.g1||'').startsWith('B'))||(cond==='a1'&&x.g1==='A1')));
+}
+function agg(rows,plan){
+  const t={n:0,hit:0,st:0,ret:0,skip:0};
+  for(const x of rows){const v=x.s[plan]; if(v===undefined)continue; if(v===0){t.skip++;continue}
+    t.n++; t.st+=v[0]; t.ret+=v[1]; if(v[1]>0)t.hit++;}
+  return t;
+}
+function line(name,t){
+  if(!t.n) return `<div class="boat"><div style="flex:1"><b>${name}</b><br><span class="sub">購入なし（見送り${t.skip}R）</span></div></div>`;
+  const roi=t.ret/t.st, col=roi>=1?'var(--green)':'var(--red)';
+  return `<div class="boat"><div style="flex:1"><b>${name}</b>　<b style="color:${col};font-size:17px">${Math.round(roi*100)}%</b><br>`+
+   `<span class="sub">${t.n}R購入・${t.hit}R的中（${Math.round(t.hit/t.n*100)}%）・見送り${t.skip}R<br>投資 ${yen(t.st)}円 → 払戻 ${yen(t.ret)}円（${t.ret-t.st>=0?'+':''}${yen(t.ret-t.st)}円）</span></div></div>`;
+}
+function render(){
+  const rows=filt(), g=$('grp').value, sel=$('plan').value;
+  const plans=sel==='all'?Object.keys(PL):[sel];
+  $('n').textContent=`対象 ${rows.length}レース`;
+  if(g==='sum'){ $('out').innerHTML=`<div class="card">${plans.map(p=>line(PL[p],agg(rows,p))).join('')}</div>`; return; }
+  const key=g==='day'?(x=>x.d):(x=>x.v), groups={};
+  for(const x of rows)(groups[key(x)]=groups[key(x)]||[]).push(x);
+  const ks=Object.keys(groups).sort(); if(g==='day')ks.reverse();
+  $('out').innerHTML=ks.map(k=>{
+    const lab=g==='day'?`${+k.slice(4,6)}月${+k.slice(6)}日`:VN[k];
+    return `<h2>${lab} <span class="sub">${groups[k].length}R</span></h2><div class="card">${plans.map(p=>line(PL[p],agg(groups[k],p))).join('')}</div>`;
+  }).join('');
+}
+fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;render()});
+document.addEventListener('change',e=>{if(['per','cond','grp','plan'].includes(e.target.id))render()});
+"""
+
+
+def bets_summary_page():
+    """試験用買い目の集計画面(期間・条件・集計単位・買い方で絞り込み)。データは bets-data.json"""
+    plans = {**bet_mod.PLANS, **EXTRA_PLANS}
+    opt = lambda pairs: "".join(f'<option value="{v}">{t}</option>' for v, t in pairs)
+    sel = 'style="font-size:15px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);width:100%"'
+    controls = (
+        '<div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+        f'<label class="sub">期間<select id="per" {sel}>{opt([("today", "今日"), ("d7", "直近7日"), ("d30", "直近30日"), ("all", "全期間")])}</select></label>'
+        f'<label class="sub">条件<select id="cond" {sel}>{opt([("all", "全レース"), ("h1", "頭注目=1"), ("h2", "頭注目≠1"), ("mae", "進入変化あり"), ("mae2", "進入変化×頭注目≠1"), ("b", "1コースがB級"), ("a1", "1コースがA1")])}</select></label>'
+        f'<label class="sub">集計<select id="grp" {sel}>{opt([("sum", "合計"), ("day", "日別"), ("venue", "場別")])}</select></label>'
+        f'<label class="sub">買い方<select id="plan" {sel}>{opt([("all", "全部")] + list(plans.items()))}</select></label>'
+        '</div><p class="sub" id="n"></p>')
+    js = BETS_JS.replace("__PLANS__", json.dumps(plans, ensure_ascii=False)).replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False))
+    body = ('<h1>試験用買い目の収支</h1>' + TRIAL_NOTE + controls + '<div id="out"><p class="sub">読み込み中…</p></div>'
+            '<p class="sub">結果が出たレースだけを集計しています。「切り替え」「頭-連-流し」は、保存してある予想と結果から計算した仮想の成績です。'
+            '「頭-連-流し」は全レースで買った場合なので、条件で「頭注目≠1」などに絞って見てください。</p>'
+            f'<script>{js}</script>')
+    return page("試験用買い目の収支", body, "", "/bets.html", noindex=True)
 
 
 def venue_page(date, jcd, infos, preds, now):
@@ -691,6 +756,7 @@ def main():
     else:
         (OUT / "index.html").write_text(page("準備中", "<h1>準備中です</h1>", "", "/"))
     (OUT / "bets.html").write_text(bets_summary_page())   # 自分用なのでサイトマップには入れない
+    (OUT / "bets-data.json").write_text(json.dumps(bets_records(), ensure_ascii=False, separators=(",", ":")))
     for name, (title, body) in STATIC.items():
         (OUT / name).write_text(page(title, body.format(about=CFG.get("about", ""), contact=CFG.get("contact", "")), title, "/" + name))
         urls.append("/" + name)
