@@ -581,11 +581,107 @@ def bets_summary_page():
         f'<label class="sub">買い方<select id="plan" {sel}>{opt([("all", "全部")] + list(plans.items()))}</select></label>'
         '</div><p class="sub" id="n"></p>')
     js = BETS_JS.replace("__PLANS__", json.dumps(plans, ensure_ascii=False)).replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False))
-    body = ('<h1>試験用買い目の収支</h1>' + TRIAL_NOTE + controls + '<div id="out"><p class="sub">読み込み中…</p></div>'
+    body = ('<h1>試験用買い目の収支</h1>' + own_tabs("bets") + TRIAL_NOTE + controls + '<div id="out"><p class="sub">読み込み中…</p></div>'
             '<p class="sub">結果が出たレースだけを集計しています。「切り替え」「頭-連-流し」は、保存してある予想と結果から計算した仮想の成績です。'
             '「頭-連-流し」は全レースで買った場合なので、条件で「頭注目≠1」などに絞って見てください。</p>'
             f'<script>{js}</script>')
     return page("試験用買い目の収支", body, "", "/bets.html", noindex=True)
+
+
+def own_tabs(cur):
+    """自分用ページ(収支・逃げ判定)の切り替えタブ"""
+    items = [("bets", "/bets.html", "収支"), ("nige", "/nige.html", "逃げ判定")]
+    return '<nav class="tabs">' + "".join(
+        f'<a href="{u}"{" class=on" if k == cur else ""}>{t}</a>' for k, u, t in items) + '</nav>'
+
+
+def nige_records():
+    """逃げ判定の集計用に、結果が出たレースごとの予想(頭注目・1コース勝率・2〜6コースの確率順)と勝った艇のコースを作る"""
+    files = sorted((DATA / "predictions").glob("*.json"))
+    if not files:
+        return []
+    res = load_results(files[0].stem)
+    keyed = {(r.date, r.jcd, int(r.race)): r.combo3t
+             for r in res.drop_duplicates(["date", "jcd", "race"]).itertuples() if r.combo3t}
+    out = []
+    for f in files:
+        date = f.stem
+        live = live_result.load(date)
+        for key, pred in json.loads(f.read_text())["races"].items():
+            sc = pred.get("scene")
+            jcd, race = key.split("-")
+            combo = keyed.get((date, jcd, int(race))) or (live.get(key) or {}).get("combo3t")
+            if not sc or not combo:
+                continue
+            course = {b["waku"]: b["course"] for b in pred["boats"]}   # 展示の進入で見たコース
+            hp = sc["head_prob"]
+            out.append(dict(d=date, v=jcd, r=int(race), h=sc["head"][0] + 1, p1=hp[0],
+                            o=[k + 1 for k in sorted(range(1, 6), key=lambda k: -hp[k])[:2]],
+                            w=course.get(int(combo.split("-")[0]))))
+    return out
+
+
+NIGE_JS = r"""
+const VN=__VENUES__, REF=__REF__;
+let D=[];
+const $=id=>document.getElementById(id), pct=(a,b)=>b?Math.round(a/b*1000)/10+'%':'―';
+function filt(){
+  const per=$('per').value, ds=[...new Set(D.map(x=>x.d))].sort();
+  const keep=per==='all'?null:new Set(ds.slice(-({today:1,d7:7,d30:30})[per]));
+  return D.filter(x=>!keep||keep.has(x.d));
+}
+const row=(label,a,n,ref)=>`<div class="boat"><div style="flex:1"><b>${label}</b><br><span class="sub">${a}/${n}R・過去の目安 ${ref}</span></div><b style="font-size:20px">${pct(a,n)}</b></div>`;
+function block(rs){
+  const h1=rs.filter(x=>x.h===1), h2=rs.filter(x=>x.h!==1), lost=rs.filter(x=>x.w!==1), lost2=lost.filter(x=>x.h!==1);
+  const c=(arr,f)=>arr.filter(f).length;
+  let s='<div class="card"><b>逃げ予想（頭注目=1）</b>'+row('インが逃げた',c(h1,x=>x.w===1),h1.length,REF.h1)+'</div>';
+  s+='<div class="card"><b>イン飛び予想（頭注目≠1）</b>'+row('インが飛んだ',c(h2,x=>x.w!==1),h2.length,REF.h2)
+    +row('頭注目の艇が1着',c(h2,x=>x.w===x.h),h2.length,REF.h2head)+'</div>';
+  s+='<div class="card"><b>インが飛んだレースの頭（2〜6コースの確率順）</b>'
+    +row('確率1位が1着',c(lost,x=>x.w===x.o[0]),lost.length,REF.o1)
+    +row('確率2位までに1着',c(lost,x=>x.o.includes(x.w)),lost.length,REF.o2)
+    +row('うちイン飛び予想だったレース：確率1位が1着',c(lost2,x=>x.w===x.o[0]),lost2.length,REF.o1h2)
+    +row('うちイン飛び予想だったレース：2位までに1着',c(lost2,x=>x.o.includes(x.w)),lost2.length,REF.o2h2)+'</div>';
+  const bands=[[0,.3,'30%未満'],[.3,.45,'30〜45%'],[.45,.6,'45〜60%'],[.6,.75,'60〜75%'],[.75,1.01,'75%以上']];
+  s+='<div class="card"><b>1コースの1着確率（予想）と実際に逃げた率</b>'+bands.map(([lo,hi,lab],i)=>{
+    const g=rs.filter(x=>x.p1>=lo&&x.p1<hi), avg=g.length?Math.round(g.reduce((a,x)=>a+x.p1,0)/g.length*100):0;
+    return row(`予想 ${lab}（平均${avg}%）`,c(g,x=>x.w===1),g.length,REF.band[i]);
+  }).join('')+'</div>';
+  return s;
+}
+function render(){
+  const rows=filt(), g=$('grp').value;
+  $('n').textContent=`対象 ${rows.length}レース`;
+  if(g==='sum'){ $('out').innerHTML=block(rows); return; }
+  const key=g==='day'?(x=>x.d):(x=>x.v), groups={};
+  for(const x of rows)(groups[key(x)]=groups[key(x)]||[]).push(x);
+  const ks=Object.keys(groups).sort(); if(g==='day')ks.reverse();
+  $('out').innerHTML=ks.map(k=>`<h2>${g==='day'?`${+k.slice(4,6)}月${+k.slice(6)}日`:VN[k]} <span class="sub">${groups[k].length}R</span></h2>`+block(groups[k])).join('');
+}
+fetch('/nige-data.json').then(r=>r.json()).then(j=>{D=j;render()});
+document.addEventListener('change',e=>{if(['per','grp'].includes(e.target.id))render()});
+"""
+
+# 2025年1月〜2026年9月(約9.2万R)の検証値。過去の結果に当時のモデルをあてて出したもの(実際の進入で判定)
+NIGE_REF = dict(h1="65.2%", h2="65.0%", h2head="30.4%", o1="46.2%", o2="71.6%", o1h2="47.6%", o2h2="73.3%",
+                band=["22.9%", "38.0%", "52.7%", "67.5%", "79.4%"])
+
+
+def nige_page():
+    """逃げ判定(インが逃げたか・飛んだときに頭を当てたか)の集計画面。データは nige-data.json"""
+    opt = lambda pairs: "".join(f'<option value="{v}">{t}</option>' for v, t in pairs)
+    sel = 'style="font-size:15px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);width:100%"'
+    controls = (
+        '<div class="card" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+        f'<label class="sub">期間<select id="per" {sel}>{opt([("today", "今日"), ("d7", "直近7日"), ("d30", "直近30日"), ("all", "全期間")])}</select></label>'
+        f'<label class="sub">集計<select id="grp" {sel}>{opt([("sum", "合計"), ("day", "日別"), ("venue", "場別")])}</select></label>'
+        '</div><p class="sub" id="n"></p>')
+    js = NIGE_JS.replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False)).replace("__REF__", json.dumps(NIGE_REF, ensure_ascii=False))
+    body = ('<h1>逃げ判定</h1>' + own_tabs("nige") + controls + '<div id="out"><p class="sub">読み込み中…</p></div>'
+            '<p class="sub">結果が出たレースだけを集計しています。コースは展示の進入で見ています。「過去の目安」は、2025年1月〜2026年9月の約9.2万レースに'
+            'モデルをあてて出した数字です。「2〜6コースの確率順」は、1コースを除いたモデルの1着確率の高い順です。</p>'
+            f'<script>{js}</script>')
+    return page("逃げ判定", body, "", "/nige.html", noindex=True)
 
 
 def venue_page(date, jcd, infos, preds, now):
@@ -767,6 +863,8 @@ def main():
         (OUT / "index.html").write_text(page("準備中", "<h1>準備中です</h1>", "", "/"))
     (OUT / "bets.html").write_text(bets_summary_page())   # 自分用なのでサイトマップには入れない
     (OUT / "bets-data.json").write_text(json.dumps(bets_records(), ensure_ascii=False, separators=(",", ":")))
+    (OUT / "nige.html").write_text(nige_page())
+    (OUT / "nige-data.json").write_text(json.dumps(nige_records(), ensure_ascii=False, separators=(",", ":")))
     for name, (title, body) in STATIC.items():
         (OUT / name).write_text(page(title, body.format(about=CFG.get("about", ""), contact=CFG.get("contact", "")), title, "/" + name))
         urls.append("/" + name)
