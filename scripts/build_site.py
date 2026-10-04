@@ -401,12 +401,15 @@ def plans_of(bet):
 
 
 def settle(plan, result):
-    """買い方1つ分の収支。(投資, 払戻) / 見送り・結果待ちはNone。払戻は100円あたりの配当×口数"""
-    if not plan or plan.get("skip"):
+    """買い方1つ分の収支。(投資, 払戻) / 見送り・結果待ちはNone。払戻は100円あたりの配当×口数。
+    2連単の買い方(bet="2t")は2連単の結果で精算する"""
+    if not plan or plan.get("skip") or not result:
         return None
-    if not result or not result.get("combo3t") or pd.isna(result.get("payout3t")):
+    kind = plan.get("bet", "3t")
+    combo, pay = result.get(f"combo{kind}"), result.get(f"payout{kind}")
+    if not combo or pay is None or pd.isna(pay):
         return None
-    ret = sum(t["units"] * int(result["payout3t"]) for t in plan["tickets"] if t["combo"] == result["combo3t"])
+    ret = sum(t["units"] * int(pay) for t in plan["tickets"] if t["combo"] == combo)
     return plan["stake"], ret
 
 
@@ -417,25 +420,28 @@ SKIP_TEXT = {"balance": "的中確率30%以上で期待回収率100%を超える
              "in_hit": "1コース頭で期待回収率80%以上の組み合わせがありませんでした",
              "in_ev": "1コース頭で的中確率15%以上の組み合わせがありませんでした",
              "out_hit": "1コース以外の頭で期待回収率70%以上の組み合わせがありませんでした",
-             "out_ana": f"1コース以外が頭で{bet_mod.ANA_ODDS}倍以上の目がありませんでした"}
+             "out_ana": f"1コース以外が頭で{bet_mod.ANA_ODDS}倍以上の目がありませんでした",
+             "e2_top1": "展示の進入が枠なりでなく、頭注目が1以外のレースだけ買います"}
 
 
 def _plan_card(name, pl, result):
     title = f'<h2>{bet_mod.PLANS[name]}</h2>'
     if pl.get("skip"):
         return title + f'<div class="card"><b>見送り</b><br><span class="sub">{SKIP_TEXT[name]}</span></div>'
-    if pl.get("himo"):
+    if pl.get("bet") == "2t":
+        form = f'<div class="tri-main"><span class="sub" style="font-size:14px">2連単</span><span class="tri-chip">{html.escape(pl["tickets"][0]["combo"])}</span></div>'
+    elif pl.get("himo"):
         himo = "".join(str(x) for x in pl["himo"])
         form = (f'<div class="tri-main"><span class="tri-chip">{pl["head"]}</span><span class="tri-ar">→</span>'
                 f'<span class="tri-chip">{himo}</span><span class="tri-ar">→</span><span class="tri-chip">{himo}</span></div>')
     else:
         form = f'<div class="tri-main" style="font-size:20px">{len(pl["tickets"])}点</div>'
-    head = (f'<div class="card trifecta">{form}<p class="sub">投資 {pl["stake"]:,}円・的中確率 {pl["hit"]:.0%}・'
-            f'期待回収率 {pl["ev"]:.0%}</p></div>')
+    evt = f'・期待回収率 {pl["ev"]:.0%}' if pl.get("ev") is not None else ""
+    head = (f'<div class="card trifecta">{form}<p class="sub">投資 {pl["stake"]:,}円・的中確率 {pl["hit"]:.0%}{evt}</p></div>')
     scen = f'<p style="margin:6px 2px">{html.escape(pl["scenario"])}</p>' if pl.get("scenario") else ""
     rows = "".join(
         f'<div class="boat"><div style="flex:1"><b>{t["combo"]}</b> <span class="sub">× {t["units"]}口（{t["units"] * 100:,}円）</span><br>'
-        f'<span class="sub">オッズ {t["odds"]:.1f}・確率 {t["prob"]:.1%}・期待値 {t["prob"] * t["odds"]:.2f}</span></div></div>'
+        f'<span class="sub">' + (f'オッズ {t["odds"]:.1f}・確率 {t["prob"]:.1%}・期待値 {t["prob"] * t["odds"]:.2f}' if t.get("odds") else f'確率 {t["prob"]:.1%}') + '</span></div></div>'
         for t in pl["tickets"])
     out = title + head + scen + f'<details class="card"><summary class="sub">買い目 {len(pl["tickets"])}点を見る</summary>{rows}</details>'
     st = settle(pl, result)
@@ -457,7 +463,9 @@ def bet_page(date, info, pred, races, result, bet):
         content = f'<p class="sub">{bet.get("odds_at", "")}時点のオッズで決めた買い目です（買い方ごとに1,000〜2,000円）</p>'
         if result and result.get("combo3t"):
             pay = "" if pd.isna(result.get("payout3t")) else f'（{int(result["payout3t"]):,}円）'
-            content += f'<div class="card"><b>結果 {html.escape(result["combo3t"])}</b>{pay}</div>'
+            e2 = (f'<br><span class="sub">2連単 {html.escape(result["combo2t"])}（{int(result["payout2t"]):,}円）</span>'
+                  if result.get("combo2t") and result.get("payout2t") else "")
+            content += f'<div class="card"><b>結果 {html.escape(result["combo3t"])}</b>{pay}{e2}</div>'
         content += "".join(_plan_card(n, pl, result) for n, pl in plans_of(bet).items())
     content = TRIAL_NOTE + content
     content += ('<p class="sub">展開予想とは別に、モデルの確率とオッズから読んだ市場の確率を混ぜて機械的に組んでいます。'
@@ -497,8 +505,8 @@ def bets_records():
         preds = json.loads(pp.read_text())["races"] if pp.exists() else {}
         for key, b in json.loads(f.read_text()).items():
             jcd, race = key.split("-")
-            result = keyed.get((date, jcd, int(race))) or live.get(key)
-            if not result or not result.get("combo3t") or pd.isna(result.get("payout3t")):
+            result = {**live.get(key, {}), **(keyed.get((date, jcd, int(race))) or {})}   # 2連単は結果ページの記録から
+            if not result.get("combo3t") or pd.isna(result.get("payout3t")):
                 continue
             plans = plans_of(b)
             st = {}
@@ -734,7 +742,9 @@ def main():
                 boats = x.to_dict("records")
                 pred = preds.get(f"{jcd}-{info['race']:02d}")
                 base = f'{info["race"]:02d}'
-                result = stats.race_result(jcd, date, info["race"]) or live.get(f"{jcd}-{base}")
+                result = stats.race_result(jcd, date, info["race"])
+                if live.get(f"{jcd}-{base}"):   # 成績ファイルが出るまでのつなぎ。2連単の配当はこちらにしかない
+                    result = {**live[f"{jcd}-{base}"], **(result or {})}
                 ready = result is not None
                 (d / f"{base}.html").write_text(info_page(date, info, boats, season, series, n_series, pred, races, ready))
                 (d / f"{base}-slit.html").write_text(slit_page(date, info, pred, races, ready))

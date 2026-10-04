@@ -18,6 +18,7 @@ URL = "https://www.boatrace.jp/owpc/pc/race/raceresult?rno={race}&jcd={jcd}&hd={
 RANK_RE = re.compile(r'<td class="is-fs14">([^<]+)</td>\s*<td class="is-fs14 is-fBold is-boatColor\d">(\d)</td>')
 KIM_RE = re.compile(r'決まり手</th>.*?<td class="is-fs16">([^<]+)</td>', re.S)
 TRI_RE = re.compile(r'3連単</td>(.*?)</tr>', re.S)
+EXA_RE = re.compile(r'2連単</td>(.*?)</tr>', re.S)
 WINDOW = (5, 90)   # 締切の何分後から何分後までのレースを見に行くか
 
 
@@ -37,14 +38,22 @@ def fetch_result(date, jcd, race):
         rk = unicodedata.normalize("NFKC", rk).strip()
         by_waku[int(w)] = f"{int(rk):02d}" if rk.isdigit() else rk
     km = KIM_RE.search(h)
-    combo, pay = None, None
-    tm = TRI_RE.search(h)
-    if tm:
-        nums = re.findall(r'numberSet1_number[^>]*>(\d)<', tm.group(1))
-        yen = re.search(r'&yen;([\d,]+)', tm.group(1))
-        if len(nums) == 3 and yen:
-            combo, pay = "-".join(nums), float(yen.group(1).replace(",", ""))
-    return dict(by_waku=by_waku, kimarite=km.group(1).strip() if km else "", combo3t=combo, payout3t=pay)
+    combo, pay = _bet(TRI_RE, h, 3)
+    combo2, pay2 = _bet(EXA_RE, h, 2)
+    return dict(by_waku=by_waku, kimarite=km.group(1).strip() if km else "", combo3t=combo, payout3t=pay,
+                combo2t=combo2, payout2t=pay2)
+
+
+def _bet(rx, h, n):
+    """券種の行から(組, 100円あたりの配当)"""
+    m = rx.search(h)
+    if not m:
+        return None, None
+    nums = re.findall(r'numberSet1_number[^>]*>(\d)<', m.group(1))
+    yen = re.search(r'&yen;([\d,]+)', m.group(1))
+    if len(nums) != n or not yen:
+        return None, None
+    return "-".join(nums), float(yen.group(1).replace(",", ""))
 
 
 def load(date):

@@ -11,6 +11,9 @@
     out_hit   イン以外・的中重視  1コース以外頭・1頭×4艇12点。的中確率最大。期待回収率70%未満は見送り
                                 (穴寄りの頭は控除率がそのまま効くので、80%だとほぼ全部見送りになる)
     out_ana   イン以外・穴        1コース以外頭・60倍以上の目から期待値順に最大10点。記録のため見送りなし
+    e2_top1   2連単・確率1位      展示の進入が枠なりでなく、頭注目が1以外のレースだけ、2連単の確率1位を1点1,000円。
+                                  2025-26年の過去6,621Rで回収率102%(2025年99%・2026年106%、21か月中13か月で100%超)。
+                                  オッズは使わずモデルの確率だけで選ぶ(過去検証と同じ条件)
 例: python scripts/bet.py   (entry.pyから毎回呼ばれる)
 """
 import datetime as dt
@@ -32,7 +35,7 @@ WINDOW = (2, 9)         # 締切の何分前のレースを対象にするか
 ANA_ODDS = 60           # 穴狙いの対象にするオッズの下限
 ANA_MAX = 10            # 穴狙いの最大点数
 PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": "イン・期待値重視",
-         "out_hit": "イン以外・的中重視", "out_ana": "イン以外・穴"}
+         "out_hit": "イン以外・的中重視", "out_ana": "イン以外・穴", "e2_top1": "2連単・確率1位(進入変化×頭注目≠1)"}
 M = ["逃げ", "まくり", "差し", "まくり差し"]
 
 # 公式オッズ表の並び: 20行×6列(列=1着の枠)。列の中は(2着,3着)の昇順
@@ -180,9 +183,23 @@ def make_bet(pred, odds_w):
                          himo=None if s is None else [waku[x] for x in s],
                          ev=round(float(ev), 3), hit=round(float(hit), 3), stake=sum(units) * 100,
                          scenario=_scenario(name, pred, p, w, s, idx, waku), tickets=tickets)
+    out["e2_top1"] = _exacta_top1(pred, waku)
     # 締切前オッズそのもの(公式表の並び)も残す。締切時オッズとの差の分析用
     raw = [odds_w.get(c) for c in ODDS_ORDER]
     return dict(plans=out, odds=raw, cond=_conditions(pred, waku))
+
+
+def _exacta_top1(pred, waku):
+    """進入変化×頭注目≠1のときだけ、2連単の確率1位(3連単の確率を3着で足し合わせたもの)を1点買う"""
+    maeduke = any(b["waku"] != b["course"] for b in pred["boats"])   # 展示の進入が枠なりでない
+    if not maeduke or pred["scene"]["head"][0] == 0:
+        return dict(skip=True, bet="2t")
+    q = {}
+    for p, (a, b, _) in zip(pred["tri"], PERMS):
+        q[(a, b)] = q.get((a, b), 0) + p
+    (a, b), p = max(q.items(), key=lambda kv: kv[1])
+    return dict(skip=False, bet="2t", head=waku[a], himo=None, ev=None, hit=round(p, 3), stake=1000,
+                scenario=None, tickets=[dict(combo=f"{waku[a]}-{waku[b]}", units=10, odds=None, prob=round(p, 4))])
 
 
 def _conditions(pred, waku):
