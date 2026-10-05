@@ -496,7 +496,7 @@ def bets_records():
         return []
     res = load_results(files[0].stem)
     keyed = {(r.date, r.jcd, int(r.race)): dict(combo3t=r.combo3t, payout3t=r.payout3t)
-             for r in res.drop_duplicates(["date", "jcd", "race"]).itertuples() if r.combo3t}
+             for r in res.drop_duplicates(["date", "jcd", "race"]).itertuples() if isinstance(r.combo3t, str) and r.combo3t}
     out = []
     for f in files:
         date = f.stem
@@ -602,7 +602,7 @@ def nige_records():
         return []
     res = load_results(files[0].stem)
     keyed = {(r.date, r.jcd, int(r.race)): r.combo3t
-             for r in res.drop_duplicates(["date", "jcd", "race"]).itertuples() if r.combo3t}
+             for r in res.drop_duplicates(["date", "jcd", "race"]).itertuples() if isinstance(r.combo3t, str) and r.combo3t}
     out = []
     for f in files:
         date = f.stem
@@ -611,7 +611,7 @@ def nige_records():
             sc = pred.get("scene")
             jcd, race = key.split("-")
             combo = keyed.get((date, jcd, int(race))) or (live.get(key) or {}).get("combo3t")
-            if not sc or not combo:
+            if not sc or not isinstance(combo, str) or not combo:
                 continue
             course = {b["waku"]: b["course"] for b in pred["boats"]}   # 展示の進入で見たコース
             hp = sc["head_prob"]
