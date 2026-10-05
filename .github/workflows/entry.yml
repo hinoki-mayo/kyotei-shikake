@@ -26,6 +26,8 @@ jobs:
       - id: chk
         run: test -z "$(git status --porcelain data)" || echo "changed=1" >> $GITHUB_OUTPUT
       - run: python scripts/build_site.py
+        env:
+          SHARE_KEY: ${{ secrets.SHARE_KEY }}
       - if: steps.chk.outputs.changed == '1'
         run: |
           git config user.name "github-actions"

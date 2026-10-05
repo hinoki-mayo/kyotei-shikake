@@ -9,12 +9,14 @@
 import datetime as dt
 import html
 import json
+import os
 import shutil
 
 import pandas as pd
 
 import bet as bet_mod
 import live_result
+import share
 from common import DATA, ROOT, now_jst
 from draw import slit_svg, turn_svg
 from parse import VENUES
@@ -787,6 +789,66 @@ def grid_page(date, dates, prog_day, preds, now, path, payouts=None):
     return page(f"{jp(date)} 全24場の展開予想", body, "全24場のスタートスリット・1マーク展開予想を展示後に公開", path)
 
 
+SHARE_JS = """<script>
+async function png(id){const svg=document.getElementById(id).innerHTML;
+const img=new Image();img.src=URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'}));await img.decode();
+const c=document.createElement('canvas');c.width=1200;c.height=675;c.getContext('2d').drawImage(img,0,0);
+return new Promise(r=>c.toBlob(r,'image/png'))}
+async function shareX(id){const t=document.getElementById(id+'-t').value;const b=await png(id);
+const f=new File([b],id+'.png',{type:'image/png'});
+try{await navigator.clipboard.writeText(t)}catch(e){}
+if(navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],text:t});return}catch(e){if(e.name==='AbortError')return}}
+const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=f.name;a.click()}
+async function copyT(id,btn){await navigator.clipboard.writeText(document.getElementById(id+'-t').value);btn.textContent='コピーしました'}
+</script>"""
+
+
+def share_page(days, stats):
+    """X投稿用の隠しページ。仕掛け成功したレースの投稿文と画像を、配当が高い順に並べる。
+    URLはGitHubのSecret(SHARE_KEY)で決まり、サイトのどこからもリンクしない"""
+    items = []
+    for date in days:
+        pp = DATA / "predictions" / f"{date}.json"
+        if not pp.exists():
+            continue
+        preds = json.loads(pp.read_text())["races"]
+        ep = DATA / "entries" / f"{date}.json"
+        ents = json.loads(ep.read_text()) if ep.exists() else {}
+        live = live_result.load(date)
+        for key, pred in preds.items():
+            jcd, race = key[:2], int(key[3:])
+            result = stats.race_result(jcd, date, race)
+            if live.get(key):
+                result = {**live[key], **(result or {})}
+            k = share.successes(pred, result)
+            if k is None:
+                continue
+            items.append((date, jcd, race, pred, result, ents.get(key), k))
+    # 1号艇の逃げは当たって当然に見えるので万舟のときだけ。外からの仕掛け成功を先に出す
+    pay = lambda x: x[4].get("payout3t") or 0
+    out = sorted((x for x in items if x[6] != 0), key=lambda x: (x[0], pay(x)), reverse=True)
+    nige = sorted((x for x in items if x[6] == 0 and pay(x) >= 10000), key=lambda x: (x[0], pay(x)), reverse=True)
+    cards = ""
+    for n, (date, jcd, race, pred, result, ent, k) in enumerate(out + nige):
+        if n in (0, len(out)):
+            cards += "<h2>外からの仕掛け成功</h2>" if n < len(out) else "<h2>1号艇の逃げ（万舟のみ）</h2>"
+        v, cid = VENUES[jcd], f"c{n}"
+        text = share.post_text(v, race, pred, result, ent, k)
+        cards += (f'<div class="card"><b>{jp(date)} {v} {race}R</b> '
+                  f'<span class="sub">{int(result.get("payout3t") or 0):,}円</span>'
+                  f'<div id="{cid}" style="margin:8px 0">{share.card_svg(v, race, jp(date), pred, result, ent, k, CFG["base_url"])}</div>'
+                  f'<textarea id="{cid}-t" rows="8" style="width:100%;font-size:14px">{html.escape(text)}</textarea>'
+                  f'<div style="display:flex;gap:8px;margin-top:6px">'
+                  f'<button onclick="shareX(\'{cid}\')" style="flex:2;padding:12px;font-weight:700;background:#000;color:#fff;border:0;border-radius:8px">画像つきでシェア</button>'
+                  f'<button onclick="copyT(\'{cid}\',this)" style="flex:1;padding:12px;border-radius:8px">文をコピー</button></div></div>')
+    if not cards:
+        cards = '<div class="card lock"><b>まだ仕掛け成功のレースがありません</b><br><span class="sub">結果が出ると自動でここに並びます</span></div>'
+    body = (f'<h1>X投稿用</h1><p class="sub">このページは運営者専用です（どこからもリンクしていません）。'
+            f'「画像つきでシェア」で画像と文をXアプリに渡します。文が入らないときは貼り付けてください（コピー済み）。</p>'
+            f'{cards}{SHARE_JS}')
+    return page("X投稿用", body, "", "", noindex=True)
+
+
 STATIC = {
     "about.html": ("運営者情報", "<h1>運営者情報</h1><div class='card'>{about}</div>"),
     "privacy.html": ("プライバシーポリシー", "<h1>プライバシーポリシー</h1><div class='card'><p>当サイトでは第三者配信の広告サービスを利用する場合があり、"
@@ -865,6 +927,10 @@ def main():
     (OUT / "bets-data.json").write_text(json.dumps(bets_records(), ensure_ascii=False, separators=(",", ":")))
     (OUT / "nige.html").write_text(nige_page())
     (OUT / "nige-data.json").write_text(json.dumps(nige_records(), ensure_ascii=False, separators=(",", ":")))
+    key = os.environ.get("SHARE_KEY")
+    if key:   # 投稿用の隠しページ(今日と前日の仕掛け成功)。サイトマップには入れない
+        (OUT / key).mkdir()
+        (OUT / key / "index.html").write_text(share_page([today, f"{now - dt.timedelta(days=1):%Y%m%d}"], stats))
     for name, (title, body) in STATIC.items():
         (OUT / name).write_text(page(title, body.format(about=CFG.get("about", ""), contact=CFG.get("contact", "")), title, "/" + name))
         urls.append("/" + name)
