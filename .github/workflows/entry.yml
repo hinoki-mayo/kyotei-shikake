@@ -24,7 +24,7 @@ jobs:
       - run: pip install -r requirements.txt
       - run: python scripts/entry.py
       - id: chk
-        run: git diff --quiet data || echo "changed=1" >> $GITHUB_OUTPUT
+        run: test -z "$(git status --porcelain data)" || echo "changed=1" >> $GITHUB_OUTPUT
       - run: python scripts/build_site.py
       - if: steps.chk.outputs.changed == '1'
         run: |
