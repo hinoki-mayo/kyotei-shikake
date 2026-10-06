@@ -591,8 +591,8 @@ def bets_summary_page():
 
 
 def own_tabs(cur):
-    """自分用ページ(収支・逃げ判定)の切り替えタブ"""
-    items = [("bets", "/bets.html", "収支"), ("nige", "/nige.html", "逃げ判定")]
+    """自分用ページ(収支・逃げ判定・狙い目)の切り替えタブ"""
+    items = [("bets", "/bets.html", "収支"), ("nige", "/nige.html", "逃げ判定"), ("pick", "/pick.html", "狙い目")]
     return '<nav class="tabs">' + "".join(
         f'<a href="{u}"{" class=on" if k == cur else ""}>{t}</a>' for k, u, t in items) + '</nav>'
 
@@ -684,6 +684,90 @@ def nige_page():
             'モデルをあてて出した数字です。「2〜6コースの確率順」は、1コースを除いたモデルの1着確率の高い順です。</p>'
             f'<script>{js}</script>')
     return page("逃げ判定", body, "", "/nige.html", noindex=True)
+
+
+PICK_HI = 0.80   # 1コース1着確率がこれ以上なら「かなり確度高い逃げ」
+PICK_LO = 0.20   # pressed判定の中で、これ未満なら「厳選・逃げないレース」
+# 2022年1月〜2026年9月(約24.5万R、うちpressed判定8万R)を本番と同じModelで再現した検証値
+PICK_REF = dict(hi="83.3%", lo="84.0%", lo_head="46.7%")
+
+
+def pick_entry(date, jcd, info, pred, now):
+    """予想(final版・締切前)から、1コース1着確率が極端に高い/低いレースだけを抜き出す。
+    閾値はscripts/analyze_escape_miss.pyのバックテストに基づく(PICK_REF)。"""
+    if not pred or pred.get("version") != "final" or now >= dl_dt(date, info["deadline"]):
+        return None
+    sc = pred["scene"]
+    nige = sc["nige"]
+    waku = [b["waku"] for b in pred["boats"]]
+    base = dict(date=date, jcd=jcd, race=info["race"], deadline=info["deadline"])
+    if nige >= PICK_HI:
+        return ("hi", dict(base, nige=nige, waku1=waku[0]))
+    if sc["pressed"] and nige < PICK_LO:
+        shu = sc["shu"]
+        scen = next((s for s in pred.get("scenarios", {}).get("list", []) if s["w"] == shu), None)
+        lines = scen["lines"] if scen else [sc["lines"].get(str(shu), "")]
+        return ("lo", dict(base, nige=nige, shu_waku=waku[shu], move=sc["move"], lines=lines))
+    return None
+
+
+PICK_JS = r"""
+const VN=__VENUES__, REF=__REF__, HI=__HI__, LO=__LO__;
+let D=[];
+const $=id=>document.getElementById(id), pct=(a,b)=>b?Math.round(a/b*1000)/10+'%':'―';
+function filt(){
+  const per=$('per3').value, ds=[...new Set(D.map(x=>x.d))].sort();
+  const keep=per==='all'?null:new Set(ds.slice(-({today:1,d7:7,d30:30})[per]));
+  return D.filter(x=>!keep||keep.has(x.d));
+}
+const row=(label,a,n,ref)=>`<div class="boat"><div style="flex:1"><b>${label}</b><br><span class="sub">${a}/${n}R・過去の目安 ${ref}</span></div><b style="font-size:20px">${pct(a,n)}</b></div>`;
+function render(){
+  const rows=filt(), hi=rows.filter(x=>x.p1>=HI), lo=rows.filter(x=>x.p1<LO);
+  const c=(arr,f)=>arr.filter(f).length, lostHit=lo.filter(x=>x.w!==1);
+  $('n3').textContent=`対象 ${rows.length}レース（うち確度高い逃げ ${hi.length}R・厳選の逃げないレース ${lo.length}R）`;
+  let s='<div class="card"><b>かなり確度高い逃げ（1コース1着確率80%以上）</b>'+row('実際に逃げ切った',c(hi,x=>x.w===1),hi.length,REF.hi)+'</div>';
+  s+='<div class="card"><b>厳選・逃げないレース（1コース1着確率20%未満）</b>'+row('実際に1コース以外が勝った',c(lo,x=>x.w!==1),lo.length,REF.lo)
+    +row('うち頭注目(確率1位)が1着',c(lostHit,x=>x.w===x.o[0]),lostHit.length,REF.lo_head)+'</div>';
+  $('out3').innerHTML=s;
+}
+fetch('/nige-data.json').then(r=>r.json()).then(j=>{D=j;render()});
+document.addEventListener('change',e=>{if(e.target.id==='per3')render()});
+"""
+
+
+def pick_page(hi_list, lo_list):
+    """狙い目(今日・明日の厳選レース一覧+この基準自体の過去集計)。一覧は静的、集計はnige-data.jsonを流用"""
+    def link(x):
+        return f"/{x['date']}/{x['jcd']}/{x['race']:02d}-turn.html"
+    hi_cards = "".join(
+        f'<a class="boat" href="{link(x)}">{chip(x["waku1"])}<div><b>{VENUES[x["jcd"]]} {x["race"]}R</b> '
+        f'<span class="sub">締切{x["deadline"]}・1コース1着確率{x["nige"]:.0%}</span></div></a>'
+        for x in sorted(hi_list, key=lambda x: -x["nige"]))
+    lo_cards = "".join(
+        f'<a class="boat" href="{link(x)}" style="flex-direction:column;align-items:flex-start;gap:4px">'
+        f'<div style="display:flex;gap:10px">{chip(x["shu_waku"])}<div><b>{VENUES[x["jcd"]]} {x["race"]}R</b> '
+        f'<span class="sub">締切{x["deadline"]}・1コース1着確率{x["nige"]:.0%}・{x["shu_waku"]}号艇の{x["move"]}が本線</span></div></div>'
+        f'<p class="sub" style="margin:0;color:var(--tx)">{html.escape("。".join(x["lines"]))}。</p></a>'
+        for x in sorted(lo_list, key=lambda x: x["nige"]))
+    NONE_MSG = '<p class="sub">現在、該当レースはありません。</p>'
+    opt = lambda pairs: "".join(f'<option value="{v}">{t}</option>' for v, t in pairs)
+    sel = 'style="font-size:15px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);width:100%"'
+    js = (PICK_JS.replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False)).replace("__REF__", json.dumps(PICK_REF, ensure_ascii=False))
+          .replace("__HI__", str(PICK_HI)).replace("__LO__", str(PICK_LO)))
+    body = ('<h1>狙い目</h1>' + own_tabs("pick")
+            + '<p class="sub">今日・明日の確定済み予想(展示反映後)から、1コースの1着確率が極端に高い/低いレースだけを抜き出しています。'
+              'それ以外の帯は「よくわからない」として対象外です。</p>'
+            + f'<h2>かなり確度高い逃げ（1コース1着確率{PICK_HI:.0%}以上）</h2>'
+            + f'<div class="card list">{hi_cards or NONE_MSG}</div>'
+            + f'<h2>厳選・逃げないレース（1コース1着確率{PICK_LO:.0%}未満）</h2>'
+            + f'<div class="card list">{lo_cards or NONE_MSG}</div>'
+            + '<h2>この基準自体の成績</h2>'
+            + '<div class="card" style="display:grid;grid-template-columns:1fr;gap:8px">'
+            + f'<label class="sub">期間<select id="per3" {sel}>{opt([("today", "今日"), ("d7", "直近7日"), ("d30", "直近30日"), ("all", "全期間")])}</select></label>'
+            + '</div><p class="sub" id="n3"></p><div id="out3"><p class="sub">読み込み中…</p></div>'
+            + '<p class="sub">結果が出たレースのみ集計。「過去の目安」は2022年1月〜2026年9月・約24.5万レースにこの基準をあてた検証値。</p>'
+            + f'<script>{js}</script>')
+    return page("狙い目", body, "", "/pick.html", noindex=True)
 
 
 def venue_page(date, jcd, infos, preds, now):
@@ -879,6 +963,7 @@ def main():
         shutil.rmtree(OUT)
     OUT.mkdir()
     urls = ["/"]
+    pick_hi, pick_lo = [], []
     for date in dates:
         pd_path = DATA / "predictions" / f"{date}.json"
         preds = json.loads(pd_path.read_text())["races"] if pd_path.exists() else {}
@@ -910,6 +995,9 @@ def main():
                 (d / f"{base}-result.html").write_text(result_page(date, info, pred, races, result))
                 (d / f"{base}-bet.html").write_text(bet_page(date, info, pred, races, result, bets.get(f"{jcd}-{base}")))
                 urls += [f"/{date}/{jcd}/{base}{s}.html" for s in ("", "-slit", "-turn", "-result")]
+                ent = pick_entry(date, jcd, info, pred, now)
+                if ent:
+                    (pick_hi if ent[0] == "hi" else pick_lo).append(ent[1])
             (d / "index.html").write_text(venue_page(date, jcd, infos, preds, now))
             urls.append(f"/{date}/{jcd}/")
         (OUT / date).mkdir(exist_ok=True)
@@ -927,6 +1015,7 @@ def main():
     (OUT / "bets-data.json").write_text(json.dumps(bets_records(), ensure_ascii=False, separators=(",", ":")))
     (OUT / "nige.html").write_text(nige_page())
     (OUT / "nige-data.json").write_text(json.dumps(nige_records(), ensure_ascii=False, separators=(",", ":")))
+    (OUT / "pick.html").write_text(pick_page(pick_hi, pick_lo))
     key = os.environ.get("SHARE_KEY")
     if key:   # 投稿用の隠しページ(今日と前日の仕掛け成功)。サイトマップには入れない
         (OUT / key).mkdir()
