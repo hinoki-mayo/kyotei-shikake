@@ -689,12 +689,15 @@ def nige_page():
 PICK_HI = 0.80   # 1コース1着確率がこれ以上なら「かなり確度高い逃げ」
 PICK_LO = 0.20   # pressed判定の中で、これ未満なら「厳選・逃げないレース」
 # 2022年1月〜2026年9月(約24.5万R、うちpressed判定8万R)を本番と同じModelで再現した検証値
-PICK_REF = dict(hi="83.3%", lo="84.0%", lo_head="46.7%")
+# lo_head2は/nige.htmlの「確率2位までに1着(うちイン飛び予想だったレース)」の全期間値を流用(厳選帯専用の値ではない目安)
+PICK_REF = dict(hi="83.3%", lo="84.0%", lo_head="46.7%", lo_head2=NIGE_REF["o2h2"])
 
 
 def pick_entry(date, jcd, info, pred, now):
     """予想(final版・締切前)から、1コース1着確率が極端に高い/低いレースだけを抜き出す。
-    閾値はscripts/analyze_escape_miss.pyのバックテストに基づく(PICK_REF)。"""
+    閾値はscripts/analyze_escape_miss.pyのバックテストに基づく(PICK_REF)。
+    厳選帯の頭候補は、/nige.htmlの集計(nige_records)と同じ「確率の素の順位」で上位2艇(本命・次点)を出す
+    (scene.pyのshuは意外性を混ぜた選び方で定義が別物になるため、ここでは使わない)。"""
     if not pred or pred.get("version") != "final" or now >= dl_dt(date, info["deadline"]):
         return None
     sc = pred["scene"]
@@ -704,10 +707,18 @@ def pick_entry(date, jcd, info, pred, now):
     if nige >= PICK_HI:
         return ("hi", dict(base, nige=nige, waku1=waku[0]))
     if sc["pressed"] and nige < PICK_LO:
-        shu = sc["shu"]
-        scen = next((s for s in pred.get("scenarios", {}).get("list", []) if s["w"] == shu), None)
-        lines = scen["lines"] if scen else [sc["lines"].get(str(shu), "")]
-        return ("lo", dict(base, nige=nige, shu_waku=waku[shu], move=sc["move"], lines=lines))
+        hp = sc["head_prob"]
+        top2 = sorted(range(1, 6), key=lambda k: -hp[k])[:2]
+        scen_by_w = {}
+        for s in pred.get("scenarios", {}).get("list", []):
+            scen_by_w.setdefault(s["w"], s)
+        cands = []
+        for k in top2:
+            s = scen_by_w.get(k)
+            cands.append(dict(waku=waku[k], prob=hp[k],
+                              move=(s["m"] if s else ""),
+                              lines=(s["lines"] if s else [sc["lines"].get(str(k), "")])))
+        return ("lo", dict(base, nige=nige, cands=cands))
     return None
 
 
@@ -727,7 +738,8 @@ function render(){
   $('n3').textContent=`対象 ${rows.length}レース（うち確度高い逃げ ${hi.length}R・厳選の逃げないレース ${lo.length}R）`;
   let s='<div class="card"><b>かなり確度高い逃げ（1コース1着確率80%以上）</b>'+row('実際に逃げ切った',c(hi,x=>x.w===1),hi.length,REF.hi)+'</div>';
   s+='<div class="card"><b>厳選・逃げないレース（1コース1着確率20%未満）</b>'+row('実際に1コース以外が勝った',c(lo,x=>x.w!==1),lo.length,REF.lo)
-    +row('うち頭注目(確率1位)が1着',c(lostHit,x=>x.w===x.o[0]),lostHit.length,REF.lo_head)+'</div>';
+    +row('うち本命(確率1位)が1着',c(lostHit,x=>x.w===x.o[0]),lostHit.length,REF.lo_head)
+    +row('うち本命・次点のどちらかが1着',c(lostHit,x=>x.o.includes(x.w)),lostHit.length,REF.lo_head2)+'</div>';
   $('out3').innerHTML=s;
 }
 fetch('/nige-data.json').then(r=>r.json()).then(j=>{D=j;render()});
@@ -743,11 +755,14 @@ def pick_page(hi_list, lo_list):
         f'<a class="boat" href="{link(x)}">{chip(x["waku1"])}<div><b>{VENUES[x["jcd"]]} {x["race"]}R</b> '
         f'<span class="sub">締切{x["deadline"]}・1コース1着確率{x["nige"]:.0%}</span></div></a>'
         for x in sorted(hi_list, key=lambda x: -x["nige"]))
+    def cand_block(c, label):
+        return (f'<div style="display:flex;gap:10px;width:100%">{chip(c["waku"])}<div style="flex:1">'
+                f'<span class="sub">{label}・確率{c["prob"]:.0%}{"・" + c["move"] if c["move"] else ""}</span>'
+                f'<p class="sub" style="margin:2px 0 0;color:var(--tx)">{html.escape("。".join(c["lines"]))}。</p></div></div>')
     lo_cards = "".join(
-        f'<a class="boat" href="{link(x)}" style="flex-direction:column;align-items:flex-start;gap:4px">'
-        f'<div style="display:flex;gap:10px">{chip(x["shu_waku"])}<div><b>{VENUES[x["jcd"]]} {x["race"]}R</b> '
-        f'<span class="sub">締切{x["deadline"]}・1コース1着確率{x["nige"]:.0%}・{x["shu_waku"]}号艇の{x["move"]}が本線</span></div></div>'
-        f'<p class="sub" style="margin:0;color:var(--tx)">{html.escape("。".join(x["lines"]))}。</p></a>'
+        f'<a class="boat" href="{link(x)}" style="flex-direction:column;align-items:flex-start;gap:6px">'
+        f'<div><b>{VENUES[x["jcd"]]} {x["race"]}R</b> <span class="sub">締切{x["deadline"]}・1コース1着確率{x["nige"]:.0%}</span></div>'
+        + cand_block(x["cands"][0], "本命") + cand_block(x["cands"][1], "次点") + '</a>'
         for x in sorted(lo_list, key=lambda x: x["nige"]))
     NONE_MSG = '<p class="sub">現在、該当レースはありません。</p>'
     opt = lambda pairs: "".join(f'<option value="{v}">{t}</option>' for v, t in pairs)
@@ -756,7 +771,7 @@ def pick_page(hi_list, lo_list):
           .replace("__HI__", str(PICK_HI)).replace("__LO__", str(PICK_LO)))
     body = ('<h1>狙い目</h1>' + own_tabs("pick")
             + '<p class="sub">今日・明日の確定済み予想(展示反映後)から、1コースの1着確率が極端に高い/低いレースだけを抜き出しています。'
-              'それ以外の帯は「よくわからない」として対象外です。</p>'
+              'それ以外の帯は「よくわからない」として対象外です。厳選レースの頭は、本命(確率1位)だけだと的中率が低いので次点(確率2位)も併記しています。</p>'
             + f'<h2>かなり確度高い逃げ（1コース1着確率{PICK_HI:.0%}以上）</h2>'
             + f'<div class="card list">{hi_cards or NONE_MSG}</div>'
             + f'<h2>厳選・逃げないレース（1コース1着確率{PICK_LO:.0%}未満）</h2>'
