@@ -14,6 +14,11 @@
     e2_top1   2連単・確率1位      展示の進入が枠なりでなく、頭注目が1以外のレースだけ、2連単の確率1位を1点1,000円。
                                   2025-26年の過去6,621Rで回収率102%(2025年99%・2026年106%、21か月中13か月で100%超)。
                                   オッズは使わずモデルの確率だけで選ぶ(過去検証と同じ条件)
+    pick2     厳選頭2頭           pressed かつ 1コース1着確率15%未満(2022-2026検証: 本命・次点のどちらかが
+                                  1着になる率65.4%)のレースだけ対象。確率上位2艇(本命・次点)それぞれの
+                                  最有力の目をオッズ2.25倍以上(5分前時点、変動の見込み)に限定し、
+                                  的中時10,000円以上戻るよう配分(本命優先)、残り予算は期待値順に紐を追加。
+                                  予算上限4,000円。両頭とも2.25倍未満なら見送り
 例: python scripts/bet.py   (entry.pyから毎回呼ばれる)
 """
 import datetime as dt
@@ -35,7 +40,13 @@ WINDOW = (2, 9)         # 締切の何分前のレースを対象にするか
 ANA_ODDS = 60           # 穴狙いの対象にするオッズの下限
 ANA_MAX = 10            # 穴狙いの最大点数
 PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": "イン・期待値重視",
-         "out_hit": "イン以外・的中重視", "out_ana": "イン以外・穴", "e2_top1": "2連単・確率1位(進入変化×頭注目≠1)"}
+         "out_hit": "イン以外・的中重視", "out_ana": "イン以外・穴", "e2_top1": "2連単・確率1位(進入変化×頭注目≠1)",
+         "pick2": "厳選頭2頭(本命・次点)"}
+PICK2_NIGE_MAX = 0.15   # pressedの中でもこれ未満だけ対象(2022-2026検証: 本命・次点のどちらかが1着65.4%)
+PICK2_MIN_ODDS = 2.25   # 5分前時点オッズなので、損益分岐の2倍より変動分の余裕を見て高め
+PICK2_MIN_BACK = 10000  # 当たったとき最低これだけ戻るよう狙う(予算の上限4,000円に収まる範囲で)
+PICK2_BUDGET = 4000
+PICK2_MAX_EXTRA = 4     # 本命の目のほかに追加する紐の最大本数(頭ごと)
 M = ["逃げ", "まくり", "差し", "まくり差し"]
 
 # 公式オッズ表の並び: 20行×6列(列=1着の枠)。列の中は(2着,3着)の昇順
@@ -164,6 +175,54 @@ def _scenario(name, pred, p, w, s, idx, waku):
     return f"{lead}{waku[w]}号艇({w + 1}コース)の{M[mv]}が決まる展開(この艇が勝つ確率{win(w):.0%})。{tail}"
 
 
+def _pick2(pred, p, odds_c, waku):
+    """厳選・逃げないレース専用(狙い目タブのpick.htmlより厳しいnige<PICK2_NIGE_MAX)。
+    確率上位2艇(本命・次点)それぞれの最有力の目をオッズ2.25倍以上に限定し、
+    的中時10,000円以上戻るよう本命優先で配分、残り予算は期待値順に紐を足す"""
+    sc = pred["scene"]
+    if not (sc["pressed"] and sc["nige"] < PICK2_NIGE_MAX):
+        return dict(skip=True)
+    hp = sc["head_prob"]
+    heads = sorted(range(1, 6), key=lambda k: -hp[k])[:2]
+    by_head = {}
+    for w in heads:
+        idx = sorted((i for i in range(120) if PERMS[i][0] == w and odds_c[i]), key=lambda i: -p[i])
+        if idx and odds_c[idx[0]] >= PICK2_MIN_ODDS:
+            by_head[w] = idx
+    if not by_head:
+        return dict(skip=True)
+    budget = PICK2_BUDGET
+    tickets = []
+    for w in heads:
+        idx = by_head.get(w)
+        if not idx or budget < 100:
+            continue
+        i0 = idx[0]
+        units0 = min(-(-PICK2_MIN_BACK // (odds_c[i0] * 100)), budget // 100)
+        tickets.append((i0, int(units0)))
+        budget -= units0 * 100
+        extra = sorted(idx[1:], key=lambda i: -p[i] * odds_c[i])[:PICK2_MAX_EXTRA]
+        for i in extra:
+            if budget < 100:
+                break
+            tickets.append((i, 1))
+            budget -= 100
+    if not tickets:
+        return dict(skip=True)
+    idxs, units = zip(*tickets)
+    pp = [float(p[i]) for i in idxs]
+    hit = float(sum(pp))
+    stake = sum(units) * 100
+    ev = float(sum(x * u * odds_c[i] for x, u, i in zip(pp, units, idxs)) / hit) if hit else 0.0
+    heads_txt = "・".join(f"{waku[w]}号艇" for w in by_head)
+    scenario = (f"{heads_txt}のどちらかが頭になる展開(確率上位2艇)。5分前時点でオッズ{PICK2_MIN_ODDS}倍以上の目だけを、"
+                f"的中時{PICK2_MIN_BACK:,}円以上戻る配分で組んでいます")
+    return dict(skip=False, head=None, himo=None, ev=round(ev, 3), hit=round(hit, 3), stake=stake,
+                scenario=scenario,
+                tickets=[dict(combo="-".join(str(waku[c]) for c in PERMS[i]), units=u, odds=odds_c[i],
+                              prob=round(float(p[i]), 4)) for i, u in zip(idxs, units)])
+
+
 def make_bet(pred, odds_w):
     """予想(コース基準)と枠番オッズから、保存用の買い目(5通り)を作る"""
     waku = [b["waku"] for b in pred["boats"]]            # コース -> 枠番
@@ -171,6 +230,8 @@ def make_bet(pred, odds_w):
     p, plans = plan(pred["tri"], odds_c)
     out = {}
     for name in PLANS:
+        if name == "pick2":
+            continue
         r = plans.get(name)
         if r is None:
             out[name] = dict(skip=True)
@@ -184,6 +245,7 @@ def make_bet(pred, odds_w):
                          ev=round(float(ev), 3), hit=round(float(hit), 3), stake=sum(units) * 100,
                          scenario=_scenario(name, pred, p, w, s, idx, waku), tickets=tickets)
     out["e2_top1"] = _exacta_top1(pred, waku)
+    out["pick2"] = _pick2(pred, p, odds_c, waku)
     # 締切前オッズそのもの(公式表の並び)も残す。締切時オッズとの差の分析用
     raw = [odds_w.get(c) for c in ODDS_ORDER]
     return dict(plans=out, odds=raw, cond=_conditions(pred, waku))
