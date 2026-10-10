@@ -14,11 +14,12 @@
     e2_top1   2連単・確率1位      展示の進入が枠なりでなく、頭注目が1以外のレースだけ、2連単の確率1位を1点1,000円。
                                   2025-26年の過去6,621Rで回収率102%(2025年99%・2026年106%、21か月中13か月で100%超)。
                                   オッズは使わずモデルの確率だけで選ぶ(過去検証と同じ条件)
-    pick2     厳選頭2頭           pressed かつ 1コース1着確率15%未満(2022-2026検証: 本命・次点のどちらかが
-                                  1着になる率65.4%)のレースだけ対象。確率上位2艇(本命・次点)それぞれの
-                                  最有力の目をオッズ2.25倍以上(5分前時点、変動の見込み)に限定し、
-                                  的中時10,000円以上戻るよう配分(本命優先)、残り予算は期待値順に紐を追加。
-                                  予算上限4,000円。両頭とも2.25倍未満なら見送り
+    pick2     厳選頭2頭           pressed かつ 1コース1着確率20%未満のレースだけ対象。確率上位2艇
+                                  (本命・次点)それぞれ、2.25倍以上50倍以下の目から期待値(確率×オッズ)
+                                  最大の目を本線にし、的中時10,000円以上戻るよう配分(本命優先)、
+                                  残り予算は同じ条件で期待値順に紐を追加。予算上限4,000円。
+                                  (2025-26年21か月・実オッズ198Rの検証で回収率109.6%、本線を確率最大で
+                                  選ぶと93.5%止まりだったのでEV最大に変更。穴(50倍超)は除外)
 例: python scripts/bet.py   (entry.pyから毎回呼ばれる)
 """
 import datetime as dt
@@ -42,8 +43,9 @@ ANA_MAX = 10            # 穴狙いの最大点数
 PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": "イン・期待値重視",
          "out_hit": "イン以外・的中重視", "out_ana": "イン以外・穴", "e2_top1": "2連単・確率1位(進入変化×頭注目≠1)",
          "pick2": "厳選頭2頭(本命・次点)"}
-PICK2_NIGE_MAX = 0.15   # pressedの中でもこれ未満だけ対象(2022-2026検証: 本命・次点のどちらかが1着65.4%)
+PICK2_NIGE_MAX = 0.20   # pressedの中でもこれ未満だけ対象(実オッズ検証でこの帯が一番良かった)
 PICK2_MIN_ODDS = 2.25   # 5分前時点オッズなので、損益分岐の2倍より変動分の余裕を見て高め
+PICK2_MAX_ODDS = 50     # これを超える穴目は除外(過大評価しがちで実オッズ検証でも回収率を下げていた)
 PICK2_MIN_BACK = 10000  # 当たったとき最低これだけ戻るよう狙う(予算の上限4,000円に収まる範囲で)
 PICK2_BUDGET = 4000
 PICK2_MAX_EXTRA = 4     # 本命の目のほかに追加する紐の最大本数(頭ごと)
@@ -177,8 +179,9 @@ def _scenario(name, pred, p, w, s, idx, waku):
 
 def _pick2(pred, p, odds_c, waku):
     """厳選・逃げないレース専用(狙い目タブのpick.htmlより厳しいnige<PICK2_NIGE_MAX)。
-    確率上位2艇(本命・次点)それぞれの最有力の目をオッズ2.25倍以上に限定し、
-    的中時10,000円以上戻るよう本命優先で配分、残り予算は期待値順に紐を足す"""
+    確率上位2艇(本命・次点)それぞれ、2.25〜50倍の目から期待値(確率×オッズ)最大を本線にし、
+    的中時10,000円以上戻るよう本命優先で配分、残り予算は同条件で期待値順に紐を足す。
+    (本線を確率最大で選ぶと市場も同じ目を安く値付けしていて妙味がなかった。実オッズ検証でEV最大に変更)"""
     sc = pred["scene"]
     if not (sc["pressed"] and sc["nige"] < PICK2_NIGE_MAX):
         return dict(skip=True)
@@ -186,8 +189,10 @@ def _pick2(pred, p, odds_c, waku):
     heads = sorted(range(1, 6), key=lambda k: -hp[k])[:2]
     by_head = {}
     for w in heads:
-        idx = sorted((i for i in range(120) if PERMS[i][0] == w and odds_c[i]), key=lambda i: -p[i])
-        if idx and odds_c[idx[0]] >= PICK2_MIN_ODDS:
+        cand = [i for i in range(120) if PERMS[i][0] == w and odds_c[i]
+                and PICK2_MIN_ODDS <= odds_c[i] <= PICK2_MAX_ODDS]
+        idx = sorted(cand, key=lambda i: -p[i] * odds_c[i])
+        if idx:
             by_head[w] = idx
     if not by_head:
         return dict(skip=True)
@@ -201,8 +206,7 @@ def _pick2(pred, p, odds_c, waku):
         units0 = min(-(-PICK2_MIN_BACK // (odds_c[i0] * 100)), budget // 100)
         tickets.append((i0, int(units0)))
         budget -= units0 * 100
-        extra = sorted(idx[1:], key=lambda i: -p[i] * odds_c[i])[:PICK2_MAX_EXTRA]
-        for i in extra:
+        for i in idx[1:1 + PICK2_MAX_EXTRA]:
             if budget < 100:
                 break
             tickets.append((i, 1))
@@ -215,8 +219,8 @@ def _pick2(pred, p, odds_c, waku):
     stake = sum(units) * 100
     ev = float(sum(x * u * odds_c[i] for x, u, i in zip(pp, units, idxs)) / hit) if hit else 0.0
     heads_txt = "・".join(f"{waku[w]}号艇" for w in by_head)
-    scenario = (f"{heads_txt}のどちらかが頭になる展開(確率上位2艇)。5分前時点でオッズ{PICK2_MIN_ODDS}倍以上の目だけを、"
-                f"的中時{PICK2_MIN_BACK:,}円以上戻る配分で組んでいます")
+    scenario = (f"{heads_txt}のどちらかが頭になる展開(確率上位2艇)。5分前時点でオッズ{PICK2_MIN_ODDS}〜{PICK2_MAX_ODDS}倍の"
+                f"期待値が高い目を、的中時{PICK2_MIN_BACK:,}円以上戻る配分で組んでいます")
     return dict(skip=False, head=None, himo=None, ev=round(ev, 3), hit=round(hit, 3), stake=stake,
                 scenario=scenario,
                 tickets=[dict(combo="-".join(str(waku[c]) for c in PERMS[i]), units=u, odds=odds_c[i],

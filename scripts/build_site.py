@@ -424,7 +424,8 @@ SKIP_TEXT = {"balance": "的中確率30%以上で期待回収率100%を超える
              "out_hit": "1コース以外の頭で期待回収率70%以上の組み合わせがありませんでした",
              "out_ana": f"1コース以外が頭で{bet_mod.ANA_ODDS}倍以上の目がありませんでした",
              "e2_top1": "展示の進入が枠なりでなく、頭注目が1以外のレースだけ買います",
-             "pick2": f"1コース1着確率{bet_mod.PICK2_NIGE_MAX:.0%}未満の厳選レースのみ対象。対象でも本命・次点ともオッズ{bet_mod.PICK2_MIN_ODDS}倍未満なら見送り"}
+             "pick2": f"1コース1着確率{bet_mod.PICK2_NIGE_MAX:.0%}未満の厳選レースのみ対象。対象でも本命・次点とも"
+                      f"オッズ{bet_mod.PICK2_MIN_ODDS}〜{bet_mod.PICK2_MAX_ODDS}倍の目がなければ見送り"}
 
 
 def _plan_card(name, pl, result):
