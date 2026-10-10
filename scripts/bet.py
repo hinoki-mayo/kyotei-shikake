@@ -14,12 +14,12 @@
     e2_top1   2連単・確率1位      展示の進入が枠なりでなく、頭注目が1以外のレースだけ、2連単の確率1位を1点1,000円。
                                   2025-26年の過去6,621Rで回収率102%(2025年99%・2026年106%、21か月中13か月で100%超)。
                                   オッズは使わずモデルの確率だけで選ぶ(過去検証と同じ条件)
-    pick2     厳選頭2頭           pressed かつ 1コース1着確率20%未満のレースだけ対象。確率上位2艇
-                                  (本命・次点)それぞれ、2.25倍以上50倍以下の目から期待値(確率×オッズ)
-                                  最大の目を本線にし、的中時10,000円以上戻るよう配分(本命優先)、
-                                  残り予算は同じ条件で期待値順に紐を追加。予算上限4,000円。
-                                  (2025-26年21か月・実オッズ198Rの検証で回収率109.6%、本線を確率最大で
-                                  選ぶと93.5%止まりだったのでEV最大に変更。穴(50倍超)は除外)
+    pick2     厳選頭2頭           pressed かつ 1コース1着確率18%未満のレースだけ対象。確率上位2艇
+                                  (本命・次点)それぞれ、2.25〜50倍の目から期待値(確率×オッズ)上位5点に
+                                  絞り、その中で確率に比例して予算(頭ごと2,000円、合計4,000円)を配分。
+                                  (2025-26年21か月・実オッズ198Rの検証: nige<18%で回収率114.1%。
+                                  的中時10,000円保証+紐均等100円という配分より、上位数点に確率比例で
+                                  配る方が明確に良かったので変更)
 例: python scripts/bet.py   (entry.pyから毎回呼ばれる)
 """
 import datetime as dt
@@ -43,12 +43,14 @@ ANA_MAX = 10            # 穴狙いの最大点数
 PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": "イン・期待値重視",
          "out_hit": "イン以外・的中重視", "out_ana": "イン以外・穴", "e2_top1": "2連単・確率1位(進入変化×頭注目≠1)",
          "pick2": "厳選頭2頭(本命・次点)"}
-PICK2_NIGE_MAX = 0.20   # pressedの中でもこれ未満だけ対象(実オッズ検証でこの帯が一番良かった)
+PICK2_NIGE_MAX = 0.18   # pressedの中でもこれ未満だけ対象(実オッズ検証: <15%で回収率128.5%・<18%で114.1%・
+                        # <20%で105.0%。頻度とのバランスで18%を採用)
 PICK2_MIN_ODDS = 2.25   # 5分前時点オッズなので、損益分岐の2倍より変動分の余裕を見て高め
 PICK2_MAX_ODDS = 50     # これを超える穴目は除外(過大評価しがちで実オッズ検証でも回収率を下げていた)
-PICK2_MIN_BACK = 10000  # 当たったとき最低これだけ戻るよう狙う(予算の上限4,000円に収まる範囲で)
-PICK2_BUDGET = 4000
-PICK2_MAX_EXTRA = 4     # 本命の目のほかに追加する紐の最大本数(頭ごと)
+PICK2_HEAD_BUDGET = 2000   # 本命・次点それぞれに配る予算(合計4,000円)
+PICK2_N_TICKETS = 5        # 頭ごとに期待値上位何点に絞るか。その中で確率比例配分する
+                           # (的中時10,000円保証+紐均等100円より、上位数点に確率比例配分の方が
+                           # 実オッズ検証で明確に良かった: nige<20%で105.0%→旧方式は93.5%)
 M = ["逃げ", "まくり", "差し", "まくり差し"]
 
 # 公式オッズ表の並び: 20行×6列(列=1着の枠)。列の中は(2着,3着)の昇順
@@ -179,39 +181,33 @@ def _scenario(name, pred, p, w, s, idx, waku):
 
 def _pick2(pred, p, odds_c, waku):
     """厳選・逃げないレース専用(狙い目タブのpick.htmlより厳しいnige<PICK2_NIGE_MAX)。
-    確率上位2艇(本命・次点)それぞれ、2.25〜50倍の目から期待値(確率×オッズ)最大を本線にし、
-    的中時10,000円以上戻るよう本命優先で配分、残り予算は同条件で期待値順に紐を足す。
-    (本線を確率最大で選ぶと市場も同じ目を安く値付けしていて妙味がなかった。実オッズ検証でEV最大に変更)"""
+    確率上位2艇(本命・次点)それぞれ、2.25〜50倍の目から期待値(確率×オッズ)上位PICK2_N_TICKETS点に絞り、
+    その中で確率比例に予算(頭ごとPICK2_HEAD_BUDGET円)を配分する。
+    (的中時10,000円保証+紐は均等100円、という以前の配分より、上位数点に確率比例で配る方が
+    実オッズ検証で明確に回収率が良かった)"""
     sc = pred["scene"]
     if not (sc["pressed"] and sc["nige"] < PICK2_NIGE_MAX):
         return dict(skip=True)
     hp = sc["head_prob"]
     heads = sorted(range(1, 6), key=lambda k: -hp[k])[:2]
-    by_head = {}
+    label = {w: ("本命" if i == 0 else "次点") for i, w in enumerate(heads)}
+    tickets = []   # (idx, units, role) の順
+    used_heads = []
     for w in heads:
         cand = [i for i in range(120) if PERMS[i][0] == w and odds_c[i]
                 and PICK2_MIN_ODDS <= odds_c[i] <= PICK2_MAX_ODDS]
-        idx = sorted(cand, key=lambda i: -p[i] * odds_c[i])
-        if idx:
-            by_head[w] = idx
-    if not by_head:
-        return dict(skip=True)
-    budget = PICK2_BUDGET
-    label = {w: ("本命" if i == 0 else "次点") for i, w in enumerate(heads)}
-    tickets = []   # (idx, units, role) の順
-    for w in heads:
-        idx = by_head.get(w)
-        if not idx or budget < 100:
+        idx = sorted(cand, key=lambda i: -p[i] * odds_c[i])[:PICK2_N_TICKETS]
+        if not idx:
             continue
-        i0 = idx[0]
-        units0 = min(-(-PICK2_MIN_BACK // (odds_c[i0] * 100)), budget // 100)
-        tickets.append((i0, int(units0), f"{label[w]}・本線"))
-        budget -= units0 * 100
-        for i in idx[1:1 + PICK2_MAX_EXTRA]:
-            if budget < 100:
-                break
-            tickets.append((i, 1, f"{label[w]}・紐"))
-            budget -= 100
+        used_heads.append(w)
+        pp = [p[i] for i in idx]
+        hit = sum(pp)
+        units = [max(1, round(x / hit * PICK2_HEAD_BUDGET / 100)) for x in pp]
+        while sum(units) * 100 > PICK2_HEAD_BUDGET:
+            units[units.index(max(units))] -= 1
+        for rank, (i, u) in enumerate(zip(idx, units)):
+            if u > 0:
+                tickets.append((i, u, f"{label[w]}・{'本線' if rank == 0 else f'{rank + 1}位'}"))
     if not tickets:
         return dict(skip=True)
     idxs, units, roles = zip(*tickets)
@@ -219,10 +215,10 @@ def _pick2(pred, p, odds_c, waku):
     hit = float(sum(pp))
     stake = sum(units) * 100
     ev = float(sum(x * u * odds_c[i] for x, u, i in zip(pp, units, idxs)) / hit) if hit else 0.0
-    parts = [f"{label[w]}は{waku[w]}号艇" for w in by_head]
+    parts = [f"{label[w]}は{waku[w]}号艇" for w in used_heads]
     scenario = (f"頭候補は確率上位2艇({'・'.join(parts)})。それぞれ、5分前時点のオッズが{PICK2_MIN_ODDS}〜{PICK2_MAX_ODDS}倍の目の中から"
-                f"期待値(確率×オッズ)が一番高い目を本線にし、的中時{PICK2_MIN_BACK:,}円以上戻る口数を配分。"
-                f"残り予算(上限{PICK2_BUDGET:,}円)は同じ条件で期待値が高い順に紐を最大{PICK2_MAX_EXTRA}本追加しています")
+                f"期待値(確率×オッズ)が高い順に上位{PICK2_N_TICKETS}点へ絞り、その中で確率に比例して予算"
+                f"(頭ごと{PICK2_HEAD_BUDGET:,}円)を配分しています")
     return dict(skip=False, head=None, himo=None, ev=round(ev, 3), hit=round(hit, 3), stake=stake,
                 scenario=scenario,
                 tickets=[dict(combo="-".join(str(waku[c]) for c in PERMS[i]), units=u, odds=odds_c[i],
