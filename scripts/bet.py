@@ -197,34 +197,36 @@ def _pick2(pred, p, odds_c, waku):
     if not by_head:
         return dict(skip=True)
     budget = PICK2_BUDGET
-    tickets = []
+    label = {w: ("本命" if i == 0 else "次点") for i, w in enumerate(heads)}
+    tickets = []   # (idx, units, role) の順
     for w in heads:
         idx = by_head.get(w)
         if not idx or budget < 100:
             continue
         i0 = idx[0]
         units0 = min(-(-PICK2_MIN_BACK // (odds_c[i0] * 100)), budget // 100)
-        tickets.append((i0, int(units0)))
+        tickets.append((i0, int(units0), f"{label[w]}・本線"))
         budget -= units0 * 100
         for i in idx[1:1 + PICK2_MAX_EXTRA]:
             if budget < 100:
                 break
-            tickets.append((i, 1))
+            tickets.append((i, 1, f"{label[w]}・紐"))
             budget -= 100
     if not tickets:
         return dict(skip=True)
-    idxs, units = zip(*tickets)
+    idxs, units, roles = zip(*tickets)
     pp = [float(p[i]) for i in idxs]
     hit = float(sum(pp))
     stake = sum(units) * 100
     ev = float(sum(x * u * odds_c[i] for x, u, i in zip(pp, units, idxs)) / hit) if hit else 0.0
-    heads_txt = "・".join(f"{waku[w]}号艇" for w in by_head)
-    scenario = (f"{heads_txt}のどちらかが頭になる展開(確率上位2艇)。5分前時点でオッズ{PICK2_MIN_ODDS}〜{PICK2_MAX_ODDS}倍の"
-                f"期待値が高い目を、的中時{PICK2_MIN_BACK:,}円以上戻る配分で組んでいます")
+    parts = [f"{label[w]}は{waku[w]}号艇" for w in by_head]
+    scenario = (f"頭候補は確率上位2艇({'・'.join(parts)})。それぞれ、5分前時点のオッズが{PICK2_MIN_ODDS}〜{PICK2_MAX_ODDS}倍の目の中から"
+                f"期待値(確率×オッズ)が一番高い目を本線にし、的中時{PICK2_MIN_BACK:,}円以上戻る口数を配分。"
+                f"残り予算(上限{PICK2_BUDGET:,}円)は同じ条件で期待値が高い順に紐を最大{PICK2_MAX_EXTRA}本追加しています")
     return dict(skip=False, head=None, himo=None, ev=round(ev, 3), hit=round(hit, 3), stake=stake,
                 scenario=scenario,
                 tickets=[dict(combo="-".join(str(waku[c]) for c in PERMS[i]), units=u, odds=odds_c[i],
-                              prob=round(float(p[i]), 4)) for i, u in zip(idxs, units)])
+                              prob=round(float(p[i]), 4), role=role) for i, u, role in zip(idxs, units, roles)])
 
 
 def make_bet(pred, odds_w):

@@ -444,7 +444,8 @@ def _plan_card(name, pl, result):
     head = (f'<div class="card trifecta">{form}<p class="sub">投資 {pl["stake"]:,}円・的中確率 {pl["hit"]:.0%}{evt}</p></div>')
     scen = f'<p style="margin:6px 2px">{html.escape(pl["scenario"])}</p>' if pl.get("scenario") else ""
     rows = "".join(
-        f'<div class="boat"><div style="flex:1"><b>{t["combo"]}</b> <span class="sub">× {t["units"]}口（{t["units"] * 100:,}円）</span><br>'
+        f'<div class="boat"><div style="flex:1"><b>{t["combo"]}</b>' + (f' <span class="sub">({t["role"]})</span>' if t.get("role") else "")
+        + f' <span class="sub">× {t["units"]}口（{t["units"] * 100:,}円）</span><br>'
         f'<span class="sub">' + (f'オッズ {t["odds"]:.1f}・確率 {t["prob"]:.1%}・期待値 {t["prob"] * t["odds"]:.2f}' if t.get("odds") else f'確率 {t["prob"]:.1%}') + '</span></div></div>'
         for t in pl["tickets"])
     out = title + head + scen + f'<details class="card"><summary class="sub">買い目 {len(pl["tickets"])}点を見る</summary>{rows}</details>'
