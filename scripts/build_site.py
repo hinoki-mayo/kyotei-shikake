@@ -848,8 +848,29 @@ def ops_page():
             + '<div class="card" style="display:grid;grid-template-columns:1fr;gap:8px">'
             + f'<label class="sub">期間<select id="per4" {sel}>{opt([("d30", "直近30日"), ("d90", "直近90日"), ("all", "全期間")])}</select></label>'
             + '</div><p class="sub" id="n4"></p><div id="out4"><p class="sub">読み込み中…</p></div>'
+            + _pick2_logic_card()
             + f'<script>{js}</script>')
     return page("運用", body, "", "/ops.html", noindex=True)
+
+
+def _pick2_logic_card():
+    b = bet_mod
+    return (
+        '<div class="card"><b>pick2のロジック</b>'
+        f'<p class="sub" style="color:var(--tx);margin:8px 0 0">'
+        f'① 対象レース: 「1コースが逃げない」と予想(pressed)、かつ1コース1着確率(nige)が{b.PICK2_NIGE_MAX:.0%}未満のレースだけ<br><br>'
+        f'② 頭候補: 2〜6コースのうち、モデルの確率が高い順に2艇(本命・次点)<br><br>'
+        f'③ 目の選び方: 本命・次点それぞれ、5分前時点のオッズが{b.PICK2_MIN_ODDS}〜{b.PICK2_MAX_ODDS}倍の目の中から'
+        f'期待値(確率×オッズ)が一番高いものを本線にする。確率が一番高い目を選ぶと市場も同じだけ安く値付けしていて妙味が薄いので、'
+        f'あえて確率そのものではなく期待値で選んでいる<br><br>'
+        f'④ 配分: 本命を優先し、本線は的中したとき最低{b.PICK2_MIN_BACK:,}円戻る口数を買う。残り予算'
+        f'(上限{b.PICK2_BUDGET:,}円)は同じ条件(オッズ{b.PICK2_MIN_ODDS}〜{b.PICK2_MAX_ODDS}倍)で期待値が高い順に紐を'
+        f'最大{b.PICK2_MAX_EXTRA}本追加(本命・次点それぞれ)<br><br>'
+        f'⑤ 見送り: 本命・次点ともオッズが{b.PICK2_MIN_ODDS}倍未満(的中しても儲からない)なら、そのレースは買わない'
+        f'</p>'
+        '<p class="sub" style="margin:10px 0 0">2025年1月〜2026年9月・実際の締切オッズ198レースで検証し、③を'
+        '「確率最大」から「期待値最大」に変えて回収率を改善(nige<20%帯で93.5%→109.6%)。パラメータは今後の検証で変わることがあります。</p>'
+        '</div>')
 
 
 def venue_page(date, jcd, infos, preds, now):
