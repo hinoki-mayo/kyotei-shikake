@@ -889,6 +889,7 @@ def ops_page():
             + f'<label class="sub">期間<select id="per4" {sel}>{opt([("d30", "直近30日"), ("d90", "直近90日"), ("all", "全期間")])}</select></label>'
             + '</div><p class="sub" id="n4"></p><div id="out4"><p class="sub">読み込み中…</p></div>'
             + _pick2_logic_card()
+            + _escape_logic_card()
             + f'<script>{js}</script>')
     return page("運用", body, "", "/ops.html", noindex=True)
 
@@ -917,6 +918,24 @@ def _pick2_logic_card():
         'レースは的中率14%・回収率65.7%と弱かったので、両頭揃う時だけ買うようにしています(nige<22%帯で'
         '111.2%→113.1%)'
         '(目安であり保証ではありません。パラメータは今後の検証で変わることがあります)。</p></div>')
+
+
+def _escape_logic_card():
+    """イン(1コースが堅いレース)側は検証中なので、確定ロジックではなく今の方向性を書いておく"""
+    steps = [
+        ("狙い", "1コースの1着確率(nige)が高いレース。ただし「1着は1コース」は市場もほぼ織り込み済みなので、"
+               "pick2ほどの妙味は期待していない。優位性があるとすれば2・3着の読みの部分"),
+        ("検討中の条件", "オッズ5倍以下の目は見送り(控除率込みで割に合わない水準)。本線は確率ではなく期待値"
+                     "(確率×オッズ)で選ぶ、pick2と同じ考え方を踏襲する見込み"),
+        ("点数・配分(たたき台)", "1点1,000円程度・3〜4点くらいを想定。3連単ではなく2連単に寄せる案も検討中"
+                            "(2・3着まで当てる必要がなくなる分、的中率は上がるはず)"),
+        ("損益分岐の目安", "オッズ7〜13倍の目を複数点買う場合、投資額に対して的中率40%前後が損益分岐ライン"
+                      "(的中時の配当が投資額を上回る前提の計算)"),
+    ]
+    rows = "".join(f'<div class="boat"><div><b>{title}</b><br><span class="sub">{body}</span></div></div>' for title, body in steps)
+    return (f'<div class="card"><b>イン(逃げ切り)のロジック — 検証中</b>{rows}</div>'
+            '<div class="card"><p class="sub" style="margin:0">まだ実オッズでの検証中で、確定したルールではありません。'
+            '検証が終わり次第、pick2と同じように実際のロジックに置き換えます。</p></div>')
 
 
 def venue_page(date, jcd, infos, preds, now):
