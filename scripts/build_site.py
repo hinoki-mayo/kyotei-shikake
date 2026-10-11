@@ -56,6 +56,8 @@ main{max-width:760px;margin:0 auto;padding:10px}h1{font-size:19px;margin:10px 0}
 .s-hot{background:var(--hot);color:#fff}.s-wait{background:var(--off);color:var(--sub)}.s-done{color:var(--sub)}
 .tabs{display:flex;border-bottom:2px solid var(--bd);margin:8px 0}.tabs a{flex:1 1 auto;min-width:0;text-align:center;padding:10px 0;font-size:12.5px;font-weight:700;color:var(--sub);white-space:nowrap}
 .tabs a.on{color:var(--tx);border-bottom:3px solid var(--hot);margin-bottom:-2px}.tabs a .lk{font-size:10px;font-weight:500;white-space:normal;display:block;line-height:1.3}
+.viewrow{display:flex;gap:6px;margin:10px 0}.viewbtn{flex:1;text-align:center;padding:9px 0;border:1px solid var(--bd);background:var(--card);border-radius:10px;font-size:13px;font-weight:700;color:var(--sub);cursor:pointer}
+.viewbtn.on{background:var(--hot);color:#fff;border-color:var(--hot)}
 .boat{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}.boat:last-child{border:0}
 .chip{width:30px;height:30px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;border:1px solid var(--bd)}
 .face{width:32px;height:44px;object-fit:cover;border-radius:4px;flex:none;background:var(--off)}
@@ -783,29 +785,54 @@ def pick_page(hi_list, lo_list):
 
 
 OPS_JS = r"""
-const VN=__VENUES__, PLAN='pick2', SINCE=__SINCE__;
-let D=[];
+const VN=__VENUES__, SINCE=__SINCE__;
+const ESCAPE_READY=false, ESCAPE_KEY='escape';   // イン(逃げ)側のプランができたらtrueにする
+const VIEWS = {
+  out: {label:'イン以外', plans:['pick2']},
+  in:  {label:'イン', plans: ESCAPE_READY?[ESCAPE_KEY]:[]},
+  all: {label:'総合', plans: ESCAPE_READY?['pick2',ESCAPE_KEY]:['pick2']},
+};
+let D=[], VIEW='out';
 const $=id=>document.getElementById(id), yen=n=>n.toLocaleString();
+function entries(){
+  const out=[];
+  for(const x of D){
+    if(x.d<SINCE) continue;
+    for(const pk of VIEWS[VIEW].plans){
+      const v = x.s[pk];
+      if(v===undefined) continue;
+      out.push({d:x.d, v:x.v, r:x.r, res:x.res, pay:x.pay, plan:pk,
+                 skip:v===0, st:v===0?0:v[0], ret:v===0?0:v[1], tk:(pk==='pick2'?x.tk:x[pk+'_tk'])||[]});
+    }
+  }
+  return out;
+}
 function filt(){
-  const per=$('per4').value;
-  const base = D.filter(x=>x.d>=SINCE);
-  const ds=[...new Set(base.map(x=>x.d))].sort();
+  const per=$('per4').value, all=entries();
+  const ds=[...new Set(all.map(x=>x.d))].sort();
   const keep=per==='all'?null:new Set(ds.slice(-({d30:30,d90:90})[per]));
-  return base.filter(x=>x.s[PLAN]!==undefined && (!keep||keep.has(x.d)));
+  return all.filter(x=>!keep||keep.has(x.d));
 }
 function render(){
-  const rows=filt(), used=rows.filter(x=>x.s[PLAN]!==0);
-  $('n4').textContent = `対象 ${rows.length}R中・購入 ${used.length}R・見送り ${rows.length-used.length}R`;
+  document.querySelectorAll('.viewbtn').forEach(b=>b.classList.toggle('on', b.dataset.v===VIEW));
+  if(VIEW==='in' && !ESCAPE_READY){
+    $('n4').textContent = '';
+    $('out4').innerHTML = '<div class="card"><p class="sub">イン(1コースが堅いレース)側はまだ検証中です。実装でき次第ここに表示します。</p></div>';
+    return;
+  }
+  const rows=filt(), used=rows.filter(x=>!x.skip);
+  $('n4').textContent = `対象 ${rows.length}件中・購入 ${used.length}件・見送り ${rows.length-used.length}件`
+    + (VIEW==='all' && !ESCAPE_READY ? '（イン側は未実装のため、現状pick2のみの集計です）' : '');
   if(!used.length){ $('out4').innerHTML='<div class="card"><p class="sub">まだ購入したレースがありません。</p></div>'; return; }
-  const st=used.reduce((a,x)=>a+x.s[PLAN][0],0), ret=used.reduce((a,x)=>a+x.s[PLAN][1],0);
-  const roi=st?ret/st:0, hitN=used.filter(x=>x.s[PLAN][1]>0).length;
+  const st=used.reduce((a,x)=>a+x.st,0), ret=used.reduce((a,x)=>a+x.ret,0);
+  const roi=st?ret/st:0, hitN=used.filter(x=>x.ret>0).length;
   let s = `<div class="card"><b>通算</b> <b style="color:${roi>=1?'var(--green)':'var(--red)'};font-size:22px">${Math.round(roi*100)}%</b>`+
-    `<br><span class="sub">投資 ${yen(st)}円 → 払戻 ${yen(ret)}円（${ret-st>=0?'+':''}${yen(ret-st)}円）・的中 ${hitN}/${used.length}R（${Math.round(hitN/used.length*100)}%）</span></div>`;
+    `<br><span class="sub">投資 ${yen(st)}円 → 払戻 ${yen(ret)}円（${ret-st>=0?'+':''}${yen(ret-st)}円）・的中 ${hitN}/${used.length}件（${Math.round(hitN/used.length*100)}%）</span></div>`;
   const byDay={};
   for(const x of used)(byDay[x.d]=byDay[x.d]||[]).push(x);
   const days=Object.keys(byDay).sort();
   const bars = days.map(d=>{
-    const g=byDay[d], gst=g.reduce((a,x)=>a+x.s[PLAN][0],0), gret=g.reduce((a,x)=>a+x.s[PLAN][1],0);
+    const g=byDay[d], gst=g.reduce((a,x)=>a+x.st,0), gret=g.reduce((a,x)=>a+x.ret,0);
     const r=gst?gret/gst:0, h=Math.max(2,Math.min(120,r*60)), col=r>=1?'var(--green)':'var(--red)';
     return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:22px">`+
       `<span class="sub" style="font-size:10px;white-space:nowrap">${Math.round(r*100)}%</span>`+
@@ -813,44 +840,51 @@ function render(){
       `<span class="sub" style="font-size:9px">${+d.slice(4,6)}/${+d.slice(6)}</span></div>`;
   }).join('');
   s += `<div class="card"><b>日別回収率</b><div style="position:relative;display:flex;align-items:flex-end;gap:4px;height:160px;margin-top:10px;overflow-x:auto;padding-bottom:2px;border-bottom:1px solid var(--bd)">${bars}</div></div>`;
-  const oofune = used.filter(x=>x.s[PLAN][1]>0 && x.pay>=10000).sort((a,b)=>b.pay-a.pay);
+  const oofune = used.filter(x=>x.ret>0 && x.pay>=10000).sort((a,b)=>b.pay-a.pay);
   if(oofune.length){
     s += `<div class="card"><b>万舟的中</b>` + oofune.map(x=>
-      `<div class="boat"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}・${x.res}</span></div>`+
+      `<div class="boat"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}・${VIEWS[VIEW].plans.length>1?x.plan+'・':''}${x.res}</span></div>`+
       `<b style="color:var(--green)">${yen(x.pay)}円</b></div>`).join('') + `</div>`;
   }
   const list = used.slice().sort((a,b)=> b.d.localeCompare(a.d) || b.r-a.r);
   s += `<div class="card"><b>レース一覧</b>` + list.map(x=>{
-    const [xst,xret]=x.s[PLAN], hit=xret>0;
+    const hit=x.ret>0;
     const grp = {};
-    for(const [c,u,role] of (x.tk||[])){ const k=(role||'').split('・')[0]||'買い目'; (grp[k]=grp[k]||[]).push([c,u]); }
+    for(const [c,u,role] of x.tk){ const k=(role||'').split('・')[0]||'買い目'; (grp[k]=grp[k]||[]).push([c,u]); }
     const tk = Object.keys(grp).map(k=>
       `<div style="margin-top:2px"><span class="sub" style="font-weight:700">${k}</span> `+
       grp[k].map(([c,u])=>`<span class="sub" style="display:inline-block;margin:1px 6px 1px 0${c===x.res?';color:var(--green);font-weight:700':''}">${c}×${u}口</span>`).join('')
       +`</div>`).join('');
     return `<div class="boat" style="flex-direction:column;align-items:flex-start;gap:4px">`+
-      `<div style="display:flex;width:100%"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}・結果 ${x.res}・投資${yen(xst)}円</span></div>`+
-      `<b style="color:${hit?'var(--green)':'var(--red)'}">${hit?'的中':'外れ'} ${xret-xst>=0?'+':''}${yen(xret-xst)}円</b></div>`+
-      (tk?`<details style="width:100%"><summary class="sub">買い目(${(x.tk||[]).length}点)を見る</summary><div style="margin-top:4px">${tk}</div></details>`:'')+
+      `<div style="display:flex;width:100%"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}${VIEWS[VIEW].plans.length>1?'・'+x.plan:''}・結果 ${x.res}・投資${yen(x.st)}円</span></div>`+
+      `<b style="color:${hit?'var(--green)':'var(--red)'}">${hit?'的中':'外れ'} ${x.ret-x.st>=0?'+':''}${yen(x.ret-x.st)}円</b></div>`+
+      (tk?`<details style="width:100%"><summary class="sub">買い目(${x.tk.length}点)を見る</summary><div style="margin-top:4px">${tk}</div></details>`:'')+
       `</div>`;
   }).join('') + `</div>`;
   $('out4').innerHTML = s;
 }
 fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;render()});
 document.addEventListener('change',e=>{if(e.target.id==='per4')render()});
+document.addEventListener('click',e=>{const b=e.target.closest('.viewbtn'); if(b){VIEW=b.dataset.v; render();}});
 """
 
 
 def ops_page():
-    """運用ボード(pick2プランの実績専用)。データはbets-data.jsonを流用"""
+    """運用ボード。イン以外(pick2)・イン(逃げ、実装待ち)・総合を切り替えて見れる。データはbets-data.jsonを流用"""
     opt = lambda pairs: "".join(f'<option value="{v}">{t}</option>' for v, t in pairs)
     sel = 'style="font-size:15px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);width:100%"'
     js = OPS_JS.replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False)).replace("__SINCE__", json.dumps(bet_mod.PICK2_LOGIC_SINCE))
+    viewrow = ('<div class="viewrow">'
+               '<div class="viewbtn on" data-v="out">イン以外</div>'
+               '<div class="viewbtn" data-v="in">イン</div>'
+               '<div class="viewbtn" data-v="all">総合</div>'
+               '</div>')
     body = ('<h1>運用</h1>' + own_tabs("ops")
-            + '<p class="sub">「厳選頭2頭」(pick2)プランの実績だけを見る画面です。'
-              '日別の回収率・投資額/払戻額・レースごとの的中/外れ・万舟的中を確認できます。'
-              f'{jp(bet_mod.PICK2_LOGIC_SINCE)}に今のロジック(期待値配分・可変点数)に変えたので、'
+            + '<p class="sub">試験買い目のうち、実オッズで検証した専用プランの実績だけを見る画面です。'
+              'イン以外(厳選頭2頭=pick2)・イン(1コースが堅いレース、検証中)・総合を切り替えられます。'
+              f'{jp(bet_mod.PICK2_LOGIC_SINCE)}に今のpick2ロジック(期待値配分・可変点数)に変えたので、'
               'それ以降の実績だけを表示しています。</p>'
+            + viewrow
             + '<div class="card" style="display:grid;grid-template-columns:1fr;gap:8px">'
             + f'<label class="sub">期間<select id="per4" {sel}>{opt([("d30", "直近30日"), ("d90", "直近90日"), ("all", "全期間")])}</select></label>'
             + '</div><p class="sub" id="n4"></p><div id="out4"><p class="sub">読み込み中…</p></div>'
@@ -875,7 +909,7 @@ def _pick2_logic_card():
     ]
     rows = "".join(f'<div class="boat"><div><b>{title}</b><br><span class="sub">{body}</span></div></div>' for title, body in steps)
     return (
-        f'<div class="card"><b>pick2のロジック</b>{rows}</div>'
+        f'<div class="card"><b>イン以外(pick2)のロジック</b>{rows}</div>'
         '<div class="card"><p class="sub" style="margin:0">2025年1月〜2026年9月・実際の締切オッズ198レースで検証。本線だけ'
         '10,000円保証+紐は均等100円、という配分より、期待値の高い目に期待値比例で配る方が回収率が良く'
         '(nige<18%帯で99.1%→120.5%)、点数を固定5点にするより「一番良い目に対してどれだけ肉薄してるか」'
