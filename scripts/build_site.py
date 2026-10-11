@@ -519,6 +519,9 @@ def bets_records():
                 st[n] = 0 if pl.get("skip") else list(settle(pl, result))
             pred = preds.get(key)
             rec = dict(d=date, v=jcd, r=int(race), res=result["combo3t"], pay=int(result["payout3t"]), s=st)
+            p2 = plans.get("pick2")
+            if p2 and not p2.get("skip"):
+                rec["tk"] = [[t["combo"], t["units"]] for t in p2["tickets"]]
             if pred and pred.get("scene"):
                 h1 = pred["scene"]["head"][0] == 0
                 rec.update(h1=h1, mae=any(bb["waku"] != bb["course"] for bb in pred["boats"]),
@@ -790,13 +793,15 @@ def pick_page(hi_list, lo_list):
 
 
 OPS_JS = r"""
-const VN=__VENUES__, PLAN='pick2';
+const VN=__VENUES__, PLAN='pick2', SINCE=__SINCE__;
 let D=[];
 const $=id=>document.getElementById(id), yen=n=>n.toLocaleString();
 function filt(){
-  const per=$('per4').value, ds=[...new Set(D.map(x=>x.d))].sort();
+  const per=$('per4').value;
+  const base = D.filter(x=>x.d>=SINCE);
+  const ds=[...new Set(base.map(x=>x.d))].sort();
   const keep=per==='all'?null:new Set(ds.slice(-({d30:30,d90:90})[per]));
-  return D.filter(x=>x.s[PLAN]!==undefined && (!keep||keep.has(x.d)));
+  return base.filter(x=>x.s[PLAN]!==undefined && (!keep||keep.has(x.d)));
 }
 function render(){
   const rows=filt(), used=rows.filter(x=>x.s[PLAN]!==0);
@@ -827,8 +832,13 @@ function render(){
   const list = used.slice().sort((a,b)=> b.d.localeCompare(a.d) || b.r-a.r);
   s += `<div class="card"><b>レース一覧</b>` + list.map(x=>{
     const [xst,xret]=x.s[PLAN], hit=xret>0;
-    return `<div class="boat"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}・結果 ${x.res}・投資${yen(xst)}円</span></div>`+
-      `<b style="color:${hit?'var(--green)':'var(--red)'}">${hit?'的中':'外れ'} ${xret-xst>=0?'+':''}${yen(xret-xst)}円</b></div>`;
+    const tk = (x.tk||[]).map(([c,u])=>
+      `<span class="sub" style="display:inline-block;margin:2px 6px 2px 0${c===x.res?';color:var(--green);font-weight:700':''}">${c}×${u}口</span>`).join('');
+    return `<div class="boat" style="flex-direction:column;align-items:flex-start;gap:4px">`+
+      `<div style="display:flex;width:100%"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}・結果 ${x.res}・投資${yen(xst)}円</span></div>`+
+      `<b style="color:${hit?'var(--green)':'var(--red)'}">${hit?'的中':'外れ'} ${xret-xst>=0?'+':''}${yen(xret-xst)}円</b></div>`+
+      (tk?`<details style="width:100%"><summary class="sub">買い目(${(x.tk||[]).length}点)を見る</summary><div style="margin-top:4px">${tk}</div></details>`:'')+
+      `</div>`;
   }).join('') + `</div>`;
   $('out4').innerHTML = s;
 }
@@ -841,10 +851,12 @@ def ops_page():
     """運用ボード(pick2プランの実績専用)。データはbets-data.jsonを流用"""
     opt = lambda pairs: "".join(f'<option value="{v}">{t}</option>' for v, t in pairs)
     sel = 'style="font-size:15px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);width:100%"'
-    js = OPS_JS.replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False))
+    js = OPS_JS.replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False)).replace("__SINCE__", json.dumps(bet_mod.PICK2_LOGIC_SINCE))
     body = ('<h1>運用</h1>' + own_tabs("ops")
             + '<p class="sub">「厳選頭2頭」(pick2)プランの実績だけを見る画面です。'
-              '日別の回収率・投資額/払戻額・レースごとの的中/外れ・万舟的中を確認できます。</p>'
+              '日別の回収率・投資額/払戻額・レースごとの的中/外れ・万舟的中を確認できます。'
+              f'{jp(bet_mod.PICK2_LOGIC_SINCE)}に今のロジック(期待値配分・可変点数)に変えたので、'
+              'それ以降の実績だけを表示しています。</p>'
             + '<div class="card" style="display:grid;grid-template-columns:1fr;gap:8px">'
             + f'<label class="sub">期間<select id="per4" {sel}>{opt([("d30", "直近30日"), ("d90", "直近90日"), ("all", "全期間")])}</select></label>'
             + '</div><p class="sub" id="n4"></p><div id="out4"><p class="sub">読み込み中…</p></div>'
@@ -861,15 +873,18 @@ def _pick2_logic_card():
         f'① 対象レース: 「1コースが逃げない」と予想(pressed)、かつ1コース1着確率(nige)が{b.PICK2_NIGE_MAX:.0%}未満のレースだけ<br><br>'
         f'② 頭候補: 2〜6コースのうち、モデルの確率が高い順に2艇(本命・次点)<br><br>'
         f'③ 目の絞り込み: 本命・次点それぞれ、5分前時点のオッズが{b.PICK2_MIN_ODDS}〜{b.PICK2_MAX_ODDS}倍の目の中から、'
-        f'期待値(確率×オッズ)が高い順に上位{b.PICK2_N_TICKETS}点を選ぶ。確率が一番高い目だけを選ぶと市場も同じだけ'
+        f'期待値(確率×オッズ)が一番高い目の{b.PICK2_EV_RATIO:.0%}以上ある目を拾う(頭ごと最低{b.PICK2_MIN_TICKETS}・最大'
+        f'{b.PICK2_MAX_TICKETS}点、レースによって点数は変わる)。確率が一番高い目だけを選ぶと市場も同じだけ'
         f'安く値付けしていて妙味が薄いので、あえて確率そのものではなく期待値で絞っている<br><br>'
-        f'④ 配分: ③で選んだ上位{b.PICK2_N_TICKETS}点の中で、確率に比例して予算(頭ごと{b.PICK2_HEAD_BUDGET:,}円、'
+        f'④ 配分: ③で選んだ目の中で、期待値に比例して予算(頭ごと{b.PICK2_HEAD_BUDGET:,}円、'
         f'本命・次点で合計{b.PICK2_HEAD_BUDGET * 2:,}円)を配る(最低1口=100円)<br><br>'
         f'⑤ 見送り: 本命・次点ともオッズが{b.PICK2_MIN_ODDS}〜{b.PICK2_MAX_ODDS}倍の目が無ければ、そのレースは買わない'
         f'</p>'
-        '<p class="sub" style="margin:10px 0 0">2025年1月〜2026年9月・実際の締切オッズ198レースで検証し、③を'
-        '「確率最大の1点+残りは均等100円」から「期待値上位5点に確率比例配分」に変えて回収率を改善'
-        '(nige<18%帯で99.1%→114.1%、目安であり保証ではありません)。パラメータは今後の検証で変わることがあります。</p>'
+        '<p class="sub" style="margin:10px 0 0">2025年1月〜2026年9月・実際の締切オッズ198レースで検証。本線だけ'
+        '10,000円保証+紐は均等100円、という配分より、期待値の高い目に期待値比例で配る方が回収率が良く'
+        '(nige<18%帯で99.1%→120.5%)、点数を固定5点にするより「一番良い目に対してどれだけ肉薄してるか」'
+        'でレースごとに点数を変える方がわずかに良かったため、この形にしています'
+        '(目安であり保証ではありません。パラメータは今後の検証で変わることがあります)。</p>'
         '</div>')
 
 
