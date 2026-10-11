@@ -25,6 +25,13 @@
                                   してから113.1%。的中保証+紐均等という配分より、上位数点に期待値比例で
                                   配る方が明確に良かったので変更。点数の厳密な最適値は探索するとノイズを
                                   拾うだけだったので、安定して効く範囲(60%)に留めている)
+    pickin    イン逃げ2連単        1コース1着確率(nige)が70%以上のレースだけ対象。2連単(3連単ではない)の
+                                  確率1位の1点だけに予算4,000円を全額集中(オッズ1.5倍未満は見送り)。
+                                  (2025-26年21か月・実オッズ130Rの検証: 3連単だと90%台止まりだったが、
+                                  2連単に変えたら154.2%。1点に分散させず集中させる方が頑丈だった
+                                  (一番大きな的中を除いても126.8%、2〜3点に分散させた形は軒並み100%割れ)。
+                                  1コースは「勝つこと」自体は市場もほぼ織り込み済みで3連単では妙味が薄いが、
+                                  2・3着の読みにはまだ妙味が残っている、という理屈)
 例: python scripts/bet.py   (entry.pyから毎回呼ばれる)
 """
 import datetime as dt
@@ -47,7 +54,7 @@ ANA_ODDS = 60           # 穴狙いの対象にするオッズの下限
 ANA_MAX = 10            # 穴狙いの最大点数
 PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": "イン・期待値重視",
          "out_hit": "イン以外・的中重視", "out_ana": "イン以外・穴", "e2_top1": "2連単・確率1位(進入変化×頭注目≠1)",
-         "pick2": "厳選頭2頭(本命・次点)"}
+         "pick2": "厳選頭2頭(本命・次点)", "pickin": "イン逃げ2連単(確率1位1点)"}
 PICK2_NIGE_MAX = 0.22   # pressedの中でもこれ未満だけ対象(実オッズ検証: 頻度と回収率のバランスで22%に)
 PICK2_MIN_ODDS = 2.25   # 5分前時点オッズなので、損益分岐の2倍より変動分の余裕を見て高め
 PICK2_MAX_ODDS = 50     # これを超える穴目は除外(過大評価しがちで実オッズ検証でも回収率を下げていた)
@@ -59,6 +66,10 @@ PICK2_MAX_TICKETS = 5   # ↑の上限
 PICK2_LOGIC_SINCE = "20261011"   # このロジックに変えた日(運用タブはこれ以降の実績だけ見る)
                         # (的中保証+紐均等より、上位数点に期待値比例配分の方が実オッズ検証で明確に良かった。
                         # 点数の厳密な最適値はノイズに乗るだけだったので、安定して効く60%に留めている)
+PICKIN_NIGE_MIN = 0.70   # 1コース1着確率がこれ以上のレースだけ対象
+PICKIN_MIN_ODDS = 1.5    # 2連単オッズの下限
+PICKIN_BUDGET = 4000     # 確率1位の1点に全額(分散させるより1点集中の方が実オッズ検証で頑丈だった:
+                         # 最大の的中を除いても126.8%、分散形は軒並み100%割れ)
 M = ["逃げ", "まくり", "差し", "まくり差し"]
 
 # 公式オッズ表の並び: 20行×6列(列=1着の枠)。列の中は(2着,3着)の昇順
@@ -67,6 +78,13 @@ for _c in range(6):
     for _r, (_j, _k) in enumerate((j, k) for j in range(6) for k in range(6) if len({_c, j, k}) == 3):
         ODDS_ORDER[_r * 6 + _c] = (_c, _j, _k)
 PI = {p: i for i, p in enumerate(PERMS)}
+
+# 2連単(odds2tfページ、3連単と同じ形式だが6列×5行)。ページの先頭30個が2連単、続く15個は2連複
+URL2 = "https://www.boatrace.jp/owpc/pc/race/odds2tf?rno={race}&jcd={jcd}&hd={date}"
+ODDS2_ORDER = [None] * 30
+for _c in range(6):
+    for _r, _j in enumerate(x for x in range(6) if x != _c):
+        ODDS2_ORDER[_r * 6 + _c] = (_c, _j)
 
 
 def _forms(heads, n):
@@ -97,6 +115,26 @@ def fetch_odds(date, jcd, race):
             out[combo] = float(v)
         except ValueError:
             pass   # 欠場などで売っていない目
+    return out
+
+
+def fetch_odds2(date, jcd, race):
+    """枠番の(1着,2着)(0始まり、2連単) -> オッズ。取れなければNone"""
+    try:
+        req = urllib.request.Request(URL2.format(race=race, jcd=jcd, date=date), headers=UA)
+        with urllib.request.urlopen(req, timeout=40) as r:
+            h = r.read().decode("utf-8", errors="replace")
+    except Exception:
+        return None
+    vals = ODDS_RE.findall(h)[:30]
+    if len(vals) < 30:
+        return None
+    out = {}
+    for combo, v in zip(ODDS2_ORDER, vals):
+        try:
+            out[combo] = float(v)
+        except ValueError:
+            pass
     return out
 
 
@@ -246,14 +284,40 @@ def _pick2(pred, p, odds_c, waku):
                               prob=round(float(p[i]), 4), role=role) for i, u, role in zip(idxs, units, roles)])
 
 
-def make_bet(pred, odds_w):
+def _pickin(pred, p, odds2_w, waku):
+    """イン(1コースが堅いレース)専用: 1コース1着確率(nige)がPICKIN_NIGE_MIN以上の時だけ、
+    2連単の確率1位の1点に予算を全額集中する。実オッズ130レースの検証で、2〜3点に分散させる
+    より1点集中の方が頑丈だった(分散形は一番大きな的中を除くと軒並み100%割れ、1点集中は126.8%)。
+    確率は3連単の確率(モデルとオッズのブレンド)を3着で足し上げたもの"""
+    sc = pred["scene"]
+    if sc["nige"] < PICKIN_NIGE_MIN or not odds2_w:
+        return dict(skip=True, bet="2t")
+    cand = []
+    for j in range(1, 6):
+        o = odds2_w.get((0, j))
+        if o is None or o < PICKIN_MIN_ODDS:
+            continue
+        p2 = sum(p[PI[(0, j, k)]] for k in range(6) if k not in (0, j))
+        cand.append((p2, j, o))
+    if not cand:
+        return dict(skip=True, bet="2t")
+    p2, j, o = max(cand)
+    units = max(1, round(PICKIN_BUDGET / 100))
+    return dict(skip=False, bet="2t", head=waku[0], himo=None, ev=round(p2 * o, 3), hit=round(p2, 3),
+                stake=units * 100,
+                scenario=f"{waku[0]}号艇(1コース)が逃げて{waku[j]}号艇が続く展開の1点のみ"
+                         f"(確率{p2:.0%}・オッズ{o:.1f}倍)",
+                tickets=[dict(combo=f"{waku[0]}-{waku[j]}", units=units, odds=o, prob=round(p2, 4))])
+
+
+def make_bet(pred, odds_w, odds2_w=None):
     """予想(コース基準)と枠番オッズから、保存用の買い目(5通り)を作る"""
     waku = [b["waku"] for b in pred["boats"]]            # コース -> 枠番
     odds_c = [odds_w.get((waku[i] - 1, waku[j] - 1, waku[k] - 1)) for i, j, k in PERMS]
     p, plans = plan(pred["tri"], odds_c)
     out = {}
     for name in PLANS:
-        if name == "pick2":
+        if name in ("pick2", "pickin"):
             continue
         r = plans.get(name)
         if r is None:
@@ -269,6 +333,7 @@ def make_bet(pred, odds_w):
                          scenario=_scenario(name, pred, p, w, s, idx, waku), tickets=tickets)
     out["e2_top1"] = _exacta_top1(pred, waku)
     out["pick2"] = _pick2(pred, p, odds_c, waku)
+    out["pickin"] = _pickin(pred, p, odds2_w, waku)
     # 締切前オッズそのもの(公式表の並び)も残す。締切時オッズとの差の分析用
     raw = [odds_w.get(c) for c in ODDS_ORDER]
     return dict(plans=out, odds=raw, cond=_conditions(pred, waku))
@@ -317,7 +382,11 @@ def run(now=None):
         time.sleep(1.0)
         if not odds:
             continue
-        bets[key] = dict(make_bet(pred, odds), odds_at=now.strftime("%H:%M"))
+        odds2 = None
+        if pred["scene"]["nige"] >= PICKIN_NIGE_MIN:   # イン逃げ対象の時だけ2連単オッズも取りに行く
+            odds2 = fetch_odds2(date, pred["jcd"], pred["race"])
+            time.sleep(1.0)
+        bets[key] = dict(make_bet(pred, odds, odds2), odds_at=now.strftime("%H:%M"))
         done.append(key)
     if done:
         bp.write_text(json.dumps(bets, ensure_ascii=False, indent=0))

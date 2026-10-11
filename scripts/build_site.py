@@ -417,7 +417,9 @@ SKIP_TEXT = {"balance": "的中確率30%以上で期待回収率100%を超える
              "out_ana": f"1コース以外が頭で{bet_mod.ANA_ODDS}倍以上の目がありませんでした",
              "e2_top1": "展示の進入が枠なりでなく、頭注目が1以外のレースだけ買います",
              "pick2": f"1コース1着確率{bet_mod.PICK2_NIGE_MAX:.0%}未満の厳選レースのみ対象。本命・次点の"
-                      f"どちらかでもオッズ{bet_mod.PICK2_MIN_ODDS}〜{bet_mod.PICK2_MAX_ODDS}倍の目が無ければ見送り"}
+                      f"どちらかでもオッズ{bet_mod.PICK2_MIN_ODDS}〜{bet_mod.PICK2_MAX_ODDS}倍の目が無ければ見送り",
+             "pickin": f"1コース1着確率{bet_mod.PICKIN_NIGE_MIN:.0%}以上のレースのみ対象。2連単の確率1位が"
+                       f"オッズ{bet_mod.PICKIN_MIN_ODDS}倍未満なら見送り"}
 
 
 def _plan_card(name, pl, result):
@@ -514,6 +516,9 @@ def bets_records():
             p2 = plans.get("pick2")
             if p2 and not p2.get("skip"):
                 rec["tk"] = [[t["combo"], t["units"], t.get("role")] for t in p2["tickets"]]
+            pin = plans.get("pickin")
+            if pin and not pin.get("skip"):
+                rec["pickin_tk"] = [[t["combo"], t["units"], None] for t in pin["tickets"]]
             if pred and pred.get("scene"):
                 h1 = pred["scene"]["head"][0] == 0
                 rec.update(h1=h1, mae=any(bb["waku"] != bb["course"] for bb in pred["boats"]),
@@ -786,7 +791,7 @@ def pick_page(hi_list, lo_list):
 
 OPS_JS = r"""
 const VN=__VENUES__, SINCE=__SINCE__;
-const ESCAPE_READY=false, ESCAPE_KEY='escape';   // イン(逃げ)側のプランができたらtrueにする
+const ESCAPE_READY=true, ESCAPE_KEY='pickin';
 const VIEWS = {
   out: {label:'イン以外', plans:['pick2']},
   in:  {label:'イン', plans: ESCAPE_READY?[ESCAPE_KEY]:[]},
@@ -881,9 +886,9 @@ def ops_page():
                '</div>')
     body = ('<h1>運用</h1>' + own_tabs("ops")
             + '<p class="sub">試験買い目のうち、実オッズで検証した専用プランの実績だけを見る画面です。'
-              'イン以外(厳選頭2頭=pick2)・イン(1コースが堅いレース、検証中)・総合を切り替えられます。'
+              'イン以外(厳選頭2頭=pick2)・イン(逃げ切り2連単=pickin)・総合を切り替えられます。'
               f'{jp(bet_mod.PICK2_LOGIC_SINCE)}に今のpick2ロジック(期待値配分・可変点数)に変えたので、'
-              'それ以降の実績だけを表示しています。</p>'
+              'pick2はそれ以降の実績だけを表示しています。</p>'
             + viewrow
             + '<div class="card" style="display:grid;grid-template-columns:1fr;gap:8px">'
             + f'<label class="sub">期間<select id="per4" {sel}>{opt([("d30", "直近30日"), ("d90", "直近90日"), ("all", "全期間")])}</select></label>'
@@ -921,21 +926,24 @@ def _pick2_logic_card():
 
 
 def _escape_logic_card():
-    """イン(1コースが堅いレース)側は検証中なので、確定ロジックではなく今の方向性を書いておく"""
+    b = bet_mod
     steps = [
-        ("狙い", "1コースの1着確率(nige)が高いレース。ただし「1着は1コース」は市場もほぼ織り込み済みなので、"
-               "pick2ほどの妙味は期待していない。優位性があるとすれば2・3着の読みの部分"),
-        ("検討中の条件", "オッズ5倍以下の目は見送り(控除率込みで割に合わない水準)。本線は確率ではなく期待値"
-                     "(確率×オッズ)で選ぶ、pick2と同じ考え方を踏襲する見込み"),
-        ("点数・配分(たたき台)", "1点1,000円程度・3〜4点くらいを想定。3連単ではなく2連単に寄せる案も検討中"
-                            "(2・3着まで当てる必要がなくなる分、的中率は上がるはず)"),
-        ("損益分岐の目安", "オッズ7〜13倍の目を複数点買う場合、投資額に対して的中率40%前後が損益分岐ライン"
-                      "(的中時の配当が投資額を上回る前提の計算)"),
+        ("対象レース", f'1コース1着確率(nige)が{b.PICKIN_NIGE_MIN:.0%}以上のレースだけ'),
+        ("買い方", f'2連単(3連単ではない)。確率1位の1点だけにオッズ{b.PICKIN_MIN_ODDS}倍以上を条件に、'
+                 f'予算{b.PICKIN_BUDGET:,}円を全額集中'),
+        ("なぜ2連単か", "1コースが勝つこと自体は市場もほぼ織り込み済みで、3連単(3着まで当てる)では妙味が薄い"
+                     "(実オッズ検証で90%台止まり)。2・3着の読みにはまだ市場の値付けの甘さが残っていて、"
+                     "2連単(2着まで)に変えると回収率がはっきり上がった"),
+        ("なぜ1点集中か", "2〜3点に分散する配分も試したが、どれも「一番大きな的中を除くと100%割れ」していて、"
+                      "たまたまの大当たりに支えられていただけだった。確率1位の1点に絞る形だけが、"
+                      "一番大きな的中を除いても100%を超えて残った(126.8%)"),
+        ("見送り", f'確率1位の目がオッズ{b.PICKIN_MIN_ODDS}倍未満なら、そのレースは買わない'),
     ]
     rows = "".join(f'<div class="boat"><div><b>{title}</b><br><span class="sub">{body}</span></div></div>' for title, body in steps)
-    return (f'<div class="card"><b>イン(逃げ切り)のロジック — 検証中</b>{rows}</div>'
-            '<div class="card"><p class="sub" style="margin:0">まだ実オッズでの検証中で、確定したルールではありません。'
-            '検証が終わり次第、pick2と同じように実際のロジックに置き換えます。</p></div>')
+    return (f'<div class="card"><b>イン(逃げ切り)のロジック</b>{rows}</div>'
+            '<div class="card"><p class="sub" style="margin:0">2025年1月〜2026年9月・実際の締切オッズ130レースで検証'
+            '(回収率154.2%、一番大きな的中を除いても126.8%)。目安であり保証ではありません。'
+            'パラメータは今後の検証で変わることがあります。</p></div>')
 
 
 def venue_page(date, jcd, infos, preds, now):
