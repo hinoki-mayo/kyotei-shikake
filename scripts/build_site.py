@@ -271,40 +271,30 @@ def slit_page(date, info, pred, races, result_ready=False):
                 f"/{date}/{info['jcd']}/{base}-slit.html")
 
 
-def _narrative(pred):
-    """各艇のコメント(scene.pyのlines)を、主役→2番手→残りの順でひとつの文章につなげる。
-    新しい展開判定は増やさず、既にある材料を読みやすくまとめるだけ。"""
-    sc, boats = pred["scene"], pred["boats"]
-    lines = sc["lines"]
-    order = [sc["shu"], sc["sub"]] + [k for k in range(6) if k not in (sc["shu"], sc["sub"])]
-    parts = []
-    for k in order:
-        txt = lines.get(str(k))
-        if not txt:
-            continue
-        parts.append(f'{boats[k]["waku"]}号艇は{txt}')
-    if not parts:
-        return ""
-    return f'<h2>展開まとめ</h2><div class="card"><p class="sub" style="color:var(--tx)">{"。".join(parts)}。</p></div>'
-
-
 def _scenarios_html(pred):
-    """展開シナリオ集: 起こりうる勝ち方ごとの図・文章・買い目の形と、全艇の勝ち方"""
+    """展開シナリオ集: 起こりうる勝ち方ごとの図・文章・買い目の形と、全艇の勝ち方。
+    一番起こりやすいシナリオだけ開いた状態で見せて、残りは折りたたむ(ページが長くなりすぎないように)"""
     sc = pred.get("scenarios")
     if not sc or not sc.get("list"):
         return ""
     waku = [b["waku"] for b in pred["boats"]]
-    cards = ""
-    for i, s in enumerate(sc["list"], 1):
+
+    def card(i, s):
         scene = dict(s["scene"], roles={int(k): v for k, v in s["scene"]["roles"].items()})
         try:
             svg = turn_svg(scene, waku)
         except Exception:
             svg = ""   # ボートが重なって描けない配置のときは図なしで出す
-        cards += (f'<div class="card"><b>シナリオ{i}　{waku[s["w"]]}の{s["m"]}</b> '
-                  f'<span class="sub">（起こる確率 {s["prob"]:.0%}）</span>{svg}'
-                  f'<p style="margin:6px 0">{html.escape("。".join(s["lines"]))}。</p>'
-                  f'<p class="sub" style="margin:0">買い目の形 <b style="color:var(--tx);font-size:16px">{s["combo"]}</b></p></div>')
+        return (f'<div class="card"><b>シナリオ{i}　{waku[s["w"]]}の{s["m"]}</b> '
+                f'<span class="sub">（起こる確率 {s["prob"]:.0%}）</span>{svg}'
+                f'<p style="margin:6px 0">{html.escape("。".join(s["lines"]))}。</p>'
+                f'<p class="sub" style="margin:0">買い目の形 <b style="color:var(--tx);font-size:16px">{s["combo"]}</b></p></div>')
+
+    first, rest = sc["list"][0], sc["list"][1:]
+    cards = card(1, first)
+    if rest:
+        rest_html = "".join(card(i, s) for i, s in enumerate(rest, 2))
+        cards += f'<details><summary class="sub" style="padding:10px 4px">他{len(rest)}通りのシナリオを見る</summary>{rest_html}</details>'
     heads = "".join(
         f'<div class="boat">{chip(waku[h["w"]])}<div><b>{h["m"]}</b>が本線 <span class="sub">勝つ確率 {h["prob"]:.0%}</span></div></div>'
         for h in sorted(sc["heads"], key=lambda h: -h["prob"]))
@@ -326,7 +316,7 @@ def turn_page(date, info, pred, races, result_ready=False):
         lines = "".join(f'<div class="boat">{chip(b["waku"])}<div><span class="sub">{html.escape(b["name"])}</span><br>'
                         f'{html.escape(sc["lines"].get(str(k), "展開待ち"))}</div></div>' for k, b in enumerate(pred["boats"]))
         content = (f'<div class="card">{labels(pred)}</div>{turn_svg(sc2, waku)}<h2>各艇の展開</h2><div class="card">{lines}</div>'
-                   + _trifecta_card(pred) + _narrative(pred) + _scenarios_html(pred))
+                   + _trifecta_card(pred) + _scenarios_html(pred))
     body = race_head(date, v, info, "turn", locked, base, result_ready) + content + ad() + rnav(date, info["jcd"], info["race"], races, "-turn")
     return page(f"{v}{info['race']}R 1マーク展開予想 {jp(date)}", body, f"{v}{info['race']}Rの1マーク仕掛け・展開予想",
                 f"/{date}/{info['jcd']}/{base}-turn.html")
@@ -867,25 +857,25 @@ def ops_page():
 
 def _pick2_logic_card():
     b = bet_mod
+    steps = [
+        ("① 対象レース", f'「1コースが逃げない」と予想(pressed)、かつ1コース1着確率(nige)が{b.PICK2_NIGE_MAX:.0%}未満のレースだけ'),
+        ("② 頭候補", "2〜6コースのうち、モデルの確率が高い順に2艇(本命・次点)"),
+        ("③ 目の絞り込み", f'本命・次点それぞれ、5分前時点のオッズが{b.PICK2_MIN_ODDS}〜{b.PICK2_MAX_ODDS}倍の目の中から、期待値'
+                        f'(確率×オッズ)が一番高い目の{b.PICK2_EV_RATIO:.0%}以上ある目を拾う(頭ごと最低{b.PICK2_MIN_TICKETS}・最大'
+                        f'{b.PICK2_MAX_TICKETS}点、レースによって点数は変わる)。確率が一番高い目だけを選ぶと市場も同じだけ安く'
+                        f'値付けしていて妙味が薄いので、あえて確率そのものではなく期待値で絞っている'),
+        ("④ 配分", f'③で選んだ目の中で、期待値に比例して予算(頭ごと{b.PICK2_HEAD_BUDGET:,}円、本命・次点で合計'
+                  f'{b.PICK2_HEAD_BUDGET * 2:,}円)を配る(最低1口=100円)'),
+        ("⑤ 見送り", f'本命・次点ともオッズが{b.PICK2_MIN_ODDS}〜{b.PICK2_MAX_ODDS}倍の目が無ければ、そのレースは買わない'),
+    ]
+    rows = "".join(f'<div class="boat"><div><b>{title}</b><br><span class="sub">{body}</span></div></div>' for title, body in steps)
     return (
-        '<div class="card"><b>pick2のロジック</b>'
-        f'<p class="sub" style="color:var(--tx);margin:8px 0 0">'
-        f'① 対象レース: 「1コースが逃げない」と予想(pressed)、かつ1コース1着確率(nige)が{b.PICK2_NIGE_MAX:.0%}未満のレースだけ<br><br>'
-        f'② 頭候補: 2〜6コースのうち、モデルの確率が高い順に2艇(本命・次点)<br><br>'
-        f'③ 目の絞り込み: 本命・次点それぞれ、5分前時点のオッズが{b.PICK2_MIN_ODDS}〜{b.PICK2_MAX_ODDS}倍の目の中から、'
-        f'期待値(確率×オッズ)が一番高い目の{b.PICK2_EV_RATIO:.0%}以上ある目を拾う(頭ごと最低{b.PICK2_MIN_TICKETS}・最大'
-        f'{b.PICK2_MAX_TICKETS}点、レースによって点数は変わる)。確率が一番高い目だけを選ぶと市場も同じだけ'
-        f'安く値付けしていて妙味が薄いので、あえて確率そのものではなく期待値で絞っている<br><br>'
-        f'④ 配分: ③で選んだ目の中で、期待値に比例して予算(頭ごと{b.PICK2_HEAD_BUDGET:,}円、'
-        f'本命・次点で合計{b.PICK2_HEAD_BUDGET * 2:,}円)を配る(最低1口=100円)<br><br>'
-        f'⑤ 見送り: 本命・次点ともオッズが{b.PICK2_MIN_ODDS}〜{b.PICK2_MAX_ODDS}倍の目が無ければ、そのレースは買わない'
-        f'</p>'
-        '<p class="sub" style="margin:10px 0 0">2025年1月〜2026年9月・実際の締切オッズ198レースで検証。本線だけ'
+        f'<div class="card"><b>pick2のロジック</b>{rows}</div>'
+        '<div class="card"><p class="sub" style="margin:0">2025年1月〜2026年9月・実際の締切オッズ198レースで検証。本線だけ'
         '10,000円保証+紐は均等100円、という配分より、期待値の高い目に期待値比例で配る方が回収率が良く'
         '(nige<18%帯で99.1%→120.5%)、点数を固定5点にするより「一番良い目に対してどれだけ肉薄してるか」'
         'でレースごとに点数を変える方がわずかに良かったため、この形にしています'
-        '(目安であり保証ではありません。パラメータは今後の検証で変わることがあります)。</p>'
-        '</div>')
+        '(目安であり保証ではありません。パラメータは今後の検証で変わることがあります)。</p></div>')
 
 
 def venue_page(date, jcd, infos, preds, now):
