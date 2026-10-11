@@ -15,13 +15,15 @@
                                   2025-26年の過去6,621Rで回収率102%(2025年99%・2026年106%、21か月中13か月で100%超)。
                                   オッズは使わずモデルの確率だけで選ぶ(過去検証と同じ条件)
     pick2     厳選頭2頭           pressed かつ 1コース1着確率22%未満のレースだけ対象。確率上位2艇
-                                  (本命・次点)それぞれ、2.25〜50倍の目のうち、期待値(確率×オッズ)が
+                                  (本命・次点)の**両方**が2.25〜50倍の目を持っている時だけ買う
+                                  (片方しか無ければ見送り。実オッズ検証で片頭だけのレースは的中率14%・
+                                  回収率65.7%と明確に弱かった)。それぞれ、期待値(確率×オッズ)が
                                   一番高い目の60%以上ある目(頭ごと最低2・最大5点)を拾い、その中で期待値に
                                   比例して予算(頭ごと2,000円、合計4,000円)を配分。点数はレースごとに
                                   期待値のばらつきで自然に変わる(合計4〜10点が中心)。
-                                  (2025-26年21か月・実オッズ198Rの検証: nige<22%で回収率111.2%。
-                                  的中保証+紐均等という配分より、上位数点に期待値比例で配る方が
-                                  明確に良かったので変更。点数の厳密な最適値は探索するとノイズを
+                                  (2025-26年21か月・実オッズ198Rの検証: nige<22%で回収率111.2%→両頭必須に
+                                  してから113.1%。的中保証+紐均等という配分より、上位数点に期待値比例で
+                                  配る方が明確に良かったので変更。点数の厳密な最適値は探索するとノイズを
                                   拾うだけだったので、安定して効く範囲(60%)に留めている)
 例: python scripts/bet.py   (entry.pyから毎回呼ばれる)
 """
@@ -199,13 +201,20 @@ def _pick2(pred, p, odds_c, waku):
     hp = sc["head_prob"]
     heads = sorted(range(1, 6), key=lambda k: -hp[k])[:2]
     label = {w: ("本命" if i == 0 else "次点") for i, w in enumerate(heads)}
-    tickets = []   # (idx, units, role) の順
-    used_heads = []
+    cand_by_head = {}
     for w in heads:
         cand = [i for i in range(120) if PERMS[i][0] == w and odds_c[i]
                 and PICK2_MIN_ODDS <= odds_c[i] <= PICK2_MAX_ODDS]
-        if not cand:
-            continue
+        if cand:
+            cand_by_head[w] = cand
+    if len(cand_by_head) < 2:
+        # 本命・次点どちらかしかオッズ圏内に入らないレースは、片頭だけで無理に買わず見送る
+        # (実オッズ検証で、片頭だけのレースは的中率14%・回収率65.7%と明確に弱かった)
+        return dict(skip=True)
+    tickets = []   # (idx, units, role) の順
+    used_heads = []
+    for w in heads:
+        cand = cand_by_head[w]
         cand_ev = sorted(((p[i] * odds_c[i], i) for i in cand), reverse=True)
         best_ev = cand_ev[0][0]
         idx = [i for ev, i in cand_ev if ev >= best_ev * PICK2_EV_RATIO][:PICK2_MAX_TICKETS]
