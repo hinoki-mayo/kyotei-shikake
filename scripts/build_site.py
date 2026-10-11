@@ -511,7 +511,7 @@ def bets_records():
             rec = dict(d=date, v=jcd, r=int(race), res=result["combo3t"], pay=int(result["payout3t"]), s=st)
             p2 = plans.get("pick2")
             if p2 and not p2.get("skip"):
-                rec["tk"] = [[t["combo"], t["units"]] for t in p2["tickets"]]
+                rec["tk"] = [[t["combo"], t["units"], t.get("role")] for t in p2["tickets"]]
             if pred and pred.get("scene"):
                 h1 = pred["scene"]["head"][0] == 0
                 rec.update(h1=h1, mae=any(bb["waku"] != bb["course"] for bb in pred["boats"]),
@@ -822,8 +822,12 @@ function render(){
   const list = used.slice().sort((a,b)=> b.d.localeCompare(a.d) || b.r-a.r);
   s += `<div class="card"><b>レース一覧</b>` + list.map(x=>{
     const [xst,xret]=x.s[PLAN], hit=xret>0;
-    const tk = (x.tk||[]).map(([c,u])=>
-      `<span class="sub" style="display:inline-block;margin:2px 6px 2px 0${c===x.res?';color:var(--green);font-weight:700':''}">${c}×${u}口</span>`).join('');
+    const grp = {};
+    for(const [c,u,role] of (x.tk||[])){ const k=(role||'').split('・')[0]||'買い目'; (grp[k]=grp[k]||[]).push([c,u]); }
+    const tk = Object.keys(grp).map(k=>
+      `<div style="margin-top:2px"><span class="sub" style="font-weight:700">${k}</span> `+
+      grp[k].map(([c,u])=>`<span class="sub" style="display:inline-block;margin:1px 6px 1px 0${c===x.res?';color:var(--green);font-weight:700':''}">${c}×${u}口</span>`).join('')
+      +`</div>`).join('');
     return `<div class="boat" style="flex-direction:column;align-items:flex-start;gap:4px">`+
       `<div style="display:flex;width:100%"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}・結果 ${x.res}・投資${yen(xst)}円</span></div>`+
       `<b style="color:${hit?'var(--green)':'var(--red)'}">${hit?'的中':'外れ'} ${xret-xst>=0?'+':''}${yen(xret-xst)}円</b></div>`+
