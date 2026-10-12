@@ -797,13 +797,14 @@ def pick_page(hi_list, lo_list):
 
 OPS_JS = r"""
 const VN=__VENUES__, SINCE=__SINCE__;
-const ESCAPE_READY=true, ESCAPE_KEY='pickin';
 const VIEWS = {
-  out: {label:'イン以外', plans:['pick2','pick2tan']},
-  in:  {label:'イン', plans: ESCAPE_READY?[ESCAPE_KEY]:[]},
-  all: {label:'総合', plans: ESCAPE_READY?['pick2','pick2tan',ESCAPE_KEY]:['pick2','pick2tan']},
+  out3: {label:'外・3連単', plans:['pick2']},
+  out2: {label:'外・2連単', plans:['pick2tan']},
+  in3:  {label:'内・3連単', plans:[]},
+  in2:  {label:'内・2連単', plans:['pickin']},
+  all:  {label:'総合', plans:['pick2','pick2tan','pickin']},
 };
-let D=[], VIEW='out';
+let D=[], VIEW='out2';
 const $=id=>document.getElementById(id), yen=n=>n.toLocaleString();
 const LBL={pick2:'3連単', pick2tan:'2連単', pickin:'2連単'};
 function entries(){
@@ -827,14 +828,15 @@ function filt(){
 }
 function render(){
   document.querySelectorAll('.viewbtn').forEach(b=>b.classList.toggle('on', b.dataset.v===VIEW));
-  if(VIEW==='in' && !ESCAPE_READY){
+  if(!VIEWS[VIEW].plans.length){
     $('n4').textContent = '';
-    $('out4').innerHTML = '<div class="card"><p class="sub">イン(1コースが堅いレース)側はまだ検証中です。実装でき次第ここに表示します。</p></div>';
+    $('out4').innerHTML = '<div class="card"><p class="sub">このタイプはまだ検証中です。実装でき次第ここに表示します。</p></div>';
     return;
   }
+  const notReady = Object.values(VIEWS).some(v=>!v.plans.length);
   const rows=filt(), used=rows.filter(x=>!x.skip);
   $('n4').textContent = `対象 ${rows.length}件中・購入 ${used.length}件・見送り ${rows.length-used.length}件`
-    + (VIEW==='all' && !ESCAPE_READY ? '（イン側は未実装のため、現状pick2のみの集計です）' : '');
+    + (VIEW==='all' && notReady ? '（検証中のタイプは総合集計に含まれていません）' : '');
   if(!used.length){ $('out4').innerHTML='<div class="card"><p class="sub">まだ購入したレースがありません。</p></div>'; return; }
   const st=used.reduce((a,x)=>a+x.st,0), ret=used.reduce((a,x)=>a+x.ret,0);
   const roi=st?ret/st:0, hitN=used.filter(x=>x.ret>0).length;
@@ -868,7 +870,7 @@ function render(){
       grp[k].map(([c,u])=>`<span class="sub" style="display:inline-block;margin:1px 6px 1px 0${c===x.res?';color:var(--green);font-weight:700':''}">${c}×${u}口</span>`).join('')
       +`</div>`).join('');
     return `<div class="boat" style="flex-direction:column;align-items:flex-start;gap:4px">`+
-      `<div style="display:flex;width:100%"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}${VIEWS[VIEW].plans.length>1?'・'+x.plan:''}・結果 ${x.res}・投資${yen(x.st)}円</span></div>`+
+      `<div style="display:flex;width:100%"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}${VIEWS[VIEW].plans.length>1?'・'+(LBL[x.plan]||x.plan):''}・結果 ${x.res}・投資${yen(x.st)}円</span></div>`+
       `<b style="color:${hit?'var(--green)':'var(--red)'}">${hit?'的中':'外れ'} ${x.ret-x.st>=0?'+':''}${yen(x.ret-x.st)}円</b></div>`+
       (tk?`<details style="width:100%"><summary class="sub">買い目(${x.tk.length}点)を見る</summary><div style="margin-top:4px">${tk}</div></details>`:'')+
       `</div>`;
@@ -882,19 +884,23 @@ document.addEventListener('click',e=>{const b=e.target.closest('.viewbtn'); if(b
 
 
 def ops_page():
-    """運用ボード。イン以外(pick2)・イン(逃げ、実装待ち)・総合を切り替えて見れる。データはbets-data.jsonを流用"""
+    """運用ボード。対象レース(イン以外=頭が1でない/イン逃げ=1コースが堅い)×買い方(3連単/2連単)の
+    4タイプ+総合を切り替えて見れる。データはbets-data.jsonを流用"""
     opt = lambda pairs: "".join(f'<option value="{v}">{t}</option>' for v, t in pairs)
     sel = 'style="font-size:15px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);width:100%"'
     js = OPS_JS.replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False)).replace("__SINCE__", json.dumps(bet_mod.PICK2_LOGIC_SINCE))
     viewrow = ('<div class="viewrow">'
-               '<div class="viewbtn on" data-v="out">イン以外</div>'
-               '<div class="viewbtn" data-v="in">イン</div>'
+               '<div class="viewbtn" data-v="out3">外・3連単</div>'
+               '<div class="viewbtn on" data-v="out2">外・2連単</div>'
+               '<div class="viewbtn" data-v="in3">内・3連単</div>'
+               '<div class="viewbtn" data-v="in2">内・2連単</div>'
                '<div class="viewbtn" data-v="all">総合</div>'
                '</div>')
     body = ('<h1>運用</h1>' + own_tabs("ops")
             + '<p class="sub">試験買い目のうち、実オッズで検証した専用プランの実績だけを見る画面です。'
-              'イン以外(厳選頭2頭=pick2・同じ対象レースの2連単版=pick2tan)・イン(逃げ切り2連単=pickin)・'
-              '総合を切り替えられます。'
+              '対象レース(外=イン以外・厳選頭2頭／内=イン逃げ・1コースが堅い)と買い方(3連単/2連単)を'
+              '組み合わせた4タイプ+総合を切り替えられます。現時点では「外・2連単」(pick2tan)が'
+              '一番成績が良く、「内・3連単」はまだ検証中です。'
               f'{jp(bet_mod.PICK2_LOGIC_SINCE)}に今のpick2ロジック(期待値配分・可変点数)に変えたので、'
               'pick2はそれ以降の実績だけを表示しています。</p>'
             + viewrow
