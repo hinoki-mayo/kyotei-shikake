@@ -419,7 +419,9 @@ SKIP_TEXT = {"balance": "的中確率30%以上で期待回収率100%を超える
              "pick2": f"1コース1着確率{bet_mod.PICK2_NIGE_MAX:.0%}未満の厳選レースのみ対象。本命・次点の"
                       f"どちらかでもオッズ{bet_mod.PICK2_MIN_ODDS}〜{bet_mod.PICK2_MAX_ODDS}倍の目が無ければ見送り",
              "pickin": f"1コース1着確率{bet_mod.PICKIN_NIGE_MIN:.0%}以上のレースのみ対象。2連単の確率1位が"
-                       f"オッズ{bet_mod.PICKIN_MIN_ODDS}倍未満なら見送り"}
+                       f"オッズ{bet_mod.PICKIN_MIN_ODDS}倍未満なら見送り",
+             "pick2tan": f"1コース1着確率{bet_mod.PICK2_NIGE_MAX:.0%}未満の厳選レースのみ対象。"
+                         "2連単オッズが取得できなかった場合のみ見送り"}
 
 
 def _plan_card(name, pl, result):
@@ -427,7 +429,8 @@ def _plan_card(name, pl, result):
     if pl.get("skip"):
         return title + f'<div class="card"><b>見送り</b><br><span class="sub">{SKIP_TEXT[name]}</span></div>'
     if pl.get("bet") == "2t":
-        form = f'<div class="tri-main"><span class="sub" style="font-size:14px">2連単</span><span class="tri-chip">{html.escape(pl["tickets"][0]["combo"])}</span></div>'
+        chips = "".join(f'<span class="tri-chip">{html.escape(t["combo"])}</span>' for t in pl["tickets"])
+        form = f'<div class="tri-main"><span class="sub" style="font-size:14px">2連単</span>{chips}</div>'
     elif pl.get("himo"):
         himo = "".join(str(x) for x in pl["himo"])
         form = (f'<div class="tri-main"><span class="tri-chip">{pl["head"]}</span><span class="tri-ar">→</span>'
@@ -519,6 +522,9 @@ def bets_records():
             pin = plans.get("pickin")
             if pin and not pin.get("skip"):
                 rec["pickin_tk"] = [[t["combo"], t["units"], None] for t in pin["tickets"]]
+            p2t = plans.get("pick2tan")
+            if p2t and not p2t.get("skip"):
+                rec["pick2tan_tk"] = [[t["combo"], t["units"], t.get("role")] for t in p2t["tickets"]]
             if pred and pred.get("scene"):
                 h1 = pred["scene"]["head"][0] == 0
                 rec.update(h1=h1, mae=any(bb["waku"] != bb["course"] for bb in pred["boats"]),
@@ -793,12 +799,13 @@ OPS_JS = r"""
 const VN=__VENUES__, SINCE=__SINCE__;
 const ESCAPE_READY=true, ESCAPE_KEY='pickin';
 const VIEWS = {
-  out: {label:'イン以外', plans:['pick2']},
+  out: {label:'イン以外', plans:['pick2','pick2tan']},
   in:  {label:'イン', plans: ESCAPE_READY?[ESCAPE_KEY]:[]},
-  all: {label:'総合', plans: ESCAPE_READY?['pick2',ESCAPE_KEY]:['pick2']},
+  all: {label:'総合', plans: ESCAPE_READY?['pick2','pick2tan',ESCAPE_KEY]:['pick2','pick2tan']},
 };
 let D=[], VIEW='out';
 const $=id=>document.getElementById(id), yen=n=>n.toLocaleString();
+const LBL={pick2:'3連単', pick2tan:'2連単', pickin:'2連単'};
 function entries(){
   const out=[];
   for(const x of D){
@@ -848,7 +855,7 @@ function render(){
   const oofune = used.filter(x=>x.ret>0 && x.pay>=10000).sort((a,b)=>b.pay-a.pay);
   if(oofune.length){
     s += `<div class="card"><b>万舟的中</b>` + oofune.map(x=>
-      `<div class="boat"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}・${VIEWS[VIEW].plans.length>1?x.plan+'・':''}${x.res}</span></div>`+
+      `<div class="boat"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}・${VIEWS[VIEW].plans.length>1?(LBL[x.plan]||x.plan)+'・':''}${x.res}</span></div>`+
       `<b style="color:var(--green)">${yen(x.pay)}円</b></div>`).join('') + `</div>`;
   }
   const list = used.slice().sort((a,b)=> b.d.localeCompare(a.d) || b.r-a.r);
@@ -886,7 +893,8 @@ def ops_page():
                '</div>')
     body = ('<h1>運用</h1>' + own_tabs("ops")
             + '<p class="sub">試験買い目のうち、実オッズで検証した専用プランの実績だけを見る画面です。'
-              'イン以外(厳選頭2頭=pick2)・イン(逃げ切り2連単=pickin)・総合を切り替えられます。'
+              'イン以外(厳選頭2頭=pick2・同じ対象レースの2連単版=pick2tan)・イン(逃げ切り2連単=pickin)・'
+              '総合を切り替えられます。'
               f'{jp(bet_mod.PICK2_LOGIC_SINCE)}に今のpick2ロジック(期待値配分・可変点数)に変えたので、'
               'pick2はそれ以降の実績だけを表示しています。</p>'
             + viewrow
@@ -894,6 +902,7 @@ def ops_page():
             + f'<label class="sub">期間<select id="per4" {sel}>{opt([("d30", "直近30日"), ("d90", "直近90日"), ("all", "全期間")])}</select></label>'
             + '</div><p class="sub" id="n4"></p><div id="out4"><p class="sub">読み込み中…</p></div>'
             + _pick2_logic_card()
+            + _pick2tan_logic_card()
             + _escape_logic_card()
             + f'<script>{js}</script>')
     return page("運用", body, "", "/ops.html", noindex=True)
@@ -922,6 +931,29 @@ def _pick2_logic_card():
         'でレースごとに点数を変える方がわずかに良かったため、この形にしています。また片頭だけしか買えない'
         'レースは的中率14%・回収率65.7%と弱かったので、両頭揃う時だけ買うようにしています(nige<22%帯で'
         '111.2%→113.1%)'
+        '(目安であり保証ではありません。パラメータは今後の検証で変わることがあります)。</p></div>')
+
+
+def _pick2tan_logic_card():
+    b = bet_mod
+    steps = [
+        ("① 対象レース", f'pick2(3連単)と同じ: 「1コースが逃げない」と予想(pressed)、かつ1コース1着確率(nige)が'
+                        f'{b.PICK2_NIGE_MAX:.0%}未満のレースだけ'),
+        ("② 頭候補", "2〜6コースのうち、モデルの確率が高い順に2艇(本命・次点)"),
+        ("③ 買い方", f'3連単(3着まで)ではなく2連単(2着まで)。本命・次点それぞれ、2連単の確率が一番高い'
+                   f'1点だけに予算{b.PICK2TAN_HEAD_BUDGET:,}円を全額集中(合計{b.PICK2TAN_HEAD_BUDGET * 2:,}円)'),
+        ("なぜ2連単か", "3着まで当てるpick2は的中確率33%・回収率94.9%止まりだった。3着を問わない2連単に"
+                      "すると、的中確率は上がり、回収率も明確に上回った。pickin(イン逃げ)で見つかった"
+                      "「2連単市場は3連単市場より値付けが甘い」構造が、頭が1でないレースにも同じように"
+                      "あったとみられる"),
+    ]
+    rows = "".join(f'<div class="boat"><div><b>{title}</b><br><span class="sub">{body}</span></div></div>' for title, body in steps)
+    return (
+        f'<div class="card"><b>イン以外・2連単(pick2tan)のロジック</b>{rows}</div>'
+        '<div class="card"><p class="sub" style="margin:0">2026年6月〜10月・実際の締切オッズ875レースで検証。'
+        '本命185%・次点215%・両方合計で200%(的中確率12.2%)。予測確率(12.6%)と実際の的中率もほぼ一致していて、'
+        '過大評価による見かけ上の数字ではない。一番大きな的中5件を除いても118%で残っていて、少数の大当たりに'
+        '支えられているわけでもない'
         '(目安であり保証ではありません。パラメータは今後の検証で変わることがあります)。</p></div>')
 
 
