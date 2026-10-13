@@ -58,6 +58,12 @@ main{max-width:760px;margin:0 auto;padding:10px}h1{font-size:19px;margin:10px 0}
 .tabs a.on{color:var(--tx);border-bottom:3px solid var(--hot);margin-bottom:-2px}.tabs a .lk{font-size:10px;font-weight:500;white-space:normal;display:block;line-height:1.3}
 .viewrow{display:flex;gap:6px;margin:10px 0}.viewbtn{flex:1;text-align:center;padding:9px 0;border:1px solid var(--bd);background:var(--card);border-radius:10px;font-size:13px;font-weight:700;color:var(--sub);cursor:pointer}
 .viewbtn.on{background:var(--hot);color:#fff;border-color:var(--hot)}
+.total-card{padding:16px 16px 10px}.tot-num{font-size:30px;font-weight:800;margin:2px 0}.tot-chart{margin-top:6px}
+.plan-grid{display:grid;grid-template-columns:1fr;gap:10px;margin:10px 0}
+.plan-card{display:block;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;text-decoration:none;color:var(--tx)}
+.pc-head{display:flex;justify-content:space-between;align-items:baseline}.pc-head b{font-size:14.5px}
+.pc-roi{font-size:18px;font-weight:800}.pc-chart{margin:6px 0 2px}.pc-foot{display:flex;justify-content:space-between}
+.back-lk{display:inline-block;margin:6px 0 2px;color:var(--ac);font-size:13px}
 .boat{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}.boat:last-child{border:0}
 .chip{width:30px;height:30px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;border:1px solid var(--bd)}
 .face{width:32px;height:44px;object-fit:cover;border-radius:4px;flex:none;background:var(--off)}
@@ -795,28 +801,111 @@ def pick_page(hi_list, lo_list):
     return page("狙い目", body, "", "/pick.html", noindex=True)
 
 
-OPS_JS = r"""
-const VN=__VENUES__, SINCE=__SINCE__;
-const VIEWS = {
-  out3: {label:'外・3連単', plans:['pick2']},
-  out2: {label:'外・2連単', plans:['pick2tan']},
-  in3:  {label:'内・3連単', plans:[]},
-  in2:  {label:'内・2連単', plans:['pickin']},
-  all:  {label:'総合', plans:['pick2','pick2tan','pickin']},
-};
-let D=[], VIEW='out2';
+DASH_PLANS = {"pick2": "外・3連単", "pick2tan": "外・2連単", "pickin": "内・2連単"}
+DASH_NOT_READY = {"in3": "内・3連単"}   # まだ戦略が無いタイプ(カードだけ出す)
+
+DASH_JS = r"""
+const SINCE=__SINCE__, PLANS=__PLANS__, NOT_READY=__NOT_READY__;
+let D=[];
 const $=id=>document.getElementById(id), yen=n=>n.toLocaleString();
-const LBL={pick2:'3連単', pick2tan:'2連単', pickin:'2連単'};
+
+function cumSeries(planKeys){
+  const byDay={};
+  for(const x of D){
+    if(x.d<SINCE) continue;
+    let st=0, ret=0, any=false;
+    for(const pk of planKeys){
+      const v=x.s[pk];
+      if(v===undefined||v===0) continue;
+      any=true; st+=v[0]; ret+=v[1];
+    }
+    if(!any) continue;
+    (byDay[x.d]=byDay[x.d]||{st:0,ret:0});
+    byDay[x.d].st+=st; byDay[x.d].ret+=ret;
+  }
+  const days=Object.keys(byDay).sort();
+  let cum=0, totSt=0, totRet=0;
+  const pts=days.map(d=>{cum+=byDay[d].ret-byDay[d].st; totSt+=byDay[d].st; totRet+=byDay[d].ret; return {d,pl:cum};});
+  return {pts, totSt, totRet};
+}
+
+function sparkline(pts, w, h, color){
+  if(!pts.length) return '';
+  const vals=pts.map(p=>p.pl);
+  const min=Math.min(0,...vals), max=Math.max(0,...vals), range=(max-min)||1;
+  const stepX = pts.length>1 ? w/(pts.length-1) : 0;
+  const path = pts.map((p,i)=>`${(i*stepX).toFixed(1)},${(h-(p.pl-min)/range*h).toFixed(1)}`).join(' ');
+  const zeroY=(h-(0-min)/range*h).toFixed(1);
+  const lastX=((pts.length-1)*stepX).toFixed(1), lastY=(h-(pts[pts.length-1].pl-min)/range*h).toFixed(1);
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none">`+
+    `<line x1="0" y1="${zeroY}" x2="${w}" y2="${zeroY}" stroke="var(--bd)" stroke-width="1" stroke-dasharray="3,3"/>`+
+    `<polyline points="${path}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`+
+    (pts.length>1?`<circle cx="${lastX}" cy="${lastY}" r="3.2" fill="${color}"/>`:'')+
+    `</svg>`;
+}
+
+function render(){
+  const allKeys=Object.keys(PLANS);
+  const {pts:totPts, totSt, totRet}=cumSeries(allKeys);
+  const totRoi=totSt?totRet/totSt*100:0;
+  const totPl=totPts.length?totPts[totPts.length-1].pl:0;
+  const tcol=totPl>=0?'var(--green)':'var(--red)';
+  $('total').innerHTML = `<div class="sub">総合収支</div>`+
+    `<div class="tot-num" style="color:${tcol}">${totPl>=0?'+':''}${yen(totPl)}円</div>`+
+    `<div class="sub">回収率 ${totRoi.toFixed(0)}%・投資 ${yen(totSt)}円・${totPts.length}日分</div>`+
+    `<div class="tot-chart">${totPts.length?sparkline(totPts,600,90,tcol):'<p class="sub">まだ実績がありません</p>'}</div>`;
+
+  let cards='';
+  for(const pk of allKeys){
+    const {pts, totSt:st, totRet:ret}=cumSeries([pk]);
+    const pl=pts.length?pts[pts.length-1].pl:0, roi=st?ret/st*100:0;
+    const col=pl>=0?'var(--green)':'var(--red)';
+    cards += `<a class="plan-card" href="/ops/${pk}.html">`+
+      `<div class="pc-head"><b>${PLANS[pk]}</b><span class="pc-roi" style="color:${col}">${pts.length?roi.toFixed(0)+'%':'-'}</span></div>`+
+      `<div class="pc-chart">${pts.length?sparkline(pts,260,56,col):'<p class="sub" style="margin:18px 0 0">まだ実績がありません</p>'}</div>`+
+      `<div class="pc-foot sub"><span>${pts.length?(pl>=0?'+':'')+yen(pl)+'円':''}</span><span>${pts.length}日分</span></div>`+
+      `</a>`;
+  }
+  for(const nk in NOT_READY){
+    cards += `<div class="plan-card" style="opacity:.5;cursor:default">`+
+      `<div class="pc-head"><b>${NOT_READY[nk]}</b><span class="pc-roi sub">検証中</span></div>`+
+      `<p class="sub" style="margin:18px 0 0">実装でき次第ここに表示します</p></div>`;
+  }
+  $('cards').innerHTML = cards;
+}
+fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;render()});
+"""
+
+
+def ops_page():
+    """運用ダッシュボード。総合収支の累積損益と、プランごとのミニカード(タップで詳細へ)。
+    データはbets-data.jsonを流用"""
+    js = (DASH_JS.replace("__SINCE__", json.dumps(bet_mod.PICK2_LOGIC_SINCE))
+                 .replace("__PLANS__", json.dumps(DASH_PLANS, ensure_ascii=False))
+                 .replace("__NOT_READY__", json.dumps(DASH_NOT_READY, ensure_ascii=False)))
+    body = ('<h1>運用</h1>' + own_tabs("ops")
+            + '<p class="sub">試験買い目のうち、実オッズで検証した専用プランの収支をまとめて見る画面です。'
+              'カードをタップすると各プランの詳細(日別実績・買い目・ロジック)に移動します。'
+              f'{jp(bet_mod.PICK2_LOGIC_SINCE)}に今のpick2ロジック(期待値配分・可変点数)に変えたので、'
+              'pick2はそれ以降の実績だけを表示しています。</p>'
+            + '<div id="total" class="card total-card"><p class="sub">読み込み中…</p></div>'
+            + '<div id="cards" class="plan-grid"></div>'
+            + f'<script>{js}</script>')
+    return page("運用", body, "", "/ops.html", noindex=True)
+
+
+DETAIL_JS = r"""
+const VN=__VENUES__, SINCE=__SINCE__, PLAN=__PLAN__;
+let D=[];
+const $=id=>document.getElementById(id), yen=n=>n.toLocaleString();
 function entries(){
   const out=[];
   for(const x of D){
     if(x.d<SINCE) continue;
-    for(const pk of VIEWS[VIEW].plans){
-      const v = x.s[pk];
-      if(v===undefined) continue;
-      out.push({d:x.d, v:x.v, r:x.r, res:x.res, pay:x.pay, plan:pk,
-                 skip:v===0, st:v===0?0:v[0], ret:v===0?0:v[1], tk:(pk==='pick2'?x.tk:x[pk+'_tk'])||[]});
-    }
+    const v=x.s[PLAN];
+    if(v===undefined) continue;
+    out.push({d:x.d, v:x.v, r:x.r, res:x.res, pay:x.pay,
+               skip:v===0, st:v===0?0:v[0], ret:v===0?0:v[1], tk:(PLAN==='pick2'?x.tk:x[PLAN+'_tk'])||[]});
   }
   return out;
 }
@@ -827,16 +916,8 @@ function filt(){
   return all.filter(x=>!keep||keep.has(x.d));
 }
 function render(){
-  document.querySelectorAll('.viewbtn').forEach(b=>b.classList.toggle('on', b.dataset.v===VIEW));
-  if(!VIEWS[VIEW].plans.length){
-    $('n4').textContent = '';
-    $('out4').innerHTML = '<div class="card"><p class="sub">このタイプはまだ検証中です。実装でき次第ここに表示します。</p></div>';
-    return;
-  }
-  const notReady = Object.values(VIEWS).some(v=>!v.plans.length);
   const rows=filt(), used=rows.filter(x=>!x.skip);
-  $('n4').textContent = `対象 ${rows.length}件中・購入 ${used.length}件・見送り ${rows.length-used.length}件`
-    + (VIEW==='all' && notReady ? '（検証中のタイプは総合集計に含まれていません）' : '');
+  $('n4').textContent = `対象 ${rows.length}件中・購入 ${used.length}件・見送り ${rows.length-used.length}件`;
   if(!used.length){ $('out4').innerHTML='<div class="card"><p class="sub">まだ購入したレースがありません。</p></div>'; return; }
   const st=used.reduce((a,x)=>a+x.st,0), ret=used.reduce((a,x)=>a+x.ret,0);
   const roi=st?ret/st:0, hitN=used.filter(x=>x.ret>0).length;
@@ -857,7 +938,7 @@ function render(){
   const oofune = used.filter(x=>x.ret>0 && x.pay>=10000).sort((a,b)=>b.pay-a.pay);
   if(oofune.length){
     s += `<div class="card"><b>万舟的中</b>` + oofune.map(x=>
-      `<div class="boat"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}・${VIEWS[VIEW].plans.length>1?(LBL[x.plan]||x.plan)+'・':''}${x.res}</span></div>`+
+      `<div class="boat"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}・${x.res}</span></div>`+
       `<b style="color:var(--green)">${yen(x.pay)}円</b></div>`).join('') + `</div>`;
   }
   const list = used.slice().sort((a,b)=> b.d.localeCompare(a.d) || b.r-a.r);
@@ -870,7 +951,7 @@ function render(){
       grp[k].map(([c,u])=>`<span class="sub" style="display:inline-block;margin:1px 6px 1px 0${c===x.res?';color:var(--green);font-weight:700':''}">${c}×${u}口</span>`).join('')
       +`</div>`).join('');
     return `<div class="boat" style="flex-direction:column;align-items:flex-start;gap:4px">`+
-      `<div style="display:flex;width:100%"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}${VIEWS[VIEW].plans.length>1?'・'+(LBL[x.plan]||x.plan):''}・結果 ${x.res}・投資${yen(x.st)}円</span></div>`+
+      `<div style="display:flex;width:100%"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}・結果 ${x.res}・投資${yen(x.st)}円</span></div>`+
       `<b style="color:${hit?'var(--green)':'var(--red)'}">${hit?'的中':'外れ'} ${x.ret-x.st>=0?'+':''}${yen(x.ret-x.st)}円</b></div>`+
       (tk?`<details style="width:100%"><summary class="sub">買い目(${x.tk.length}点)を見る</summary><div style="margin-top:4px">${tk}</div></details>`:'')+
       `</div>`;
@@ -879,39 +960,23 @@ function render(){
 }
 fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;render()});
 document.addEventListener('change',e=>{if(e.target.id==='per4')render()});
-document.addEventListener('click',e=>{const b=e.target.closest('.viewbtn'); if(b){VIEW=b.dataset.v; render();}});
 """
 
-
-def ops_page():
-    """運用ボード。対象レース(イン以外=頭が1でない/イン逃げ=1コースが堅い)×買い方(3連単/2連単)の
-    4タイプ+総合を切り替えて見れる。データはbets-data.jsonを流用"""
+def ops_detail_page(plan_key, logic_card_html):
+    """プラン別の詳細ページ(/ops/<plan>.html)。期間別の実績・日別回収率・レース一覧・ロジック解説"""
     opt = lambda pairs: "".join(f'<option value="{v}">{t}</option>' for v, t in pairs)
     sel = 'style="font-size:15px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);width:100%"'
-    js = OPS_JS.replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False)).replace("__SINCE__", json.dumps(bet_mod.PICK2_LOGIC_SINCE))
-    viewrow = ('<div class="viewrow">'
-               '<div class="viewbtn" data-v="out3">外・3連単</div>'
-               '<div class="viewbtn on" data-v="out2">外・2連単</div>'
-               '<div class="viewbtn" data-v="in3">内・3連単</div>'
-               '<div class="viewbtn" data-v="in2">内・2連単</div>'
-               '<div class="viewbtn" data-v="all">総合</div>'
-               '</div>')
-    body = ('<h1>運用</h1>' + own_tabs("ops")
-            + '<p class="sub">試験買い目のうち、実オッズで検証した専用プランの実績だけを見る画面です。'
-              '対象レース(外=イン以外・厳選頭2頭／内=イン逃げ・1コースが堅い)と買い方(3連単/2連単)を'
-              '組み合わせた4タイプ+総合を切り替えられます。現時点では「外・2連単」(pick2tan)が'
-              '一番成績が良く、「内・3連単」はまだ検証中です。'
-              f'{jp(bet_mod.PICK2_LOGIC_SINCE)}に今のpick2ロジック(期待値配分・可変点数)に変えたので、'
-              'pick2はそれ以降の実績だけを表示しています。</p>'
-            + viewrow
+    js = (DETAIL_JS.replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False))
+                   .replace("__SINCE__", json.dumps(bet_mod.PICK2_LOGIC_SINCE))
+                   .replace("__PLAN__", json.dumps(plan_key)))
+    label = DASH_PLANS[plan_key]
+    body = (f'<h1>{label}</h1><a class="back-lk" href="/ops.html">← 運用ダッシュボードに戻る</a>'
             + '<div class="card" style="display:grid;grid-template-columns:1fr;gap:8px">'
             + f'<label class="sub">期間<select id="per4" {sel}>{opt([("d30", "直近30日"), ("d90", "直近90日"), ("all", "全期間")])}</select></label>'
             + '</div><p class="sub" id="n4"></p><div id="out4"><p class="sub">読み込み中…</p></div>'
-            + _pick2_logic_card()
-            + _pick2tan_logic_card()
-            + _escape_logic_card()
+            + logic_card_html
             + f'<script>{js}</script>')
-    return page("運用", body, "", "/ops.html", noindex=True)
+    return page(f"運用｜{label}", body, "", f"/ops/{plan_key}.html", noindex=True)
 
 
 def _pick2_logic_card():
@@ -1231,6 +1296,9 @@ def main():
     (OUT / "nige-data.json").write_text(json.dumps(nige_records(), ensure_ascii=False, separators=(",", ":")))
     (OUT / "pick.html").write_text(pick_page(pick_hi, pick_lo))
     (OUT / "ops.html").write_text(ops_page())
+    (OUT / "ops").mkdir(exist_ok=True)
+    for pk, logic_html in (("pick2", _pick2_logic_card()), ("pick2tan", _pick2tan_logic_card()), ("pickin", _escape_logic_card())):
+        (OUT / "ops" / f"{pk}.html").write_text(ops_detail_page(pk, logic_html))
     key = os.environ.get("SHARE_KEY")
     if key:   # 投稿用の隠しページ(今日と前日の仕掛け成功)。サイトマップには入れない
         (OUT / key).mkdir()
