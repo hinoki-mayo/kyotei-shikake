@@ -801,20 +801,21 @@ def pick_page(hi_list, lo_list):
     return page("狙い目", body, "", "/pick.html", noindex=True)
 
 
-DASH_PLANS = {"pick2": "外・3連単", "pick2tan": "外・2連単", "pickin": "内・2連単"}
-DASH_NOT_READY = {"in3": "内・3連単"}   # まだ戦略が無いタイプ(カードだけ出す)
+DASH_PLANS = {"pick2tan": "外・2連単", "pickin": "内・2連単・逆張り"}
+# 3連単(pick2)は実オッズで良い結果が出てないためダッシュボードには出さない。
+# bet.py側の集計(bets-data.json)は変わらず続けているので、見たくなれば/ops/pick2.htmlで確認できる。
 
 DASH_JS = r"""
-const SINCE=__SINCE__, PLANS=__PLANS__, NOT_READY=__NOT_READY__;
+const SINCE=__SINCE__, PLANS=__PLANS__;
 let D=[];
 const $=id=>document.getElementById(id), yen=n=>n.toLocaleString();
 
 function cumSeries(planKeys){
   const byDay={};
   for(const x of D){
-    if(x.d<SINCE) continue;
     let st=0, ret=0, any=false;
     for(const pk of planKeys){
+      if(x.d<SINCE[pk]) continue;
       const v=x.s[pk];
       if(v===undefined||v===0) continue;
       any=true; st+=v[0]; ret+=v[1];
@@ -866,28 +867,30 @@ function render(){
       `<div class="pc-foot sub"><span>${pts.length?(pl>=0?'+':'')+yen(pl)+'円':''}</span><span>${pts.length}日分</span></div>`+
       `</a>`;
   }
-  for(const nk in NOT_READY){
-    cards += `<div class="plan-card" style="opacity:.5;cursor:default">`+
-      `<div class="pc-head"><b>${NOT_READY[nk]}</b><span class="pc-roi sub">検証中</span></div>`+
-      `<p class="sub" style="margin:18px 0 0">実装でき次第ここに表示します</p></div>`;
-  }
   $('cards').innerHTML = cards;
 }
 fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;render()});
 """
 
+PLAN_SINCE = {"pick2": bet_mod.PICK2_LOGIC_SINCE, "pick2tan": bet_mod.PICK2TAN_LOGIC_SINCE,
+              "pickin": bet_mod.PICKIN_LOGIC_SINCE}
+DASH_SINCE = {"pick2tan": bet_mod.PICK2TAN_LOGIC_SINCE, "pickin": bet_mod.PICKIN_LOGIC_SINCE}
+ALL_PLAN_LABELS = {"pick2": "外・3連単", **DASH_PLANS}   # 詳細ページ用。pick2はダッシュボード非表示だがページ自体は残す
+
 
 def ops_page():
     """運用ダッシュボード。総合収支の累積損益と、プランごとのミニカード(タップで詳細へ)。
-    データはbets-data.jsonを流用"""
-    js = (DASH_JS.replace("__SINCE__", json.dumps(bet_mod.PICK2_LOGIC_SINCE))
-                 .replace("__PLANS__", json.dumps(DASH_PLANS, ensure_ascii=False))
-                 .replace("__NOT_READY__", json.dumps(DASH_NOT_READY, ensure_ascii=False)))
+    データはbets-data.jsonを流用。3連単(pick2)は実オッズ検証で良い結果が出てないため非表示
+    (集計自体はbet.py側で継続)"""
+    js = (DASH_JS.replace("__SINCE__", json.dumps(DASH_SINCE, ensure_ascii=False))
+                 .replace("__PLANS__", json.dumps(DASH_PLANS, ensure_ascii=False)))
+    since_label = jp(bet_mod.PICKIN_LOGIC_SINCE)
     body = ('<h1>運用</h1>' + own_tabs("ops")
             + '<p class="sub">試験買い目のうち、実オッズで検証した専用プランの収支をまとめて見る画面です。'
               'カードをタップすると各プランの詳細(日別実績・買い目・ロジック)に移動します。'
-              f'{jp(bet_mod.PICK2_LOGIC_SINCE)}に今のpick2ロジック(期待値配分・可変点数)に変えたので、'
-              'pick2はそれ以降の実績だけを表示しています。</p>'
+              f'現在稼働中は2連単の2プランのみ(3連単は実オッズ検証の成績が良くないため非表示)。'
+              f'{since_label}にイン逃げを逆張りロジックへ変更したのに合わせて、'
+              'どちらのプランもそれ以降の実績だけを表示しています。</p>'
             + '<div id="total" class="card total-card"><p class="sub">読み込み中…</p></div>'
             + '<div id="cards" class="plan-grid"></div>'
             + f'<script>{js}</script>')
@@ -967,9 +970,9 @@ def ops_detail_page(plan_key, logic_card_html):
     opt = lambda pairs: "".join(f'<option value="{v}">{t}</option>' for v, t in pairs)
     sel = 'style="font-size:15px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);width:100%"'
     js = (DETAIL_JS.replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False))
-                   .replace("__SINCE__", json.dumps(bet_mod.PICK2_LOGIC_SINCE))
+                   .replace("__SINCE__", json.dumps(PLAN_SINCE[plan_key]))
                    .replace("__PLAN__", json.dumps(plan_key)))
-    label = DASH_PLANS[plan_key]
+    label = ALL_PLAN_LABELS[plan_key]
     body = (f'<h1>{label}</h1><a class="back-lk" href="/ops.html">← 運用ダッシュボードに戻る</a>'
             + '<div class="card" style="display:grid;grid-template-columns:1fr;gap:8px">'
             + f'<label class="sub">期間<select id="per4" {sel}>{opt([("d30", "直近30日"), ("d90", "直近90日"), ("all", "全期間")])}</select></label>'
@@ -1032,20 +1035,22 @@ def _escape_logic_card():
     b = bet_mod
     steps = [
         ("対象レース", f'1コース1着確率(nige)が{b.PICKIN_NIGE_MIN:.0%}以上のレースだけ'),
-        ("買い方", f'2連単(3連単ではない)。確率1位の1点だけにオッズ{b.PICKIN_MIN_ODDS}倍以上を条件に、'
-                 f'予算{b.PICKIN_BUDGET:,}円を全額集中'),
-        ("なぜ2連単か", "1コースが勝つこと自体は市場もほぼ織り込み済みで、3連単(3着まで当てる)では妙味が薄い"
-                     "(実オッズ検証で90%台止まり)。2・3着の読みにはまだ市場の値付けの甘さが残っていて、"
-                     "2連単(2着まで)に変えると回収率がはっきり上がった"),
-        ("なぜ1点集中か", "2〜3点に分散する配分も試したが、どれも「一番大きな的中を除くと100%割れ」していて、"
-                      "たまたまの大当たりに支えられていただけだった。確率1位の1点に絞る形だけが、"
-                      "一番大きな的中を除いても100%を超えて残った(126.8%)"),
-        ("見送り", f'確率1位の目がオッズ{b.PICKIN_MIN_ODDS}倍未満なら、そのレースは買わない'),
+        ("頭候補", "2連単(3連単ではない)で、確率が高い順に1位・2位の2艇を比べる"),
+        ("逆張り判定", f'市場のオッズ比(2位オッズ÷1位オッズ)が、モデルの確率比(1位確率÷2位確率)を'
+                   f'{b.PICKIN_GAP_MIN:.1f}以上上回っていたら、「市場がモデルの確率差以上に1位へ寄せすぎている」'
+                   f'と判断し、2位の1点に予算{b.PICKIN_BUDGET:,}円を全額集中(オッズ{b.PICKIN_MIN_ODDS}倍未満は見送り)'),
+        ("なぜ2位の逆張りか", "確率1位をそのまま買う旧ロジックは、1コースが堅いレース(nige80%以上)の実オッズ"
+                        "フルセンサス検証(1,130レース)で回収率87.2%と勝てなかった。市場とモデルの確率の"
+                        "ズレが大きい時だけ2位に切り替えると、同条件で146.6%(一番大きい的中3件を除いても"
+                        "110.2%)と明確に上回った"),
+        ("見送り", f'gapが{b.PICKIN_GAP_MIN:.1f}未満、または2位のオッズが{b.PICKIN_MIN_ODDS}倍未満なら、'
+                 'そのレースは買わない(条件が狭いため月10〜15件程度とかなり稀)'),
     ]
     rows = "".join(f'<div class="boat"><div><b>{title}</b><br><span class="sub">{body}</span></div></div>' for title, body in steps)
-    return (f'<div class="card"><b>イン(逃げ切り)のロジック</b>{rows}</div>'
-            '<div class="card"><p class="sub" style="margin:0">2025年1月〜2026年9月・実際の締切オッズ130レースで検証'
-            '(回収率154.2%、一番大きな的中を除いても126.8%)。目安であり保証ではありません。'
+    return (f'<div class="card"><b>イン(逃げ切り)・逆張りのロジック</b>{rows}</div>'
+            '<div class="card"><p class="sub" style="margin:0">2026年6月〜10月・nige80%以上の実オッズ'
+            'フルセンサス1,130レースで検証(確率1位そのまま=87.2%→gap逆張りで2位に切替=146.6%、'
+            '一番大きい的中3件を除いても110.2%)。0.70〜0.80%帯はまだ未検証。目安であり保証ではありません。'
             'パラメータは今後の検証で変わることがあります。</p></div>')
 
 
