@@ -76,7 +76,8 @@ def run(date, only=None, model=None, allow_late=False):
                       for c, e in enumerate(ents)]
         P, st, fc, rate, pin = model.race(jcd, entries_in, weather=weather)
         sc = build_scene(P, st, fc)
-        tri = trifecta_probs(P, st, pin["ab"], pin["tenji_z"], pin["motor"])
+        tri = trifecta_probs(P, st, pin["ab"], pin["tenji_z"], pin["motor"],
+                             pin["momentum"], pin["wind"], pin["wave"], pin["rain"])
         scen = scenarios.build(P, st, pin, order)
         store["races"][key] = dict(
             jcd=jcd, venue=g.venue.iloc[0], race=int(race), rtype=g.rtype.iloc[0], deadline=deadline,

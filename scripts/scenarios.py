@@ -18,11 +18,12 @@ MAX_N = 6
 def _cond(P, st, pin, w, mv):
     """勝者w・決まり手mvのときの、各艇の2着確率と3着確率"""
     args = (P, st, pin["ab"], pin["tenji_z"], pin["motor"])
-    p2 = place._softmax(place._feats(*args, w, mv) @ place.TH2, {w})
+    extra = (pin.get("momentum"), pin.get("wind", 0.0), pin.get("wave", 0.0), pin.get("rain", 0.0))
+    p2 = place._softmax(place._feats(*args, w, mv, *extra) @ place.TH2, {w})
     p3 = np.zeros(6)
     for j in range(6):
         if j != w:
-            p3 += p2[j] * place._softmax(place._feats(*args, w, mv, j) @ place.TH3, {w, j})
+            p3 += p2[j] * place._softmax(place._feats(*args, w, mv, *extra, prev=j) @ place.TH3, {w, j})
     return p2, p3
 
 

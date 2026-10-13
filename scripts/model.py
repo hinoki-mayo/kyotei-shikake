@@ -171,7 +171,10 @@ class Model:
         tenji_z = np.zeros(6)
         if have_tenji:
             tenji_z = (tenji.mean() - tenji) / (tenji.std() + 1e-3)
-        place_in = dict(ab=ab, tenji_z=tenji_z, motor=motor_edge)   # 2・3着モデル(place.py)の入力
+        place_in = dict(ab=ab, tenji_z=tenji_z, motor=motor_edge, momentum=momentum,   # 2・3着モデル(place.py)の入力
+                        wind=(weather or {}).get("wind", 0.0) if weather else 0.0,
+                        wave=(weather or {}).get("wave", 0.0) if weather else 0.0,
+                        rain=float((weather or {}).get("rain", False)) if weather else 0.0)
         return self._probs(rate, st, ab, extra), st, fc, rate, place_in
 
     @staticmethod
