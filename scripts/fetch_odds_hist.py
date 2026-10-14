@@ -4,8 +4,9 @@
 市場の確率(オッズの逆数)と実際の結果を、数か月〜数年ぶんで比べるためのデータ。
 ・レース一覧は data/results/<年>.parquet から取る(実際に走ったレースだけ)
 ・3連単120通り・2連単30通りを bet.fetch_odds / bet.fetch_odds2 で取る(枠番キー、bet.py と同じ)
-・1リクエストごとに間を空ける(既定1秒)。1レースで2リクエストなので1日(約150レース)で約5分、1回の実行(330分)で約2か月
-・保存先: data/odds_hist/YYYYMM.parquet(1レース1行)
+・公式サイトの応答が1ページ約9秒と遅いので、3連単と2連単は同時に取る。1日(約150レース)で約25分。
+  --shard i --shards n で日付を分け、Actionsで複数ジョブ同時に流す(各ジョブ自分の日付だけ取る)
+・保存先: data/odds_hist/YYYYMMDD.parquet(1日1ファイル、1レース1行。初回の8月分だけ YYYYMM.parquet)
     date : str  YYYYMMDD
     jcd  : int  場コード
     race : int  レース番号
@@ -19,6 +20,7 @@
 import argparse
 import datetime as dt
 import time
+from concurrent.futures import ThreadPoolExecutor
 
 import numpy as np
 import pandas as pd
@@ -54,19 +56,21 @@ def to_arr(d, order):
     return [float(d.get(k, np.nan)) for k in order]
 
 
-def load_month(ym):
-    p = HIST / f"{ym}.parquet"
-    if p.exists():
-        return pd.read_parquet(p).to_dict("records")
-    return []
+def load_day(ymd):
+    rows = []
+    for p in (HIST / f"{ymd[:6]}.parquet", HIST / f"{ymd}.parquet"):
+        if p.exists():
+            df = pd.read_parquet(p)
+            rows += df[df.date == ymd].to_dict("records")
+    return rows
 
 
-def save_month(ym, rows):
+def save_day(ymd, rows):
     HIST.mkdir(parents=True, exist_ok=True)
     df = pd.DataFrame(rows, columns=["date", "jcd", "race", "o3", "o2"])
     df["o3"] = df["o3"].apply(lambda x: [float(v) for v in x])
     df["o2"] = df["o2"].apply(lambda x: [float(v) for v in x])
-    df.sort_values(["date", "jcd", "race"]).to_parquet(HIST / f"{ym}.parquet", index=False)
+    df.sort_values(["jcd", "race"]).to_parquet(HIST / f"{ymd}.parquet", index=False)
 
 
 def main(argv=None):
@@ -75,55 +79,51 @@ def main(argv=None):
     ap.add_argument("--end", required=True)
     ap.add_argument("--sleep", type=float, default=1.0)
     ap.add_argument("--max-minutes", type=float, default=330)
+    ap.add_argument("--shard", type=int, default=0)
+    ap.add_argument("--shards", type=int, default=1)
     a = ap.parse_args(argv)
     deadline = time.time() + a.max_minutes * 60
     days = list(daterange(dt.date.fromisoformat(a.start), dt.date.fromisoformat(a.end)))
-    months = {}
-    for d in days:
-        months.setdefault(f"{d:%Y%m}", []).append(d)
+    days = [d for i, d in enumerate(days) if i % a.shards == a.shard]
     n_new = n_empty = streak = 0
     stopped = False
-    for ym, ds in months.items():
-        rows = load_month(ym)
+    pool = ThreadPoolExecutor(2)
+    for d in days:
+        ymd = f"{d:%Y%m%d}"
+        rows = load_day(ymd)
         have = {(r["date"], int(r["jcd"]), int(r["race"])) for r in rows}
-        unsaved = 0
-        for d in ds:
-            ymd = f"{d:%Y%m%d}"
-            todo = [(j, r) for j, r in races_of(d.year).get(ymd, []) if (ymd, j, r) not in have]
-            if not todo:
-                continue
-            got = 0
-            for jcd, race in todo:
-                if time.time() > deadline:
+        todo = [(j, r) for j, r in races_of(d.year).get(ymd, []) if (ymd, j, r) not in have]
+        if not todo:
+            continue
+        got = unsaved = 0
+        for jcd, race in todo:
+            if time.time() > deadline:
+                stopped = True
+                break
+            f3 = pool.submit(bet.fetch_odds, ymd, f"{jcd:02d}", race)
+            f2 = pool.submit(bet.fetch_odds2, ymd, f"{jcd:02d}", race)
+            o3, o2 = f3.result(), f2.result()
+            time.sleep(a.sleep)
+            a3, a2 = to_arr(o3, bet.ODDS_ORDER), to_arr(o2, O2_ORDER)
+            if not a3 and not a2:
+                n_empty += 1
+                streak += 1
+                if streak >= STOP_EMPTY:
+                    print(f"{STOP_EMPTY}レース続けて取れなかったので止めます({ymd} {jcd:02d}場 {race}R)")
                     stopped = True
                     break
-                o3 = bet.fetch_odds(ymd, f"{jcd:02d}", race)
-                time.sleep(a.sleep)
-                o2 = bet.fetch_odds2(ymd, f"{jcd:02d}", race)
-                time.sleep(a.sleep)
-                a3, a2 = to_arr(o3, bet.ODDS_ORDER), to_arr(o2, O2_ORDER)
-                if not a3 and not a2:
-                    n_empty += 1
-                    streak += 1
-                    if streak >= STOP_EMPTY:
-                        print(f"{STOP_EMPTY}レース続けて取れなかったので止めます({ymd} {jcd:02d}場 {race}R)")
-                        stopped = True
-                        break
-                    continue
-                streak = 0
-                got += 1
-                rows.append({"date": ymd, "jcd": jcd, "race": race, "o3": a3, "o2": a2})
-                have.add((ymd, jcd, race))
-                n_new += 1
-                unsaved += 1
-                if unsaved >= FLUSH_EVERY:
-                    save_month(ym, rows)
-                    unsaved = 0
-            print(f"{ymd}: {len(todo)}レース中 {got}レース取得(累計 新規{n_new} 取れず{n_empty})", flush=True)
-            if stopped:
-                break
+                continue
+            streak = 0
+            got += 1
+            rows.append({"date": ymd, "jcd": jcd, "race": race, "o3": a3, "o2": a2})
+            n_new += 1
+            unsaved += 1
+            if unsaved >= FLUSH_EVERY:
+                save_day(ymd, rows)
+                unsaved = 0
         if unsaved:
-            save_month(ym, rows)
+            save_day(ymd, rows)
+        print(f"{ymd}: {len(todo)}レース中 {got}レース取得(累計 新規{n_new} 取れず{n_empty})", flush=True)
         if stopped:
             print("途中で止めました。保存済みのぶんはそのまま使えます")
             break
