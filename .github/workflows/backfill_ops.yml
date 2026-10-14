@@ -10,8 +10,10 @@ on:
 permissions:
   contents: write
 
+# 5分おきの自動処理(live-data)とは別のグループにする。同じグループだと作り直し中に
+# 自動処理が待たされ、締切前の買い目を取り逃がす(書き込むファイルも data/bets_backfill だけで別)
 concurrency:
-  group: live-data
+  group: backfill-ops
   cancel-in-progress: false
 
 jobs:
