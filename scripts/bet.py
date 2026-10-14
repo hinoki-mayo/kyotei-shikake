@@ -40,10 +40,11 @@
                                   「2連単市場は3連単市場より値付けが甘い」構造がpick2側にもあったとみられる)
     pickbin   B級イン・2連単      1コースが「本物の」B級(勝率5.5未満、かつ直近3年にA級だった期がない=F明けなどで
                                   一時的にB級になった実力者を除く)で、モデルの1コース1着確率がPICKBIN_HP_MIN以上の
-                                  レースだけ。1コース頭で、モデルの2連単確率1位の1点に予算を全額。
+                                  レースだけ。1コース頭で、2着はモデルの確率上位2艇の2点(1位800円・2位1,200円)。
                                   (2026-10-02〜13・実オッズ1,659Rの検証: 本物B級インの1着率は実際38.4%に対し市場
                                   (3連単オッズから逆算)は29.5%と、市場が大きく割り引いていた。モデル20%以上の
-                                  214Rでは実際39.3%・市場28.9%・モデル37.2%、2連単1点の回収率102%(90%区間72〜133%)。
+                                  214Rでは実際39.3%・市場28.9%・モデル37.2%。2着の指定は1艇(1点)105%・2艇113%・
+                                  3艇98%で、2艇が一番良かった(301R、90%区間93〜134%)。
                                   嘘B級は逆にモデルが過大評価(モデル43%→実際37%)していたので除外。
                                   まだサンプルが小さいので、本番で貯めて確かめるための試験プラン)
 例: python scripts/bet.py   (entry.pyから毎回呼ばれる)
@@ -71,7 +72,7 @@ ANA_MAX = 10            # 穴狙いの最大点数
 PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": "イン・期待値重視",
          "out_hit": "イン以外・的中重視", "out_ana": "イン以外・穴", "e2_top1": "2連単・確率1位(進入変化×頭注目≠1)",
          "pick2": "厳選頭2頭(本命・次点)", "pickin": "イン逃げ2連単・逆張り(確率2位)",
-         "pick2tan": "厳選頭2頭・2連単(確率1位1点)", "pickbin": "B級イン・2連単(確率1位1点)"}
+         "pick2tan": "厳選頭2頭・2連単(確率1位1点)", "pickbin": "B級イン・2連単(2着2艇)"}
 PICK2_NIGE_MAX = 0.22   # pressedの中でもこれ未満だけ対象(実オッズ検証: 頻度と回収率のバランスで22%に)
 PICK2_MIN_ODDS = 2.25   # 5分前時点オッズなので、損益分岐の2倍より変動分の余裕を見て高め
 PICK2_MAX_ODDS = 50     # これを超える穴目は除外(過大評価しがちで実オッズ検証でも回収率を下げていた)
@@ -97,7 +98,8 @@ PICK2TAN_LOGIC_SINCE = "20261014"   # 運用タブの集計をここから開始
 PICKBIN_HP_MIN = 0.20      # 1コース(本物B級)の1着確率がこれ以上のレースだけ対象
 PICKBIN_FAKE_WIN = 5.5     # B級でも全国勝率がこれ以上なら「嘘B級」(F休み明けなどで一時的にB級の実力者)
 PICKBIN_FAKE_MONTHS = 36   # 直近この月数の番組表で1度でもA級だった選手も「嘘B級」
-PICKBIN_BUDGET = 2000      # 2連単の確率1位の1点に全額
+PICKBIN_UNITS = (8, 12)    # 2着の確率1位・2位に何口ずつ(合計2,000円)。2位の方が配当が良く回収率も
+                           # 高かった(1位のみ105%・2位のみ118%)ので2位を厚めに。均等111%→この配分113%
 PICKBIN_LOGIC_SINCE = "20261014"
 M = ["逃げ", "まくり", "差し", "まくり差し"]
 
@@ -424,26 +426,37 @@ def _pickbin_target(pred, date):
 
 def _pickbin(pred, odds2_w, waku, date):
     """1コースが本物のB級で、モデルの1コース1着確率がPICKBIN_HP_MIN以上のレースだけ、
-    1コース頭・モデルの2連単確率1位の1点を買う。市場はB級のインを割り引きすぎている
-    (実オッズ1,659Rで実際の1着率38.4%に対し市場29.5%)ので、その分を取りに行く"""
+    1コース頭・2着はモデルの確率上位2艇の2点を買う(1位PICKBIN_UNITS[0]口・2位PICKBIN_UNITS[1]口)。
+    市場はB級のインを割り引きすぎている(実オッズ1,659Rで実際の1着率38.4%に対し市場29.5%)ので、
+    その分を取りに行く。2位の方が配当が良く回収率も高かったので2位を厚めに。
+    片方のオッズが取れなければ、もう片方に全額"""
     if not _pickbin_target(pred, date) or not odds2_w:
         return dict(skip=True, bet="2t")
     sec = {}
     for p, (a, b, _) in zip(pred["tri"], PERMS):
         if a == 0:
             sec[b] = sec.get(b, 0) + p
-    j = max(sec, key=sec.get)
-    o = odds2_w.get((waku[0] - 1, waku[j] - 1))
-    if o is None:
+    picks = []
+    for rank, j in enumerate(sorted(sec, key=sec.get, reverse=True)[:2]):
+        o = odds2_w.get((waku[0] - 1, waku[j] - 1))
+        if o is not None:
+            picks.append((j, o, PICKBIN_UNITS[rank], f"2着{rank + 1}位"))
+    if not picks:
         return dict(skip=True, bet="2t")
-    units = PICKBIN_BUDGET // 100
+    if len(picks) == 1:
+        picks = [(picks[0][0], picks[0][1], sum(PICKBIN_UNITS), picks[0][3])]
+    tickets = [dict(combo=f"{waku[0]}-{waku[j]}", units=u, odds=o, prob=round(sec[j], 4), role=role)
+               for j, o, u, role in picks]
+    hit = sum(sec[j] for j, *_ in picks)
+    stake = sum(t["units"] for t in tickets) * 100
+    ev = sum(sec[j] * o * u for j, o, u, _ in picks) / sum(u for *_, u, _ in picks)
     hp = pred["scene"]["head_prob"][0]
     b = pred["boats"][0]
-    return dict(skip=False, bet="2t", head=waku[0], himo=None, ev=round(sec[j] * o, 3), hit=round(sec[j], 4),
-                stake=units * 100,
-                scenario=f"{waku[0]}号艇(1コース・{b['grade']}・勝率{b['nat_win']:.2f})が逃げて{waku[j]}号艇が続く展開"
+    himo = "・".join(str(waku[j]) for j, *_ in picks)
+    return dict(skip=False, bet="2t", head=waku[0], himo=None, ev=round(ev, 3), hit=round(hit, 4), stake=stake,
+                scenario=f"{waku[0]}号艇(1コース・{b['grade']}・勝率{b['nat_win']:.2f})が逃げて{himo}号艇が続く展開"
                          f"(1コースの1着確率{hp:.0%}。市場はB級のインを割り引きがち)",
-                tickets=[dict(combo=f"{waku[0]}-{waku[j]}", units=units, odds=o, prob=round(sec[j], 4))])
+                tickets=tickets)
 
 
 def make_bet(pred, odds_w, odds2_w=None, date=None):

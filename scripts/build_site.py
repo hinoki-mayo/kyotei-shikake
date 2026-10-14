@@ -532,7 +532,7 @@ def bets_records():
                 rec["pickin_tk"] = [[t["combo"], t["units"], None] for t in pin["tickets"]]
             pbi = plans.get("pickbin")
             if pbi and not pbi.get("skip"):
-                rec["pickbin_tk"] = [[t["combo"], t["units"], None] for t in pbi["tickets"]]
+                rec["pickbin_tk"] = [[t["combo"], t["units"], t.get("role")] for t in pbi["tickets"]]
             p2t = plans.get("pick2tan")
             if p2t and not p2t.get("skip"):
                 rec["pick2tan_tk"] = [[t["combo"], t["units"], t.get("role")] for t in p2t["tickets"]]
@@ -1043,7 +1043,8 @@ def _pickbin_logic_card():
         ("対象レース", f'1コースが「本物の」B級で、モデルの1コース1着確率が{b.PICKBIN_HP_MIN:.0%}以上のレースだけ'),
         ("嘘B級の除外", f'B級でも全国勝率{b.PICKBIN_FAKE_WIN}以上、または直近{b.PICKBIN_FAKE_MONTHS // 12}年の番組表で'
                      '1度でもA級だった選手(フライング休み明けなどで一時的にB級の実力者)は対象外'),
-        ("買い方", f'1コース頭の2連単のうち、モデルの確率が一番高い1点に予算{b.PICKBIN_BUDGET:,}円を全額'),
+        ("買い方", f'1コース頭の2連単で、2着はモデルの確率上位2艇の2点。2着1位に{b.PICKBIN_UNITS[0] * 100:,}円・'
+                 f'2位に{b.PICKBIN_UNITS[1] * 100:,}円(2位の方が配当が良く、回収率も高かったので厚め)'),
         ("なぜB級インか", "市場はB級のインを割り引きすぎている。実オッズ1,659レースで、本物B級インの1着率は"
                        "実際38.4%に対し、オッズから逆算した市場の確率は29.5%だった(A級インは65.8%対59.0%)。"
                        "嘘B級は逆にモデルが勝率の高さから過大評価していたので除外している"),
@@ -1051,7 +1052,8 @@ def _pickbin_logic_card():
     rows = "".join(f'<div class="boat"><div><b>{title}</b><br><span class="sub">{body}</span></div></div>' for title, body in steps)
     return (f'<div class="card"><b>B級イン・2連単(pickbin)のロジック</b>{rows}</div>'
             '<div class="card"><p class="sub" style="margin:0">2026年10月2日〜13日・締切前の実オッズ1,659レースで検証。'
-            'モデル20%以上の214レースで実際の1着率39.3%(市場28.9%)、2連単1点の回収率102%(90%区間72〜133%)。'
+            'モデル20%以上の214レースで実際の1着率39.3%(市場28.9%)。2着の指定は1艇105%・2艇(この配分)113%・'
+            '3艇98%・全艇94%で、2艇が一番良かった(301レース、90%区間93〜134%)。'
             'サンプルが小さく、まだ偶然と区別できないため、本番で実績を貯めて確かめる試験プランです。'
             '目安であり保証ではありません。</p></div>')
 
