@@ -4,14 +4,15 @@
 市場の確率(オッズの逆数)と実際の結果を、数か月〜数年ぶんで比べるためのデータ。
 ・レース一覧は data/results/<年>.parquet から取る(実際に走ったレースだけ)
 ・3連単120通り・2連単30通りを bet.fetch_odds / bet.fetch_odds2 で取る(枠番キー、bet.py と同じ)
-・1リクエストごとに間を空ける(既定1秒)。1レースで2リクエストなので1日(約70レース)で約6分
+・1リクエストごとに間を空ける(既定1秒)。1レースで2リクエストなので1日(約150レース)で約5分、1回の実行(330分)で約2か月
 ・保存先: data/odds_hist/YYYYMM.parquet(1レース1行)
     date : str  YYYYMMDD
     jcd  : int  場コード
     race : int  レース番号
     o3   : 長さ120のfloat配列。並びは bet.ODDS_ORDER(公式オッズ表の順)。売っていない目・取れなかった目はNaN
     o2   : 長さ30のfloat配列。並びは 1-2,1-3,1-4,1-5,1-6,2-1,2-3,...,6-4,6-5(1着の枠の昇順→2着の枠の昇順)。欠けはNaN
-  両方取れなかったレースは o3 / o2 とも空の配列で記録する(何度も取り直さないため。件数はログに出す)
+  両方取れなかったレースは記録しない(次に流した時に取り直す)。続けて STOP_EMPTY レース取れなかったら、
+  公式サイトが止まっているか古すぎて見られないとみて打ち切る
 ・保存済みのレースは飛ばすので、同じコマンドを流し直せば続きから再開する
 ・50レースごと・最後・--max-minutes 経過時に保存する(Actionsの時間切れ前にコミットするため)
 """
@@ -27,6 +28,7 @@ from common import DATA, daterange
 
 HIST = DATA / "odds_hist"
 FLUSH_EVERY = 50
+STOP_EMPTY = 20   # 続けてこれだけ取れなかったら打ち切る
 # 2連単の並び: 1-2,1-3,...,6-5
 O2_ORDER = [(a, b) for a in range(6) for b in range(6) if a != b]
 
@@ -79,7 +81,7 @@ def main(argv=None):
     months = {}
     for d in days:
         months.setdefault(f"{d:%Y%m}", []).append(d)
-    n_new = n_empty = 0
+    n_new = n_empty = streak = 0
     stopped = False
     for ym, ds in months.items():
         rows = load_month(ym)
@@ -102,8 +104,14 @@ def main(argv=None):
                 a3, a2 = to_arr(o3, bet.ODDS_ORDER), to_arr(o2, O2_ORDER)
                 if not a3 and not a2:
                     n_empty += 1
-                else:
-                    got += 1
+                    streak += 1
+                    if streak >= STOP_EMPTY:
+                        print(f"{STOP_EMPTY}レース続けて取れなかったので止めます({ymd} {jcd:02d}場 {race}R)")
+                        stopped = True
+                        break
+                    continue
+                streak = 0
+                got += 1
                 rows.append({"date": ymd, "jcd": jcd, "race": race, "o3": a3, "o2": a2})
                 have.add((ymd, jcd, race))
                 n_new += 1
@@ -111,15 +119,15 @@ def main(argv=None):
                 if unsaved >= FLUSH_EVERY:
                     save_month(ym, rows)
                     unsaved = 0
-            print(f"{ymd}: {len(todo)}レース中 {got}レース取得(累計 新規{n_new} 空{n_empty})", flush=True)
+            print(f"{ymd}: {len(todo)}レース中 {got}レース取得(累計 新規{n_new} 取れず{n_empty})", flush=True)
             if stopped:
                 break
         if unsaved:
             save_month(ym, rows)
         if stopped:
-            print("--max-minutes に達したので止めます。保存済みのぶんはそのまま使えます")
+            print("途中で止めました。保存済みのぶんはそのまま使えます")
             break
-    print(f"完了: 新規{n_new}レース(うち両方取れず空{n_empty})")
+    print(f"完了: 新規{n_new}レース(両方取れず飛ばした{n_empty}レース)")
 
 
 if __name__ == "__main__":
