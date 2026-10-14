@@ -76,7 +76,8 @@ ANA_MAX = 10            # 穴狙いの最大点数
 PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": "イン・期待値重視",
          "out_hit": "イン以外・的中重視", "out_ana": "イン以外・穴", "e2_top1": "2連単・確率1位(進入変化×頭注目≠1)",
          "pick2": "厳選頭2頭(本命・次点)", "pickin": "イン逃げ2連単・逆張り(確率2位)",
-         "pick2tan": "外・2連単(確率20%以上の本命頭)", "pickbin": "B級イン・2連単(2着2艇)"}
+         "pick2tan": "外・2連単(確率20%以上の本命頭)", "pickbin": "B級イン・2連単(2着2艇)",
+         "pick6a": "6コースだけA級・2連単(立説中)"}
 PICK2_NIGE_MAX = 0.22   # pressedの中でもこれ未満だけ対象(実オッズ検証: 頻度と回収率のバランスで22%に)
 PICK2_MIN_ODDS = 2.25   # 5分前時点オッズなので、損益分岐の2倍より変動分の余裕を見て高め
 PICK2_MAX_ODDS = 50     # これを超える穴目は除外(過大評価しがちで実オッズ検証でも回収率を下げていた)
@@ -107,6 +108,9 @@ PICKBIN_UNITS = (16, 24)   # 2着の確率1位・2位に何口ずつ(合計4,000
                            # 高かった(1位のみ105%・2位のみ118%)ので2位を厚めに。均等111%→この配分113%
 PICKBIN_LOGIC_SINCE = "20261014"   # 運用タブの集計開始日(実際の区切りはOPS_LOGICの印)
 OPS_PLANS = ("pick2tan", "pickin", "pickbin")   # 運用ダッシュボードに出すプラン
+SHADOW_PLANS = ("pick6a",)   # 立説中: ダッシュボードには別枠で出し、総合収支には含めない
+PICK6A_UNITS = (24, 36)      # 6コースだけA級: 2着の確率1位・2位に何口ずつ(合計6,000円)
+PICK6A_LOGIC_SINCE = "20261014"
 OPS_LOGIC = "2026-10-14b"   # 運用プランのロジックの版。変えたらここも変えると、それ以前の記録は集計から外れる
                             # (10/14の途中で3プラン・各4,000円に切り替え、ここから集計し直し)
 M = ["逃げ", "まくり", "差し", "まくり差し"]
@@ -472,6 +476,43 @@ def _pickbin(pred, odds2_w, waku, date):
                 tickets=tickets)
 
 
+def _pick6a_target(pred):
+    """6コースだけA級で、1〜5コースは全員B級のレース"""
+    g = [b["grade"][:1] for b in pred["boats"]]
+    return g[5] == "A" and all(x == "B" for x in g[:5])
+
+
+def _pick6a(pred, odds2_w, waku):
+    """立説中: 6コースだけA級のレース。市場は6コースのA級を実際の約2倍の確率で見ていて
+    (直近の実オッズで1着16%・6年分の実際は8.3%)、そのぶんインのB級が割り引かれている
+    (6年分の実際47.5%・市場40%)。1コース頭・2着は6コース以外のモデル上位2艇"""
+    if not _pick6a_target(pred) or not odds2_w:
+        return dict(skip=True, bet="2t")
+    sec = {}
+    for p, (a, b, _) in zip(pred["tri"], PERMS):
+        if a == 0 and b != 5:
+            sec[b] = sec.get(b, 0) + p
+    picks = []
+    for rank, j in enumerate(sorted(sec, key=sec.get, reverse=True)[:2]):
+        o = odds2_w.get((waku[0] - 1, waku[j] - 1))
+        if o is not None:
+            picks.append((j, o, PICK6A_UNITS[rank], f"2着{rank + 1}位"))
+    if not picks:
+        return dict(skip=True, bet="2t")
+    if len(picks) == 1:
+        picks = [(picks[0][0], picks[0][1], sum(PICK6A_UNITS), picks[0][3])]
+    tickets = [dict(combo=f"{waku[0]}-{waku[j]}", units=u, odds=o, prob=round(sec[j], 4), role=role)
+               for j, o, u, role in picks]
+    hit = sum(sec[j] for j, *_ in picks)
+    ev = sum(sec[j] * o * u for j, o, u, _ in picks) / sum(u for *_, u, _ in picks)
+    b6 = pred["boats"][5]
+    return dict(skip=False, bet="2t", head=waku[0], himo=None, ev=round(ev, 3), hit=round(hit, 4),
+                stake=sum(t["units"] for t in tickets) * 100,
+                scenario=f"A級は6コースの{waku[5]}号艇({b6['grade']})だけ。市場が買いかぶりがちな6コースのA級を"
+                         f"外して、{waku[0]}号艇(1コース・B級)の逃げから",
+                tickets=tickets)
+
+
 def make_bet(pred, odds_w, odds2_w=None, date=None):
     """予想(コース基準)と枠番オッズから、保存用の買い目(5通り)を作る"""
     waku = [b["waku"] for b in pred["boats"]]            # コース -> 枠番
@@ -479,7 +520,7 @@ def make_bet(pred, odds_w, odds2_w=None, date=None):
     p, plans = plan(pred["tri"], odds_c)
     out = {}
     for name in PLANS:
-        if name in ("pick2", "pickin", "pick2tan", "pickbin"):
+        if name in ("pick2", "pickin", "pick2tan", "pickbin", "pick6a"):
             continue
         r = plans.get(name)
         if r is None:
@@ -498,7 +539,8 @@ def make_bet(pred, odds_w, odds2_w=None, date=None):
     out["pickin"] = _pickin(pred, p, odds2_w, waku)
     out["pick2tan"] = _pick2tan(pred, p, odds2_w, waku)
     out["pickbin"] = _pickbin(pred, odds2_w, waku, date)
-    for name in OPS_PLANS:   # 運用プランには今のロジックの印を付ける(集計はこの印があるものだけ)
+    out["pick6a"] = _pick6a(pred, odds2_w, waku)
+    for name in OPS_PLANS + SHADOW_PLANS:   # 運用プランには今のロジックの印を付ける(集計はこの印があるものだけ)
         out[name]["logic"] = OPS_LOGIC
     # 締切前オッズそのもの(公式表の並び)も残す。締切時オッズとの差の分析用
     raw = [odds_w.get(c) for c in ODDS_ORDER]
@@ -553,7 +595,7 @@ def run(now=None):
         waku = [b["waku"] for b in pred["boats"]]
         p = blend(pred["tri"], [odds.get((waku[i] - 1, waku[j] - 1, waku[k] - 1)) for i, j, k in PERMS])
         need_odds2 = (sc["nige"] >= PICKIN_NIGE_MIN or bool(_pick2tan_picks(pred, p))
-                      or _pickbin_target(pred, date))
+                      or _pickbin_target(pred, date) or _pick6a_target(pred))
         if need_odds2:   # pickin・pick2tan・pickbin対象の時だけ2連単オッズも取りに行く
             odds2 = fetch_odds2(date, pred["jcd"], pred["race"])
             time.sleep(1.0)

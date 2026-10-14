@@ -428,6 +428,7 @@ SKIP_TEXT = {"balance": "的中確率30%以上で期待回収率100%を超える
                        f"オッズ{bet_mod.PICKIN_MIN_ODDS}倍未満なら見送り",
              "pick2tan": f"1コース以外の本命・次点の2連単の確率1位が{bet_mod.PICK2TAN_PROB_MIN:.0%}以上の時だけ"
                          "買います",
+             "pick6a": "A級が6コースだけで、1〜5コースが全員B級のレースのみ対象",
              "pickbin": f"1コースが本物のB級(勝率{bet_mod.PICKBIN_FAKE_WIN}未満・直近でA級なし)で、"
                         f"1コース1着確率{bet_mod.PICKBIN_HP_MIN:.0%}以上のレースのみ対象"}
 
@@ -515,7 +516,7 @@ def bets_upcoming(now=None):
             continue   # 結果が出たものは実績の方に出る
         jcd, race = key.split("-")
         for n, pl in plans_of(b).items():
-            if n not in bet_mod.OPS_PLANS or pl.get("logic") != bet_mod.OPS_LOGIC or pl.get("skip"):
+            if n not in bet_mod.OPS_PLANS + bet_mod.SHADOW_PLANS or pl.get("logic") != bet_mod.OPS_LOGIC or pl.get("skip"):
                 continue
             out.append(dict(p=n, v=jcd, r=int(race), t=(preds.get(key) or {}).get("deadline", ""), at=b.get("odds_at", ""),
                             tk=[[t["combo"], t["units"], t.get("role"), t.get("odds")] for t in pl["tickets"]]))
@@ -551,7 +552,7 @@ def bets_records():
             plans = {**plans, **{n: pl for n, pl in fill.items() if plans.get(n, {}).get("logic") != bet_mod.OPS_LOGIC}}
             st = {}
             for n, pl in plans.items():
-                if n in bet_mod.OPS_PLANS and pl.get("logic") != bet_mod.OPS_LOGIC:
+                if n in bet_mod.OPS_PLANS + bet_mod.SHADOW_PLANS and pl.get("logic") != bet_mod.OPS_LOGIC:
                     continue   # 運用プランは今の版のロジックで作った買い目だけ集計する
                 st[n] = 0 if pl.get("skip") else list(settle(pl, result))
             pred = preds.get(key)
@@ -566,6 +567,9 @@ def bets_records():
             pbi = plans.get("pickbin")
             if pbi and not pbi.get("skip") and "pickbin" in st:
                 rec["pickbin_tk"] = [[t["combo"], t["units"], t.get("role")] for t in pbi["tickets"]]
+            p6a = plans.get("pick6a")
+            if p6a and not p6a.get("skip") and "pick6a" in st:
+                rec["pick6a_tk"] = [[t["combo"], t["units"], t.get("role")] for t in p6a["tickets"]]
             p2t = plans.get("pick2tan")
             if p2t and not p2t.get("skip") and "pick2tan" in st:
                 rec["pick2tan_tk"] = [[t["combo"], t["units"], t.get("role")] for t in p2t["tickets"]]
@@ -840,6 +844,7 @@ def pick_page(hi_list, lo_list):
 
 
 DASH_PLANS = {"pick2tan": "外・2連単", "pickin": "内・2連単・逆張り", "pickbin": "B級イン・2連単"}
+SHADOW_LABELS = {"pick6a": "6コースだけA級・2連単"}   # 立説中(総合収支に含めない)
 # 3連単(pick2)は実オッズで良い結果が出てないためダッシュボードには出さない。
 # bet.py側の集計(bets-data.json)は変わらず続けているので、見たくなれば/ops/pick2.htmlで確認できる。
 
@@ -856,7 +861,7 @@ function renderUpcoming(el, U, PL, VN, only){
 """
 
 DASH_JS = r"""
-const SINCE=__SINCE__, PLANS=__PLANS__;
+const SINCE=__SINCE__, PLANS=__PLANS__, SHADOW=__SHADOW__;
 let D=[];
 const $=id=>document.getElementById(id), yen=n=>n.toLocaleString();
 
@@ -918,16 +923,25 @@ function render(){
       `</a>`;
   }
   $('cards').innerHTML = cards;
+  $('shadow').innerHTML = Object.keys(SHADOW).map(pk=>{
+    const {pts, totSt:st, totRet:ret}=cumSeries([pk]);
+    const pl=pts.length?pts[pts.length-1].pl:0, roi=st?ret/st*100:0, col=pl>=0?'var(--green)':'var(--red)';
+    return `<a class="plan-card" href="/ops/${pk}.html">`+
+      `<div class="pc-head"><b>${SHADOW[pk]}</b><span class="pc-roi" style="color:${col}">${pts.length?roi.toFixed(0)+'%':'-'}</span></div>`+
+      `<div class="pc-chart">${pts.length?sparkline(pts,260,56,col):'<p class="sub" style="margin:18px 0 0">まだ実績がありません</p>'}</div>`+
+      `<div class="pc-foot sub"><span>${pts.length?(pl>=0?'+':'')+yen(pl)+'円':''}</span><span>${pts.length}日分</span></div></a>`;
+  }).join('');
 }
 fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;render()});
-fetch('/bets-upcoming.json').then(r=>r.json()).then(u=>renderUpcoming($('up'),u,PLANS,__VENUES__,null)).catch(()=>{});
+fetch('/bets-upcoming.json').then(r=>r.json()).then(u=>renderUpcoming($('up'),u,{...PLANS,...SHADOW},__VENUES__,null)).catch(()=>{});
 """
 
 PLAN_SINCE = {"pick2": bet_mod.PICK2_LOGIC_SINCE, "pick2tan": bet_mod.PICK2TAN_LOGIC_SINCE,
-              "pickin": bet_mod.PICKIN_LOGIC_SINCE, "pickbin": bet_mod.PICKBIN_LOGIC_SINCE}
+              "pickin": bet_mod.PICKIN_LOGIC_SINCE, "pickbin": bet_mod.PICKBIN_LOGIC_SINCE,
+              "pick6a": bet_mod.PICK6A_LOGIC_SINCE}
 DASH_SINCE = {"pick2tan": bet_mod.PICK2TAN_LOGIC_SINCE, "pickin": bet_mod.PICKIN_LOGIC_SINCE,
-              "pickbin": bet_mod.PICKBIN_LOGIC_SINCE}
-ALL_PLAN_LABELS = {"pick2": "外・3連単", **DASH_PLANS}   # 詳細ページ用。pick2はダッシュボード非表示だがページ自体は残す
+              "pickbin": bet_mod.PICKBIN_LOGIC_SINCE, "pick6a": bet_mod.PICK6A_LOGIC_SINCE}
+ALL_PLAN_LABELS = {"pick2": "外・3連単", **DASH_PLANS, **SHADOW_LABELS}   # 詳細ページ用。pick2はダッシュボード非表示だがページ自体は残す
 
 
 def ops_page():
@@ -936,6 +950,7 @@ def ops_page():
     (集計自体はbet.py側で継続)"""
     js = (DASH_JS.replace("__SINCE__", json.dumps(DASH_SINCE, ensure_ascii=False))
                  .replace("__PLANS__", json.dumps(DASH_PLANS, ensure_ascii=False))
+                 .replace("__SHADOW__", json.dumps(SHADOW_LABELS, ensure_ascii=False))
                  .replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False)))
     js = UPCOMING_JS + js
     since_label = jp(bet_mod.PICKIN_LOGIC_SINCE)
@@ -949,6 +964,8 @@ def ops_page():
             + '<div id="up"></div>'
             + '<div id="total" class="card total-card"><p class="sub">読み込み中…</p></div>'
             + '<div id="cards" class="plan-grid"></div>'
+            + '<h2>立説中</h2><p class="sub">説を確かめるために記録している運用です。総合収支には含めていません。</p>'
+            + '<div id="shadow" class="plan-grid"></div>'
             + f'<script>{js}</script>')
     return page("運用", body, "", "/ops.html", noindex=True)
 
@@ -1083,6 +1100,21 @@ def _pick2tan_logic_card():
         '<div class="card"><p class="sub" style="margin:0">2026年10月2日〜13日・締切前の実オッズがある1,307レースの'
         '外の頭2,614点で検証。確率20%以上の79点で的中24・回収率108%。サンプルが小さく偶然と区別できないため、'
         '本番で確かめる試験プランです(目安であり保証ではありません)。</p></div>')
+
+
+def _pick6a_logic_card():
+    b = bet_mod
+    steps = [
+        ("対象レース", "A級が6コースだけで、1〜5コースが全員B級のレース(1日1〜2レース程度)"),
+        ("買い方", f'1コース頭の2連単で、2着は6コース以外のモデル上位2艇。2着1位に{b.PICK6A_UNITS[0] * 100:,}円・'
+                 f'2位に{b.PICK6A_UNITS[1] * 100:,}円(合計{sum(b.PICK6A_UNITS) * 100:,}円)'),
+        ("説", "市場は6コースのA級を買いかぶっていて、直近の実オッズでは1着16%と見ているが、6年分の実際は8.3%。"
+              "そのぶんインのB級が割り引かれている(6年分の実際47.5%・市場40%)"),
+    ]
+    rows = "".join(f'<div class="boat"><div><b>{title}</b><br><span class="sub">{body}</span></div></div>' for title, body in steps)
+    return (f'<div class="card"><b>6コースだけA級・2連単(pick6a)のロジック</b>{rows}</div>'
+            '<div class="card"><p class="sub" style="margin:0">立説中の運用です。6年分の着順(約3,100レース)では説どおりだが、'
+            '市場の見立ては直近17レース分しかなく未確認。総合収支には含めていません。</p></div>')
 
 
 def _pickbin_logic_card():
@@ -1382,7 +1414,7 @@ def main():
     (OUT / "ops.html").write_text(ops_page())
     (OUT / "ops").mkdir(exist_ok=True)
     for pk, logic_html in (("pick2", _pick2_logic_card()), ("pick2tan", _pick2tan_logic_card()), ("pickin", _escape_logic_card()),
-                            ("pickbin", _pickbin_logic_card())):
+                            ("pickbin", _pickbin_logic_card()), ("pick6a", _pick6a_logic_card())):
         (OUT / "ops" / f"{pk}.html").write_text(ops_detail_page(pk, logic_html))
     key = os.environ.get("SHARE_KEY")
     if key:   # 投稿用の隠しページ(今日と前日の仕掛け成功)。サイトマップには入れない
