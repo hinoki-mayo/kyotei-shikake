@@ -470,7 +470,7 @@ def bet_page(date, info, pred, races, result, bet):
         content = ('<div class="card lock"><b>買い目はまだ決まっていません</b><br>'
                    '<span class="sub">締切の約2〜9分前にオッズを見て、1レース1回だけ決めます</span></div>')
     else:
-        content = f'<p class="sub">{bet.get("odds_at", "")}時点のオッズで決めた買い目です（買い方ごとに1,000〜2,000円）</p>'
+        content = f'<p class="sub">{bet.get("odds_at", "")}時点のオッズで決めた買い目です（買い方ごとに1,000〜4,000円）</p>'
         if result and result.get("combo3t"):
             pay = "" if pd.isna(result.get("payout3t")) else f'（{int(result["payout3t"]):,}円）'
             e2 = (f'<br><span class="sub">2連単 {html.escape(result["combo2t"])}（{int(result["payout2t"]):,}円）</span>'
@@ -1020,7 +1020,7 @@ def _pick2tan_logic_card():
         ("① 頭候補", "2〜6コースのうち、モデルの1着確率が高い順に2艇(本命・次点)"),
         ("② 対象の目", f'本命・次点それぞれ、2連単の確率が一番高い目。その確率が{b.PICK2TAN_PROB_MIN:.0%}以上の時だけ'
                      '買う(外の艇がはっきり本命のレースだけ。1日7〜8点程度)'),
-        ("③ 買い方", f'対象の目1点ずつに{b.PICK2TAN_HEAD_BUDGET:,}円'),
+        ("③ 買い方", f'1レース{b.PICK2TAN_BUDGET:,}円。本命・次点の両方が対象なら半分ずつ'),
         ("なぜ絞るか", "市場は外の艇を買いかぶっていて、外の頭の2連単は全体で回収率69%。旧ロジック"
                      "(インが崩れそうなレース=1コース1着確率22%未満)は、市場も外を買い込むため64%と一番弱かった。"
                      "外の艇がはっきり本命の時(確率20%以上)だけは108%だった"),

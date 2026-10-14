@@ -42,7 +42,7 @@
                                   「2連単市場は3連単市場より値付けが甘い」構造がpick2側にもあったとみられる)
     pickbin   B級イン・2連単      1コースが「本物の」B級(勝率5.5未満、かつ直近3年にA級だった期がない=F明けなどで
                                   一時的にB級になった実力者を除く)で、モデルの1コース1着確率がPICKBIN_HP_MIN以上の
-                                  レースだけ。1コース頭で、2着はモデルの確率上位2艇の2点(1位800円・2位1,200円)。
+                                  レースだけ。1コース頭で、2着はモデルの確率上位2艇の2点(1位1,600円・2位2,400円)。
                                   外枠(4〜6コース)のA級は2着候補から外す(市場に買われすぎていて、2着に置いた
                                   目は回収率69%。外すと113%→117%)。
                                   (2026-10-02〜13・実オッズ1,659Rの検証: 本物B級インの1着率は実際38.4%に対し市場
@@ -96,14 +96,14 @@ PICKIN_GAP_MIN = 1.0     # 市場のオッズ比(2位/1位)がモデルの確率
 PICKIN_MIN_ODDS = 1.5    # 2連単オッズの下限
 PICKIN_BUDGET = 4000     # 確率2位の1点に全額集中
 PICKIN_LOGIC_SINCE = "20261015"   # 運用タブの集計開始日(3プランそろえて仕切り直し。逆張りロジックは10/14から)
-PICK2TAN_HEAD_BUDGET = 2000   # pick2と同じ対象レースの2連単版。本命・次点それぞれ確率1位の1点に全額
+PICK2TAN_BUDGET = 4000   # 1レースの予算。本命・次点の両方が対象なら半分ずつ
                               # (合計4,000円。実オッズ検証で両頭合計200%、一番大きい的中5件を除いても118%)
 PICK2TAN_PROB_MIN = 0.20     # 外の頭の2連単確率1位がこれ以上の時だけ買う
 PICK2TAN_LOGIC_SINCE = "20261015"   # 運用タブの集計をここから開始(3プランそろえて仕切り直し)
 PICKBIN_HP_MIN = 0.20      # 1コース(本物B級)の1着確率がこれ以上のレースだけ対象
 PICKBIN_FAKE_WIN = 5.5     # B級でも全国勝率がこれ以上なら「嘘B級」(F休み明けなどで一時的にB級の実力者)
 PICKBIN_FAKE_MONTHS = 36   # 直近この月数の番組表で1度でもA級だった選手も「嘘B級」
-PICKBIN_UNITS = (8, 12)    # 2着の確率1位・2位に何口ずつ(合計2,000円)。2位の方が配当が良く回収率も
+PICKBIN_UNITS = (16, 24)   # 2着の確率1位・2位に何口ずつ(合計4,000円)。2位の方が配当が良く回収率も
                            # 高かった(1位のみ105%・2位のみ118%)ので2位を厚めに。均等111%→この配分113%
 PICKBIN_LOGIC_SINCE = "20261015"   # 運用タブの集計開始日(3プランそろえて仕切り直し)
 M = ["逃げ", "まくり", "差し", "まくり差し"]
@@ -383,10 +383,11 @@ def _pick2tan(pred, p, odds2_w, waku):
         o = odds2_w.get((waku[w] - 1, waku[j] - 1))   # 2連単オッズは枠番で並んでいる
         if o is None:
             continue
-        units = max(1, round(PICK2TAN_HEAD_BUDGET / 100))
-        tickets.append(dict(combo=f"{waku[w]}-{waku[j]}", units=units, odds=o, prob=round(p2, 4), role=role))
+        tickets.append(dict(combo=f"{waku[w]}-{waku[j]}", units=0, odds=o, prob=round(p2, 4), role=role))
     if not tickets:
         return dict(skip=True, bet="2t")
+    for t in tickets:   # 1レースPICK2TAN_BUDGET円を対象の目で均等に
+        t["units"] = PICK2TAN_BUDGET // 100 // len(tickets)
     hit = float(sum(t["prob"] for t in tickets))
     stake = sum(t["units"] for t in tickets) * 100
     ev = float(sum(t["prob"] * t["units"] * t["odds"] for t in tickets) / sum(t["prob"] for t in tickets))
