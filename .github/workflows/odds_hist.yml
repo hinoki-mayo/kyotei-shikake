@@ -1,0 +1,45 @@
+name: 過去オッズ取得
+
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "開始日 (例 2026-06-01)"
+        required: true
+        default: "2026-06-01"
+      end:
+        description: "終了日 (例 2026-09-30)"
+        required: true
+        default: "2026-09-30"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: odds-hist
+  cancel-in-progress: false
+
+jobs:
+  odds-hist:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: python scripts/fetch_odds_hist.py --start ${{ inputs.start }} --end ${{ inputs.end }} --max-minutes 330
+      - name: 取得したオッズを保存
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add data/odds_hist
+          git diff --cached --quiet || git commit -m "過去オッズ ${{ inputs.start }}〜${{ inputs.end }}"
+          for i in 1 2 3; do
+            git pull --rebase && git push && break
+            sleep 5
+          done
