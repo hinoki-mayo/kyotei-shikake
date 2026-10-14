@@ -77,7 +77,7 @@ PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": 
          "out_hit": "イン以外・的中重視", "out_ana": "イン以外・穴", "e2_top1": "2連単・確率1位(進入変化×頭注目≠1)",
          "pick2": "厳選頭2頭(本命・次点)", "pickin": "イン逃げ2連単・逆張り(確率2位)",
          "pick2tan": "外・2連単(確率20%以上の本命頭)", "pickbin": "B級イン・2連単(2着2艇)",
-         "pick6a": "6コースだけA級・2連単(立説中)"}
+         "pick6a": "6コースだけA級・2連単(立説中)", "pick21": "2差し1残し・2連単2-1(立説中)"}
 PICK2_NIGE_MAX = 0.22   # pressedの中でもこれ未満だけ対象(実オッズ検証: 頻度と回収率のバランスで22%に)
 PICK2_MIN_ODDS = 2.25   # 5分前時点オッズなので、損益分岐の2倍より変動分の余裕を見て高め
 PICK2_MAX_ODDS = 50     # これを超える穴目は除外(過大評価しがちで実オッズ検証でも回収率を下げていた)
@@ -108,9 +108,12 @@ PICKBIN_UNITS = (16, 24)   # 2着の確率1位・2位に何口ずつ(合計4,000
                            # 高かった(1位のみ105%・2位のみ118%)ので2位を厚めに。均等111%→この配分113%
 PICKBIN_LOGIC_SINCE = "20261014"   # 運用タブの集計開始日(実際の区切りはOPS_LOGICの印)
 OPS_PLANS = ("pick2tan", "pickin", "pickbin")   # 運用ダッシュボードに出すプラン
-SHADOW_PLANS = ("pick6a",)   # 立説中: ダッシュボードには別枠で出し、総合収支には含めない
+SHADOW_PLANS = ("pick6a", "pick21")   # 立説中: ダッシュボードには別枠で出し、総合収支には含めない
 PICK6A_UNITS = (24, 36)      # 6コースだけA級: 2着の確率1位・2位に何口ずつ(合計6,000円)
 PICK6A_LOGIC_SINCE = "20261014"
+PICK21_ST_GAP = 0.02         # 2コースの予想STが1コースよりこれだけ速いレースが対象
+PICK21_UNITS = 40            # 2連単2-1の1点に4,000円
+PICK21_LOGIC_SINCE = "20261014"
 OPS_LOGIC = "2026-10-14b"   # 運用プランのロジックの版。変えたらここも変えると、それ以前の記録は集計から外れる
                             # (10/14の途中で3プラン・各4,000円に切り替え、ここから集計し直し)
 M = ["逃げ", "まくり", "差し", "まくり差し"]
@@ -513,6 +516,31 @@ def _pick6a(pred, odds2_w, waku):
                 tickets=tickets)
 
 
+def _pick21_target(pred):
+    """2コースの予想STが1コースよりPICK21_ST_GAP以上速いレース"""
+    st = pred.get("st")
+    return bool(st) and st[0] - st[1] >= PICK21_ST_GAP
+
+
+def _pick21(pred, odds2_w, waku):
+    """立説中: 2コースがスタートで1コースより速い時、2コースが差して1コースは2着に残る形(2-1)。
+    2連単の紐の分け方を市場と比べると、スタートで勝つ艇のすぐ内の艇は2着に残りやすい(実際÷市場1.30)。
+    2-1は記録済み194Rで的中28・回収率191%(一番大きい3件を除いても113%、前半116%・後半231%)。
+    対象の約半分は1コースがF持ちで、スタートを慎重に行って差されても2着には残る形"""
+    if not _pick21_target(pred) or not odds2_w:
+        return dict(skip=True, bet="2t")
+    o = odds2_w.get((waku[1] - 1, waku[0] - 1))
+    if o is None:
+        return dict(skip=True, bet="2t")
+    p = sum(pp for pp, (a, b, _) in zip(pred["tri"], PERMS) if a == 1 and b == 0)
+    st = pred["st"]
+    return dict(skip=False, bet="2t", head=waku[1], himo=None, ev=round(p * o, 3), hit=round(p, 4),
+                stake=PICK21_UNITS * 100,
+                scenario=f"{waku[1]}号艇(2コース)の予想STが{waku[0]}号艇(1コース)より{st[0] - st[1]:.2f}秒速い。"
+                         f"2コースが差して、1コースは2着に残る形",
+                tickets=[dict(combo=f"{waku[1]}-{waku[0]}", units=PICK21_UNITS, odds=o, prob=round(p, 4))])
+
+
 def make_bet(pred, odds_w, odds2_w=None, date=None):
     """予想(コース基準)と枠番オッズから、保存用の買い目(5通り)を作る"""
     waku = [b["waku"] for b in pred["boats"]]            # コース -> 枠番
@@ -520,7 +548,7 @@ def make_bet(pred, odds_w, odds2_w=None, date=None):
     p, plans = plan(pred["tri"], odds_c)
     out = {}
     for name in PLANS:
-        if name in ("pick2", "pickin", "pick2tan", "pickbin", "pick6a"):
+        if name in ("pick2", "pickin", "pick2tan", "pickbin", "pick6a", "pick21"):
             continue
         r = plans.get(name)
         if r is None:
@@ -540,6 +568,7 @@ def make_bet(pred, odds_w, odds2_w=None, date=None):
     out["pick2tan"] = _pick2tan(pred, p, odds2_w, waku)
     out["pickbin"] = _pickbin(pred, odds2_w, waku, date)
     out["pick6a"] = _pick6a(pred, odds2_w, waku)
+    out["pick21"] = _pick21(pred, odds2_w, waku)
     for name in OPS_PLANS + SHADOW_PLANS:   # 運用プランには今のロジックの印を付ける(集計はこの印があるものだけ)
         out[name]["logic"] = OPS_LOGIC
     # 締切前オッズそのもの(公式表の並び)も残す。締切時オッズとの差の分析用
@@ -595,7 +624,8 @@ def run(now=None):
         waku = [b["waku"] for b in pred["boats"]]
         p = blend(pred["tri"], [odds.get((waku[i] - 1, waku[j] - 1, waku[k] - 1)) for i, j, k in PERMS])
         need_odds2 = (sc["nige"] >= PICKIN_NIGE_MIN or bool(_pick2tan_picks(pred, p))
-                      or _pickbin_target(pred, date) or _pick6a_target(pred))
+                      or _pickbin_target(pred, date) or _pick6a_target(pred)
+                      or _pick21_target(pred))
         if need_odds2:   # pickin・pick2tan・pickbin対象の時だけ2連単オッズも取りに行く
             odds2 = fetch_odds2(date, pred["jcd"], pred["race"])
             time.sleep(1.0)
