@@ -499,6 +499,29 @@ def _flow(pred, result):
     return 100 * len(pts), (int(result["payout3t"]) if result["combo3t"] in pts else 0)
 
 
+def bets_upcoming(now=None):
+    """運用プランの「これから」: 今日、締切前に買い目を決めたがまだ結果が出ていないレース(締切順)"""
+    now = now or now_jst()
+    date = f"{now:%Y%m%d}"
+    bp = DATA / "bets" / f"{date}.json"
+    if not bp.exists():
+        return []
+    live = live_result.load(date)
+    pp = DATA / "predictions" / f"{date}.json"
+    preds = json.loads(pp.read_text())["races"] if pp.exists() else {}
+    out = []
+    for key, b in json.loads(bp.read_text()).items():
+        if (live.get(key) or {}).get("combo2t"):
+            continue   # 結果が出たものは実績の方に出る
+        jcd, race = key.split("-")
+        for n, pl in plans_of(b).items():
+            if n not in bet_mod.OPS_PLANS or pl.get("logic") != bet_mod.OPS_LOGIC or pl.get("skip"):
+                continue
+            out.append(dict(p=n, v=jcd, r=int(race), t=(preds.get(key) or {}).get("deadline", ""), at=b.get("odds_at", ""),
+                            tk=[[t["combo"], t["units"], t.get("role"), t.get("odds")] for t in pl["tickets"]]))
+    return sorted(out, key=lambda x: (x["t"], x["v"]))
+
+
 def bets_records():
     """集計画面用に、結果が出たレースごとの記録を作る(買い方ごとの投資・払戻と、絞り込み用の条件)"""
     files = sorted((DATA / "bets").glob("*.json"))
@@ -820,6 +843,18 @@ DASH_PLANS = {"pick2tan": "外・2連単", "pickin": "内・2連単・逆張り"
 # 3連単(pick2)は実オッズで良い結果が出てないためダッシュボードには出さない。
 # bet.py側の集計(bets-data.json)は変わらず続けているので、見たくなれば/ops/pick2.htmlで確認できる。
 
+UPCOMING_JS = r"""
+function renderUpcoming(el, U, PL, VN, only){
+  const rows=U.filter(x=>!only||x.p===only);
+  if(!rows.length){ el.innerHTML='<div class="card"><b>これから</b><p class="sub" style="margin:4px 0 0">締切前に決めた買い目はまだありません(締切の2〜9分前に決まります)。</p></div>'; return; }
+  el.innerHTML='<div class="card"><b>これから</b> <span class="sub">締切前に決めた買い目・結果待ち</span>'+rows.map(x=>
+    `<div class="boat" style="flex-direction:column;align-items:flex-start;gap:2px"><div><b>${x.t} ${VN[x.v]} ${x.r}R</b>`+
+    (only?'':` <span class="sub">${PL[x.p]||x.p}</span>`)+`</div><div>`+
+    x.tk.map(([c,u,role,o])=>`<span class="tri-chip" style="font-size:15px">${c}</span> <span class="sub">${role?role+' ':''}${(u*100).toLocaleString()}円${o?'・'+o+'倍':''}</span>`).join('　')+
+    `</div></div>`).join('')+'<p class="sub" style="margin:6px 0 0">オッズは買い目を決めた時点のもの。締切までに動きます。</p></div>';
+}
+"""
+
 DASH_JS = r"""
 const SINCE=__SINCE__, PLANS=__PLANS__;
 let D=[];
@@ -885,6 +920,7 @@ function render(){
   $('cards').innerHTML = cards;
 }
 fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;render()});
+fetch('/bets-upcoming.json').then(r=>r.json()).then(u=>renderUpcoming($('up'),u,PLANS,__VENUES__,null)).catch(()=>{});
 """
 
 PLAN_SINCE = {"pick2": bet_mod.PICK2_LOGIC_SINCE, "pick2tan": bet_mod.PICK2TAN_LOGIC_SINCE,
@@ -899,7 +935,9 @@ def ops_page():
     データはbets-data.jsonを流用。3連単(pick2)は実オッズ検証で良い結果が出てないため非表示
     (集計自体はbet.py側で継続)"""
     js = (DASH_JS.replace("__SINCE__", json.dumps(DASH_SINCE, ensure_ascii=False))
-                 .replace("__PLANS__", json.dumps(DASH_PLANS, ensure_ascii=False)))
+                 .replace("__PLANS__", json.dumps(DASH_PLANS, ensure_ascii=False))
+                 .replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False)))
+    js = UPCOMING_JS + js
     since_label = jp(bet_mod.PICKIN_LOGIC_SINCE)
     body = ('<h1>運用</h1>' + own_tabs("ops")
             + '<p class="sub">試験買い目のうち、実オッズで検証した専用プランの収支をまとめて見る画面です。'
@@ -908,6 +946,7 @@ def ops_page():
               f'3プラン(外・2連単の絞り込み、イン逃げの逆張り、B級イン・2連単)に切り替えた{since_label}から'
               '集計し直しています。切り替えはその日の途中だったため、切り替え前のレースは締切前に記録したオッズで'
               '今のロジックの買い目を後から作り直して含めています(1日単位で比べるため)。</p>'
+            + '<div id="up"></div>'
             + '<div id="total" class="card total-card"><p class="sub">読み込み中…</p></div>'
             + '<div id="cards" class="plan-grid"></div>'
             + f'<script>{js}</script>')
@@ -979,6 +1018,7 @@ function render(){
   $('out4').innerHTML = s;
 }
 fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;render()});
+fetch('/bets-upcoming.json').then(r=>r.json()).then(u=>renderUpcoming($('up'),u,{},VN,PLAN)).catch(()=>{});
 document.addEventListener('change',e=>{if(e.target.id==='per4')render()});
 """
 
@@ -989,8 +1029,9 @@ def ops_detail_page(plan_key, logic_card_html):
     js = (DETAIL_JS.replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False))
                    .replace("__SINCE__", json.dumps(PLAN_SINCE[plan_key]))
                    .replace("__PLAN__", json.dumps(plan_key)))
+    js = UPCOMING_JS + js
     label = ALL_PLAN_LABELS[plan_key]
-    body = (f'<h1>{label}</h1><a class="back-lk" href="/ops.html">← 運用ダッシュボードに戻る</a>'
+    body = (f'<h1>{label}</h1><a class="back-lk" href="/ops.html">← 運用ダッシュボードに戻る</a><div id="up"></div>'
             + '<div class="card" style="display:grid;grid-template-columns:1fr;gap:8px">'
             + f'<label class="sub">期間<select id="per4" {sel}>{opt([("d30", "直近30日"), ("d90", "直近90日"), ("all", "全期間")])}</select></label>'
             + '</div><p class="sub" id="n4"></p><div id="out4"><p class="sub">読み込み中…</p></div>'
@@ -1334,6 +1375,7 @@ def main():
         (OUT / "index.html").write_text(page("準備中", "<h1>準備中です</h1>", "", "/"))
     (OUT / "bets.html").write_text(bets_summary_page())   # 自分用なのでサイトマップには入れない
     (OUT / "bets-data.json").write_text(json.dumps(bets_records(), ensure_ascii=False, separators=(",", ":")))
+    (OUT / "bets-upcoming.json").write_text(json.dumps(bets_upcoming(), ensure_ascii=False, separators=(",", ":")))
     (OUT / "nige.html").write_text(nige_page())
     (OUT / "nige-data.json").write_text(json.dumps(nige_records(), ensure_ascii=False, separators=(",", ":")))
     (OUT / "pick.html").write_text(pick_page(pick_hi, pick_lo))
