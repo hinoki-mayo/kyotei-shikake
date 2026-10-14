@@ -513,12 +513,16 @@ def bets_records():
         live = live_result.load(date)   # 成績ファイルがまだの日は、レース結果ページから取り込んだ結果で補う
         pp = DATA / "predictions" / f"{date}.json"
         preds = json.loads(pp.read_text())["races"] if pp.exists() else {}
+        bf = DATA / "bets_backfill" / f"{date}.json"
+        backfill = json.loads(bf.read_text()) if bf.exists() else {}
         for key, b in json.loads(f.read_text()).items():
             jcd, race = key.split("-")
             result = {**live.get(key, {}), **(keyed.get((date, jcd, int(race))) or {})}   # 2連単は結果ページの記録から
             if not result.get("combo3t") or pd.isna(result.get("payout3t")):
                 continue
             plans = plans_of(b)
+            fill = backfill.get(key, {})   # 切り替え前の買い目を今のロジックで作り直したもの(backfill_ops.py)
+            plans = {**plans, **{n: pl for n, pl in fill.items() if plans.get(n, {}).get("logic") != bet_mod.OPS_LOGIC}}
             st = {}
             for n, pl in plans.items():
                 if n in bet_mod.OPS_PLANS and pl.get("logic") != bet_mod.OPS_LOGIC:
@@ -897,8 +901,9 @@ def ops_page():
             + '<p class="sub">試験買い目のうち、実オッズで検証した専用プランの収支をまとめて見る画面です。'
               'カードをタップすると各プランの詳細(日別実績・買い目・ロジック)に移動します。'
               '現在稼働中は2連単の3プランのみ(3連単は実オッズ検証の成績が良くないため非表示)。'
-              f'3プラン(外・2連単の絞り込み、イン逃げの逆張り、B級イン・2連単)に切り替えた{since_label}の途中から'
-              '集計し直していて、それ以前の実績は表示していません。</p>'
+              f'3プラン(外・2連単の絞り込み、イン逃げの逆張り、B級イン・2連単)に切り替えた{since_label}から'
+              '集計し直しています。切り替えはその日の途中だったため、切り替え前のレースは締切前に記録したオッズで'
+              '今のロジックの買い目を後から作り直して含めています(1日単位で比べるため)。</p>'
             + '<div id="total" class="card total-card"><p class="sub">読み込み中…</p></div>'
             + '<div id="cards" class="plan-grid"></div>'
             + f'<script>{js}</script>')
