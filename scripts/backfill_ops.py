@@ -46,10 +46,10 @@ def run(date, fetch=False):
             if not odds_w:
                 continue
             made = bet.make_bet(pred, odds_w, odds2 or est_odds2(odds_w), date)["plans"]
-            out[key] = {n: dict(made[n], backfill=True, odds_final=True) for n in bet.OPS_PLANS}
+            out[key] = {n: dict(made[n], backfill=True, odds_final=True) for n in bet.OPS_PLANS + bet.SHADOW_PLANS}
     for key, rec in bets.items():
         plans = rec.get("plans", {})
-        if all(plans.get(n, {}).get("logic") == bet.OPS_LOGIC for n in bet.OPS_PLANS):
+        if all(plans.get(n, {}).get("logic") == bet.OPS_LOGIC for n in bet.OPS_PLANS + bet.SHADOW_PLANS):
             continue   # 今のロジックで作った記録がある
         pred = preds.get(key)
         if not pred or not pred.get("tri") or not rec.get("odds"):
@@ -62,11 +62,11 @@ def run(date, fetch=False):
             if odds2:
                 mark = {"odds2_final": True}
         made = bet.make_bet(pred, odds_w, odds2 or est_odds2(odds_w), date)["plans"]
-        out[key] = {n: dict(made[n], backfill=True, **mark) for n in bet.OPS_PLANS}
+        out[key] = {n: dict(made[n], backfill=True, **mark) for n in bet.OPS_PLANS + bet.SHADOW_PLANS}
     p = DATA / "bets_backfill" / f"{date}.json"
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(out, ensure_ascii=False, indent=0))
-    bought = {n: sum(not v[n].get("skip") for v in out.values()) for n in bet.OPS_PLANS}
+    bought = {n: sum(not v[n].get("skip") for v in out.values()) for n in bet.OPS_PLANS + bet.SHADOW_PLANS}
     real = sum(v[bet.OPS_PLANS[0]].get("odds2_final", False) for v in out.values())
     print(f"{date}: {len(out)}レースを今のロジックで作り直し(確定2連単オッズ {real}レース) 購入 {bought}")
 
