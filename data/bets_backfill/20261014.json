@@ -1,45 +1,174 @@
 {
-"14-01": {
+"14-06": {
 "pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds_final": true
+},
+"pick21": {
+"skip": false,
+"bet": "2t",
+"head": 2,
+"himo": null,
+"ev": 0.284,
+"hit": 0.0836,
+"stake": 4000,
+"scenario": "2号艇(2コース)の予想STが1号艇(1コース)より0.08秒速い。2コースが差して、1コースは2着に残る形",
+"tickets": [
+{
+"combo": "2-1",
+"units": 40,
+"odds": 3.4,
+"prob": 0.0836
+}
+],
+"logic": "2026-10-14c",
+"backfill": true,
+"odds_final": true
+},
+"pick21t": {
+"skip": false,
+"head": 2,
+"himo": null,
+"hit": 0.0802,
+"ev": 0.367,
+"stake": 4000,
+"scenario": "2-1の3連単版。3着は4・5・3号艇",
+"tickets": [
+{
+"combo": "2-1-4",
+"units": 14,
+"odds": 7.7,
+"prob": 0.0493,
+"role": "3着1位"
+},
+{
+"combo": "2-1-5",
+"units": 13,
+"odds": 18.1,
+"prob": 0.0212,
+"role": "3着2位"
+},
+{
+"combo": "2-1-3",
+"units": 13,
+"odds": 34.6,
+"prob": 0.0097,
+"role": "3着3位"
+}
+],
+"logic": "2026-10-14c",
+"backfill": true,
+"odds_final": true
+}
+},
+"24-04": {
+"pick2tan": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds_final": true
+},
+"pickin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds_final": true
+},
+"pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds_final": true
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds_final": true
+}
+},
+"14-01": {
+"pick2tan": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21t": {
+"skip": true,
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
 }
 },
 "18-01": {
@@ -48,41 +177,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "21-01": {
@@ -91,41 +220,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "14-02": {
@@ -134,41 +263,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "18-02": {
@@ -177,41 +306,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "21-02": {
@@ -220,7 +349,7 @@
 "bet": "2t",
 "head": null,
 "himo": null,
-"ev": 108.0,
+"ev": 136.0,
 "hit": 0.281,
 "stake": 4000,
 "scenario": "1コース以外の艇がはっきり本命のレース。2連単の確率が20%以上の目だけ(本命は4-1)",
@@ -228,42 +357,42 @@
 {
 "combo": "4-1",
 "units": 40,
-"odds": 2.7,
+"odds": 3.4,
 "prob": 0.2813,
 "role": "本命"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": false,
 "bet": "2t",
 "head": 2,
 "himo": null,
-"ev": 1.197,
+"ev": 1.645,
 "hit": 0.0257,
 "stake": 4000,
 "scenario": "2号艇(2コース)の予想STが1号艇(1コース)より0.03秒速い。2コースが差して、1コースは2着に残る形",
@@ -271,13 +400,13 @@
 {
 "combo": "2-1",
 "units": 40,
-"odds": 46.5,
+"odds": 63.9,
 "prob": 0.0257
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": false,
@@ -312,7 +441,7 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "14-03": {
@@ -321,41 +450,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "18-03": {
@@ -364,41 +493,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "21-03": {
@@ -407,41 +536,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "14-04": {
@@ -450,41 +579,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "18-04": {
@@ -493,28 +622,28 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": false,
@@ -535,7 +664,7 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": false,
@@ -570,7 +699,7 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "21-04": {
@@ -579,41 +708,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "11-01": {
@@ -622,41 +751,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "14-05": {
@@ -665,41 +794,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "04-01": {
@@ -708,41 +837,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "18-05": {
@@ -751,41 +880,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "21-05": {
@@ -794,41 +923,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "13-01": {
@@ -837,7 +966,7 @@
 "bet": "2t",
 "head": null,
 "himo": null,
-"ev": 140.0,
+"ev": 144.0,
 "hit": 0.223,
 "stake": 4000,
 "scenario": "1コース以外の艇がはっきり本命のレース。2連単の確率が20%以上の目だけ(本命は3-1)",
@@ -845,48 +974,48 @@
 {
 "combo": "3-1",
 "units": 40,
-"odds": 3.5,
+"odds": 3.6,
 "prob": 0.2228,
 "role": "本命"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "11-02": {
@@ -895,41 +1024,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "04-02": {
@@ -938,41 +1067,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "18-06": {
@@ -981,41 +1110,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "22-01": {
@@ -1024,35 +1153,35 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": false,
 "bet": "2t",
 "head": 2,
 "himo": null,
-"ev": 0.676,
+"ev": 1.198,
 "hit": 0.0768,
 "stake": 4000,
 "scenario": "2号艇(2コース)の予想STが1号艇(1コース)より0.07秒速い。2コースが差して、1コースは2着に残る形",
@@ -1060,13 +1189,13 @@
 {
 "combo": "2-1",
 "units": 40,
-"odds": 8.8,
+"odds": 15.6,
 "prob": 0.0768
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": false,
@@ -1101,7 +1230,7 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "21-06": {
@@ -1110,41 +1239,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "13-02": {
@@ -1153,21 +1282,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 0.903,
+"ev": 0.631,
 "hit": 0.1868,
 "stake": 4000,
 "scenario": "1号艇(1コース・B1・勝率5.02)が逃げて3・2号艇が続く展開(1コースの1着確率28%。市場はB級のインを割り引きがち)",
@@ -1175,35 +1304,35 @@
 {
 "combo": "1-3",
 "units": 16,
-"odds": 9.6,
+"odds": 7.2,
 "prob": 0.1472,
 "role": "2着1位"
 },
 {
 "combo": "1-2",
 "units": 24,
-"odds": 14.2,
+"odds": 8.7,
 "prob": 0.0396,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": false,
 "bet": "2t",
 "head": 2,
 "himo": null,
-"ev": 0.395,
+"ev": 0.379,
 "hit": 0.0184,
 "stake": 4000,
 "scenario": "2号艇(2コース)の予想STが1号艇(1コース)より0.06秒速い。2コースが差して、1コースは2着に残る形",
@@ -1211,13 +1340,13 @@
 {
 "combo": "2-1",
 "units": 40,
-"odds": 21.5,
+"odds": 20.6,
 "prob": 0.0184
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": false,
@@ -1252,7 +1381,7 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "06-01": {
@@ -1261,41 +1390,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "11-03": {
@@ -1304,41 +1433,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "14-07": {
@@ -1347,41 +1476,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "04-03": {
@@ -1390,35 +1519,35 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": false,
 "bet": "2t",
 "head": 2,
 "himo": null,
-"ev": 0.807,
+"ev": 0.902,
 "hit": 0.0429,
 "stake": 4000,
 "scenario": "2号艇(2コース)の予想STが1号艇(1コース)より0.05秒速い。2コースが差して、1コースは2着に残る形",
@@ -1426,13 +1555,13 @@
 {
 "combo": "2-1",
 "units": 40,
-"odds": 18.8,
+"odds": 21.0,
 "prob": 0.0429
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": false,
@@ -1467,7 +1596,7 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "18-07": {
@@ -1476,41 +1605,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "13-03": {
@@ -1519,41 +1648,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "22-02": {
@@ -1562,41 +1691,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "21-07": {
@@ -1605,21 +1734,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 0.684,
+"ev": 0.646,
 "hit": 0.3456,
 "stake": 4000,
 "scenario": "1号艇(1コース・B1・勝率4.58)が逃げて2・3号艇が続く展開(1コースの1着確率53%。市場はB級のインを割り引きがち)",
@@ -1627,7 +1756,7 @@
 {
 "combo": "1-2",
 "units": 16,
-"odds": 3.8,
+"odds": 3.3,
 "prob": 0.1872,
 "role": "2着1位"
 },
@@ -1641,21 +1770,21 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": false,
 "bet": "2t",
 "head": 2,
 "himo": null,
-"ev": 0.647,
+"ev": 0.882,
 "hit": 0.049,
 "stake": 4000,
 "scenario": "2号艇(2コース)の予想STが1号艇(1コース)より0.04秒速い。2コースが差して、1コースは2着に残る形",
@@ -1663,13 +1792,13 @@
 {
 "combo": "2-1",
 "units": 40,
-"odds": 13.2,
+"odds": 18.0,
 "prob": 0.049
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": false,
@@ -1704,7 +1833,7 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "06-02": {
@@ -1713,41 +1842,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "11-04": {
@@ -1756,41 +1885,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "14-08": {
@@ -1799,21 +1928,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 1.166,
+"ev": 1.061,
 "hit": 0.3311,
 "stake": 4000,
 "scenario": "1号艇(1コース・B1・勝率4.52)が逃げて2・4号艇が続く展開(1コースの1着確率45%。市場はB級のインを割り引きがち)",
@@ -1821,41 +1950,41 @@
 {
 "combo": "1-2",
 "units": 16,
-"odds": 6.6,
+"odds": 4.2,
 "prob": 0.2679,
 "role": "2着1位"
 },
 {
 "combo": "1-4",
 "units": 24,
-"odds": 12.1,
+"odds": 16.1,
 "prob": 0.0632,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "04-04": {
@@ -1864,41 +1993,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "18-08": {
@@ -1907,21 +2036,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 0.852,
+"ev": 0.769,
 "hit": 0.4664,
 "stake": 4000,
 "scenario": "1号艇(1コース・B2・勝率5.07)が逃げて2・3号艇が続く展開(1コースの1着確率56%。市場はB級のインを割り引きがち)",
@@ -1929,41 +2058,41 @@
 {
 "combo": "1-2",
 "units": 16,
-"odds": 3.2,
+"odds": 2.8,
 "prob": 0.3593,
 "role": "2着1位"
 },
 {
 "combo": "1-3",
 "units": 24,
-"odds": 6.1,
+"odds": 5.7,
 "prob": 0.1071,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "22-03": {
@@ -1972,21 +2101,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 0.66,
+"ev": 0.639,
 "hit": 0.2643,
 "stake": 4000,
 "scenario": "1号艇(1コース・B1・勝率3.92)が逃げて3・4号艇が続く展開(1コースの1着確率43%。市場はB級のインを割り引きがち)",
@@ -1994,41 +2123,41 @@
 {
 "combo": "1-3",
 "units": 16,
-"odds": 4.1,
+"odds": 3.3,
 "prob": 0.1519,
 "role": "2着1位"
 },
 {
 "combo": "1-4",
 "units": 24,
-"odds": 6.1,
+"odds": 6.5,
 "prob": 0.1123,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "13-04": {
@@ -2037,21 +2166,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 0.752,
+"ev": 0.68,
 "hit": 0.1471,
 "stake": 4000,
 "scenario": "1号艇(1コース・B1・勝率4.02)が逃げて3・2号艇が続く展開(1コースの1着確率21%。市場はB級のインを割り引きがち)",
@@ -2059,41 +2188,41 @@
 {
 "combo": "1-3",
 "units": 16,
-"odds": 10.0,
+"odds": 7.3,
 "prob": 0.095,
 "role": "2着1位"
 },
 {
 "combo": "1-2",
 "units": 24,
-"odds": 11.9,
+"odds": 12.9,
 "prob": 0.052,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "11-05": {
@@ -2102,41 +2231,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "21-08": {
@@ -2145,7 +2274,7 @@
 "bet": "2t",
 "head": null,
 "himo": null,
-"ev": 156.0,
+"ev": 148.0,
 "hit": 0.21,
 "stake": 4000,
 "scenario": "1コース以外の艇がはっきり本命のレース。2連単の確率が20%以上の目だけ(本命は2-1)",
@@ -2153,48 +2282,48 @@
 {
 "combo": "2-1",
 "units": 40,
-"odds": 3.9,
+"odds": 3.7,
 "prob": 0.2099,
 "role": "本命"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "06-03": {
@@ -2203,35 +2332,35 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": false,
 "bet": "2t",
 "head": 2,
 "himo": null,
-"ev": 0.926,
+"ev": 0.769,
 "hit": 0.157,
 "stake": 4000,
 "scenario": "2号艇(2コース)の予想STが1号艇(1コース)より0.03秒速い。2コースが差して、1コースは2着に残る形",
@@ -2239,13 +2368,13 @@
 {
 "combo": "2-1",
 "units": 40,
-"odds": 5.9,
+"odds": 4.9,
 "prob": 0.157
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": false,
@@ -2280,7 +2409,7 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "14-09": {
@@ -2289,41 +2418,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "04-05": {
@@ -2332,41 +2461,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "13-05": {
@@ -2375,35 +2504,35 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": false,
 "bet": "2t",
 "head": 2,
 "himo": null,
-"ev": 0.453,
+"ev": 0.531,
 "hit": 0.0178,
 "stake": 4000,
 "scenario": "2号艇(2コース)の予想STが1号艇(1コース)より0.04秒速い。2コースが差して、1コースは2着に残る形",
@@ -2411,13 +2540,13 @@
 {
 "combo": "2-1",
 "units": 40,
-"odds": 25.5,
+"odds": 29.9,
 "prob": 0.0178
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": false,
@@ -2452,7 +2581,7 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "18-09": {
@@ -2461,41 +2590,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "22-04": {
@@ -2504,41 +2633,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "11-06": {
@@ -2547,41 +2676,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "21-09": {
@@ -2590,41 +2719,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "06-04": {
@@ -2633,41 +2762,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "04-06": {
@@ -2676,41 +2805,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "13-06": {
@@ -2719,41 +2848,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "22-05": {
@@ -2762,21 +2891,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 0.687,
+"ev": 1.024,
 "hit": 0.1057,
 "stake": 4000,
 "scenario": "1号艇(1コース・B1・勝率3.96)が逃げて3・2号艇が続く展開(1コースの1着確率27%。市場はB級のインを割り引きがち)",
@@ -2784,35 +2913,35 @@
 {
 "combo": "1-3",
 "units": 16,
-"odds": 12.6,
+"odds": 19.0,
 "prob": 0.0582,
 "role": "2着1位"
 },
 {
 "combo": "1-2",
 "units": 24,
-"odds": 13.8,
+"odds": 20.4,
 "prob": 0.0475,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": false,
 "bet": "2t",
 "head": 2,
 "himo": null,
-"ev": 0.544,
+"ev": 0.416,
 "hit": 0.0203,
 "stake": 4000,
 "scenario": "2号艇(2コース)の予想STが1号艇(1コース)より0.04秒速い。2コースが差して、1コースは2着に残る形",
@@ -2820,13 +2949,13 @@
 {
 "combo": "2-1",
 "units": 40,
-"odds": 26.8,
+"odds": 20.5,
 "prob": 0.0203
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": false,
@@ -2861,7 +2990,7 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "18-10": {
@@ -2870,35 +2999,35 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": false,
 "bet": "2t",
 "head": 2,
 "himo": null,
-"ev": 0.589,
+"ev": 0.643,
 "hit": 0.0893,
 "stake": 4000,
 "scenario": "2号艇(2コース)の予想STが1号艇(1コース)より0.05秒速い。2コースが差して、1コースは2着に残る形",
@@ -2906,13 +3035,13 @@
 {
 "combo": "2-1",
 "units": 40,
-"odds": 6.6,
+"odds": 7.2,
 "prob": 0.0893
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": false,
@@ -2947,7 +3076,7 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "11-07": {
@@ -2956,41 +3085,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "21-10": {
@@ -2999,41 +3128,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "06-05": {
@@ -3042,41 +3171,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "04-07": {
@@ -3085,41 +3214,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "22-06": {
@@ -3128,41 +3257,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "13-07": {
@@ -3171,41 +3300,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "14-11": {
@@ -3214,7 +3343,7 @@
 "bet": "2t",
 "head": null,
 "himo": null,
-"ev": 156.0,
+"ev": 144.0,
 "hit": 0.229,
 "stake": 4000,
 "scenario": "1コース以外の艇がはっきり本命のレース。2連単の確率が20%以上の目だけ(本命は3-4)",
@@ -3222,48 +3351,48 @@
 {
 "combo": "3-4",
 "units": 40,
-"odds": 3.9,
+"odds": 3.6,
 "prob": 0.2289,
 "role": "本命"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "11-08": {
@@ -3272,41 +3401,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "18-11": {
@@ -3315,41 +3444,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "06-06": {
@@ -3358,41 +3487,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "21-11": {
@@ -3401,41 +3530,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "22-07": {
@@ -3444,21 +3573,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 0.557,
+"ev": 0.374,
 "hit": 0.2346,
 "stake": 4000,
 "scenario": "1号艇(1コース・B1・勝率4.89)が逃げて2・3号艇が続く展開(1コースの1着確率32%。市場はB級のインを割り引きがち)",
@@ -3466,41 +3595,41 @@
 {
 "combo": "1-2",
 "units": 16,
-"odds": 3.2,
+"odds": 2.7,
 "prob": 0.1774,
 "role": "2着1位"
 },
 {
 "combo": "1-3",
 "units": 24,
-"odds": 9.6,
+"odds": 5.3,
 "prob": 0.0573,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "04-08": {
@@ -3509,41 +3638,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "13-08": {
@@ -3552,41 +3681,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "06-07": {
@@ -3595,21 +3724,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 0.766,
+"ev": 0.659,
 "hit": 0.1174,
 "stake": 4000,
 "scenario": "1号艇(1コース・B1・勝率4.55)が逃げて3・2号艇が続く展開(1コースの1着確率30%。市場はB級のインを割り引きがち)",
@@ -3617,41 +3746,41 @@
 {
 "combo": "1-3",
 "units": 16,
-"odds": 13.5,
+"odds": 9.8,
 "prob": 0.0851,
 "role": "2着1位"
 },
 {
 "combo": "1-2",
 "units": 24,
-"odds": 15.8,
+"odds": 16.8,
 "prob": 0.0323,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "14-12": {
@@ -3660,41 +3789,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "11-09": {
@@ -3703,21 +3832,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 1.115,
+"ev": 1.214,
 "hit": 0.2281,
 "stake": 4000,
 "scenario": "1号艇(1コース・B1・勝率4.65)が逃げて2・4号艇が続く展開(1コースの1着確率37%。市場はB級のインを割り引きがち)",
@@ -3725,41 +3854,41 @@
 {
 "combo": "1-2",
 "units": 16,
-"odds": 5.0,
+"odds": 3.6,
 "prob": 0.1447,
 "role": "2着1位"
 },
 {
 "combo": "1-4",
 "units": 24,
-"odds": 16.5,
+"odds": 20.1,
 "prob": 0.0833,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "18-12": {
@@ -3768,41 +3897,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "22-08": {
@@ -3811,21 +3940,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 0.915,
+"ev": 0.646,
 "hit": 0.3558,
 "stake": 4000,
 "scenario": "1号艇(1コース・B1・勝率4.39)が逃げて5・2号艇が続く展開(1コースの1着確率54%。市場はB級のインを割り引きがち)",
@@ -3833,41 +3962,41 @@
 {
 "combo": "1-5",
 "units": 16,
-"odds": 5.1,
+"odds": 3.9,
 "prob": 0.2299,
 "role": "2着1位"
 },
 {
 "combo": "1-2",
 "units": 24,
-"odds": 5.9,
+"odds": 3.8,
 "prob": 0.1259,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "04-09": {
@@ -3876,41 +4005,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "21-12": {
@@ -3919,41 +4048,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "13-09": {
@@ -3962,41 +4091,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "06-08": {
@@ -4005,41 +4134,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "11-10": {
@@ -4048,35 +4177,35 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": false,
 "bet": "2t",
 "head": 2,
 "himo": null,
-"ev": 0.823,
+"ev": 0.784,
 "hit": 0.0957,
 "stake": 4000,
 "scenario": "2号艇(2コース)の予想STが1号艇(1コース)より0.03秒速い。2コースが差して、1コースは2着に残る形",
@@ -4084,13 +4213,13 @@
 {
 "combo": "2-1",
 "units": 40,
-"odds": 8.6,
+"odds": 8.2,
 "prob": 0.0957
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": false,
@@ -4125,7 +4254,7 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "22-09": {
@@ -4134,41 +4263,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "13-10": {
@@ -4177,41 +4306,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "04-10": {
@@ -4220,41 +4349,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "06-09": {
@@ -4263,41 +4392,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "11-11": {
@@ -4306,41 +4435,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "12-01": {
@@ -4349,21 +4478,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 1.108,
+"ev": 1.114,
 "hit": 0.237,
 "stake": 4000,
 "scenario": "1号艇(1コース・B1・勝率3.71)が逃げて3・2号艇が続く展開(1コースの1着確率43%。市場はB級のインを割り引きがち)",
@@ -4371,7 +4500,7 @@
 {
 "combo": "1-3",
 "units": 16,
-"odds": 9.5,
+"odds": 9.6,
 "prob": 0.145,
 "role": "2着1位"
 },
@@ -4385,27 +4514,27 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "15-01": {
@@ -4414,21 +4543,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 0.76,
+"ev": 0.733,
 "hit": 0.3483,
 "stake": 4000,
 "scenario": "1号艇(1コース・B1・勝率4.32)が逃げて3・2号艇が続く展開(1コースの1着確率54%。市場はB級のインを割り引きがち)",
@@ -4436,41 +4565,41 @@
 {
 "combo": "1-3",
 "units": 16,
-"odds": 4.0,
+"odds": 2.3,
 "prob": 0.2291,
 "role": "2着1位"
 },
 {
 "combo": "1-2",
 "units": 24,
-"odds": 5.5,
+"odds": 7.3,
 "prob": 0.1192,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "20-01": {
@@ -4479,41 +4608,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "24-01": {
@@ -4522,21 +4651,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 0.74,
+"ev": 0.577,
 "hit": 0.2668,
 "stake": 4000,
 "scenario": "1号艇(1コース・B1・勝率4.33)が逃げて3・2号艇が続く展開(1コースの1着確率53%。市場はB級のインを割り引きがち)",
@@ -4544,41 +4673,41 @@
 {
 "combo": "1-3",
 "units": 16,
-"odds": 4.6,
+"odds": 2.1,
 "prob": 0.1687,
 "role": "2着1位"
 },
 {
 "combo": "1-2",
 "units": 24,
-"odds": 7.3,
+"odds": 7.4,
 "prob": 0.098,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "22-10": {
@@ -4587,41 +4716,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "13-11": {
@@ -4630,41 +4759,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "04-11": {
@@ -4673,41 +4802,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "06-10": {
@@ -4716,41 +4845,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "15-02": {
@@ -4759,28 +4888,28 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 0.8,
+"ev": 0.852,
 "hit": 0.2594,
 "stake": 6000,
 "scenario": "A級は6コースの6号艇(A2)だけ。市場が買いかぶりがちな6コースのA級を外して、1号艇(1コース・B級)の逃げから",
@@ -4788,28 +4917,28 @@
 {
 "combo": "1-2",
 "units": 24,
-"odds": 5.0,
+"odds": 3.3,
 "prob": 0.1414,
 "role": "2着1位"
 },
 {
 "combo": "1-3",
 "units": 36,
-"odds": 7.3,
+"odds": 9.4,
 "prob": 0.1181,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": false,
 "bet": "2t",
 "head": 2,
 "himo": null,
-"ev": 0.649,
+"ev": 0.606,
 "hit": 0.1082,
 "stake": 4000,
 "scenario": "2号艇(2コース)の予想STが1号艇(1コース)より0.04秒速い。2コースが差して、1コースは2着に残る形",
@@ -4817,13 +4946,13 @@
 {
 "combo": "2-1",
 "units": 40,
-"odds": 6.0,
+"odds": 5.6,
 "prob": 0.1082
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": false,
@@ -4858,7 +4987,7 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "11-12": {
@@ -4867,41 +4996,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "12-02": {
@@ -4910,41 +5039,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "20-02": {
@@ -4953,41 +5082,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "24-02": {
@@ -4996,41 +5125,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "22-11": {
@@ -5039,41 +5168,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "13-12": {
@@ -5082,41 +5211,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "06-11": {
@@ -5125,41 +5254,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "12-03": {
@@ -5168,41 +5297,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "15-03": {
@@ -5211,41 +5340,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "04-12": {
@@ -5254,41 +5383,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "24-03": {
@@ -5297,41 +5426,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "20-03": {
@@ -5340,7 +5469,7 @@
 "bet": "2t",
 "head": null,
 "himo": null,
-"ev": 132.0,
+"ev": 152.0,
 "hit": 0.249,
 "stake": 4000,
 "scenario": "1コース以外の艇がはっきり本命のレース。2連単の確率が20%以上の目だけ(本命は3-1)",
@@ -5348,48 +5477,48 @@
 {
 "combo": "3-1",
 "units": 40,
-"odds": 3.3,
+"odds": 3.8,
 "prob": 0.2492,
 "role": "本命"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "12-04": {
@@ -5398,41 +5527,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "22-12": {
@@ -5441,41 +5570,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "06-12": {
@@ -5484,41 +5613,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "15-04": {
@@ -5527,41 +5656,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "20-04": {
@@ -5570,41 +5699,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "12-05": {
@@ -5613,41 +5742,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "15-05": {
@@ -5656,21 +5785,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 0.608,
+"ev": 0.689,
 "hit": 0.187,
 "stake": 4000,
 "scenario": "1号艇(1コース・B1・勝率5.45)が逃げて2・4号艇が続く展開(1コースの1着確率30%。市場はB級のインを割り引きがち)",
@@ -5678,41 +5807,41 @@
 {
 "combo": "1-2",
 "units": 16,
-"odds": 5.5,
+"odds": 4.9,
 "prob": 0.1268,
 "role": "2着1位"
 },
 {
 "combo": "1-4",
 "units": 24,
-"odds": 9.1,
+"odds": 12.2,
 "prob": 0.0602,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "24-05": {
@@ -5721,41 +5850,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "20-05": {
@@ -5764,7 +5893,7 @@
 "bet": "2t",
 "head": null,
 "himo": null,
-"ev": 144.0,
+"ev": 212.0,
 "hit": 0.223,
 "stake": 4000,
 "scenario": "1コース以外の艇がはっきり本命のレース。2連単の確率が20%以上の目だけ(本命は2-4)",
@@ -5772,42 +5901,42 @@
 {
 "combo": "2-4",
 "units": 40,
-"odds": 3.6,
+"odds": 5.3,
 "prob": 0.2227,
 "role": "本命"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": false,
 "bet": "2t",
 "head": 2,
 "himo": null,
-"ev": 1.162,
+"ev": 0.852,
 "hit": 0.1937,
 "stake": 4000,
 "scenario": "2号艇(2コース)の予想STが1号艇(1コース)より0.03秒速い。2コースが差して、1コースは2着に残る形",
@@ -5815,13 +5944,13 @@
 {
 "combo": "2-1",
 "units": 40,
-"odds": 6.0,
+"odds": 4.4,
 "prob": 0.1937
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": false,
@@ -5856,7 +5985,7 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "12-06": {
@@ -5865,41 +5994,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "15-06": {
@@ -5908,41 +6037,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "24-06": {
@@ -5951,41 +6080,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "19-01": {
@@ -5994,41 +6123,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "20-06": {
@@ -6037,7 +6166,7 @@
 "bet": "2t",
 "head": null,
 "himo": null,
-"ev": 168.0,
+"ev": 136.0,
 "hit": 0.208,
 "stake": 4000,
 "scenario": "1コース以外の艇がはっきり本命のレース。2連単の確率が20%以上の目だけ(本命は3-1)",
@@ -6045,48 +6174,48 @@
 {
 "combo": "3-1",
 "units": 40,
-"odds": 4.2,
+"odds": 3.4,
 "prob": 0.2078,
 "role": "本命"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "12-07": {
@@ -6095,41 +6224,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "15-07": {
@@ -6138,41 +6267,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "24-07": {
@@ -6181,41 +6310,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "19-02": {
@@ -6224,28 +6353,28 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 0.869,
+"ev": 0.769,
 "hit": 0.2434,
 "stake": 6000,
 "scenario": "A級は6コースの6号艇(A2)だけ。市場が買いかぶりがちな6コースのA級を外して、1号艇(1コース・B級)の逃げから",
@@ -6253,34 +6382,34 @@
 {
 "combo": "1-2",
 "units": 24,
-"odds": 8.2,
+"odds": 6.2,
 "prob": 0.1404,
 "role": "2着1位"
 },
 {
 "combo": "1-3",
 "units": 36,
-"odds": 6.6,
+"odds": 6.8,
 "prob": 0.103,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "20-07": {
@@ -6289,41 +6418,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "12-08": {
@@ -6332,41 +6461,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "15-08": {
@@ -6375,41 +6504,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "19-03": {
@@ -6418,21 +6547,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 0.697,
+"ev": 0.482,
 "hit": 0.1808,
 "stake": 4000,
 "scenario": "1号艇(1コース・B1・勝率4.67)が逃げて2・3号艇が続く展開(1コースの1着確率36%。市場はB級のインを割り引きがち)",
@@ -6440,41 +6569,41 @@
 {
 "combo": "1-2",
 "units": 16,
-"odds": 6.9,
+"odds": 2.9,
 "prob": 0.1023,
 "role": "2着1位"
 },
 {
 "combo": "1-3",
 "units": 24,
-"odds": 8.8,
+"odds": 7.7,
 "prob": 0.0786,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "24-08": {
@@ -6483,41 +6612,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "20-08": {
@@ -6526,7 +6655,7 @@
 "bet": "2t",
 "head": null,
 "himo": null,
-"ev": 152.0,
+"ev": 168.0,
 "hit": 0.216,
 "stake": 4000,
 "scenario": "1コース以外の艇がはっきり本命のレース。2連単の確率が20%以上の目だけ(本命は2-1)",
@@ -6534,48 +6663,48 @@
 {
 "combo": "2-1",
 "units": 40,
-"odds": 3.8,
+"odds": 4.2,
 "prob": 0.2165,
 "role": "本命"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "12-09": {
@@ -6584,41 +6713,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "15-09": {
@@ -6627,41 +6756,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "19-04": {
@@ -6670,21 +6799,21 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": false,
 "bet": "2t",
 "head": 1,
 "himo": null,
-"ev": 0.79,
+"ev": 0.604,
 "hit": 0.2461,
 "stake": 4000,
 "scenario": "1号艇(1コース・B1・勝率4.72)が逃げて2・3号艇が続く展開(1コースの1着確率40%。市場はB級のインを割り引きがち)",
@@ -6692,41 +6821,41 @@
 {
 "combo": "1-2",
 "units": 16,
-"odds": 6.8,
+"odds": 5.1,
 "prob": 0.1252,
 "role": "2着1位"
 },
 {
 "combo": "1-3",
 "units": 24,
-"odds": 6.2,
+"odds": 4.8,
 "prob": 0.1209,
 "role": "2着2位"
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "24-09": {
@@ -6735,41 +6864,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "20-09": {
@@ -6778,41 +6907,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "12-10": {
@@ -6821,41 +6950,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "19-05": {
@@ -6864,41 +6993,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "15-10": {
@@ -6907,41 +7036,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "24-10": {
@@ -6950,35 +7079,35 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": false,
 "bet": "2t",
 "head": 2,
 "himo": null,
-"ev": 0.796,
+"ev": 0.934,
 "hit": 0.1154,
 "stake": 4000,
 "scenario": "2号艇(2コース)の予想STが1号艇(1コース)より0.02秒速い。2コースが差して、1コースは2着に残る形",
@@ -6986,13 +7115,13 @@
 {
 "combo": "2-1",
 "units": 40,
-"odds": 6.9,
+"odds": 8.1,
 "prob": 0.1154
 }
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": false,
@@ -7027,7 +7156,7 @@
 ],
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "20-10": {
@@ -7036,41 +7165,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "19-06": {
@@ -7079,41 +7208,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 },
 "12-11": {
@@ -7122,41 +7251,41 @@
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pickbin": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 },
 "pick21t": {
 "skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
-"odds2_est": true
+"odds2_final": true
 }
 }
 }
