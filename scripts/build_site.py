@@ -429,6 +429,7 @@ SKIP_TEXT = {"balance": "的中確率30%以上で期待回収率100%を超える
              "pick2tan": f"1コース以外の本命・次点の2連単の確率1位が{bet_mod.PICK2TAN_PROB_MIN:.0%}以上の時だけ"
                          "買います",
              "pick6a": "A級が6コースだけで、1〜5コースが全員B級のレースのみ対象",
+             "pick21t": f"2コースの予想スタートが1コースより{bet_mod.PICK21_ST_GAP}秒以上速いレースのみ対象",
              "pick21": f"2コースの予想スタートが1コースより{bet_mod.PICK21_ST_GAP}秒以上速いレースのみ対象",
              "pickbin": f"1コースが本物のB級(勝率{bet_mod.PICKBIN_FAKE_WIN}未満・直近でA級なし)で、"
                         f"1コース1着確率{bet_mod.PICKBIN_HP_MIN:.0%}以上のレースのみ対象"}
@@ -568,6 +569,9 @@ def bets_records():
             pbi = plans.get("pickbin")
             if pbi and not pbi.get("skip") and "pickbin" in st:
                 rec["pickbin_tk"] = [[t["combo"], t["units"], t.get("role")] for t in pbi["tickets"]]
+            p21t = plans.get("pick21t")
+            if p21t and not p21t.get("skip") and "pick21t" in st:
+                rec["pick21t_tk"] = [[t["combo"], t["units"], t.get("role")] for t in p21t["tickets"]]
             p21 = plans.get("pick21")
             if p21 and not p21.get("skip") and "pick21" in st:
                 rec["pick21_tk"] = [[t["combo"], t["units"], None] for t in p21["tickets"]]
@@ -848,7 +852,8 @@ def pick_page(hi_list, lo_list):
 
 
 DASH_PLANS = {"pick2tan": "外・2連単", "pickin": "内・2連単・逆張り", "pickbin": "B級イン・2連単"}
-SHADOW_LABELS = {"pick6a": "6コースだけA級・2連単", "pick21": "2差し1残し・2連単2-1"}   # 立説中(総合収支に含めない)
+SHADOW_LABELS = {"pick6a": "6コースだけA級・2連単", "pick21": "2差し1残し・2連単2-1",
+                 "pick21t": "2差し1残し・3連単2-1-□"}   # 立説中(総合収支に含めない)
 # 3連単(pick2)は実オッズで良い結果が出てないためダッシュボードには出さない。
 # bet.py側の集計(bets-data.json)は変わらず続けているので、見たくなれば/ops/pick2.htmlで確認できる。
 
@@ -942,10 +947,11 @@ fetch('/bets-upcoming.json').then(r=>r.json()).then(u=>renderUpcoming($('up'),u,
 
 PLAN_SINCE = {"pick2": bet_mod.PICK2_LOGIC_SINCE, "pick2tan": bet_mod.PICK2TAN_LOGIC_SINCE,
               "pickin": bet_mod.PICKIN_LOGIC_SINCE, "pickbin": bet_mod.PICKBIN_LOGIC_SINCE,
-              "pick6a": bet_mod.PICK6A_LOGIC_SINCE, "pick21": bet_mod.PICK21_LOGIC_SINCE}
+              "pick6a": bet_mod.PICK6A_LOGIC_SINCE, "pick21": bet_mod.PICK21_LOGIC_SINCE,
+              "pick21t": bet_mod.PICK21_LOGIC_SINCE}
 DASH_SINCE = {"pick2tan": bet_mod.PICK2TAN_LOGIC_SINCE, "pickin": bet_mod.PICKIN_LOGIC_SINCE,
               "pickbin": bet_mod.PICKBIN_LOGIC_SINCE, "pick6a": bet_mod.PICK6A_LOGIC_SINCE,
-              "pick21": bet_mod.PICK21_LOGIC_SINCE}
+              "pick21": bet_mod.PICK21_LOGIC_SINCE, "pick21t": bet_mod.PICK21_LOGIC_SINCE}
 ALL_PLAN_LABELS = {"pick2": "外・3連単", **DASH_PLANS, **SHADOW_LABELS}   # 詳細ページ用。pick2はダッシュボード非表示だがページ自体は残す
 
 
@@ -1121,6 +1127,21 @@ def _pick21_logic_card():
             '<div class="card"><p class="sub" style="margin:0">立説中の運用です。2026年10月の記録194レースで的中28・回収率191%'
             '(一番大きい3件を除いても113%、前半116%・後半231%)。3・4コースで同じ形(3-2・4-3)は残らなかった。'
             'いろいろ見た中から見つけた形なので、本番で確かめる。総合収支には含めていません。</p></div>')
+
+
+def _pick21t_logic_card():
+    b = bet_mod
+    steps = [
+        ("対象レース", f'2連単2-1(pick21)と同じ: 2コースの予想スタートが1コースより{b.PICK21_ST_GAP}秒以上速いレース'),
+        ("買い方", f'3連単2-1-□。3着はモデルの確率上位3艇で、{"・".join(f"{u * 100:,}円" for u in b.PICK21T_UNITS)}'
+                 f'(合計{sum(b.PICK21T_UNITS) * 100:,}円)'),
+        ("なぜ3着3艇か", "2-1で決まった時の3着は3コース10回・4コース6回・5コース12回・6コース7回とばらけていて、"
+                      "1点だと95%、2点168%、3点185%、流し4点167%だった"),
+    ]
+    rows = "".join(f'<div class="boat"><div><b>{title}</b><br><span class="sub">{body}</span></div></div>' for title, body in steps)
+    return (f'<div class="card"><b>2差し1残し・3連単2-1-□(pick21t)のロジック</b>{rows}</div>'
+            '<div class="card"><p class="sub" style="margin:0">立説中の運用です。2026年9月末〜10月の記録242レースで的中32・'
+            '回収率185%(2連単2-1は191%)。同じレースで2連単版と比べるために並べて記録しています。総合収支には含めていません。</p></div>')
 
 
 def _pick6a_logic_card():
@@ -1436,7 +1457,7 @@ def main():
     (OUT / "ops").mkdir(exist_ok=True)
     for pk, logic_html in (("pick2", _pick2_logic_card()), ("pick2tan", _pick2tan_logic_card()), ("pickin", _escape_logic_card()),
                             ("pickbin", _pickbin_logic_card()), ("pick6a", _pick6a_logic_card()),
-                            ("pick21", _pick21_logic_card())):
+                            ("pick21", _pick21_logic_card()), ("pick21t", _pick21t_logic_card())):
         (OUT / "ops" / f"{pk}.html").write_text(ops_detail_page(pk, logic_html))
     key = os.environ.get("SHARE_KEY")
     if key:   # 投稿用の隠しページ(今日と前日の仕掛け成功)。サイトマップには入れない
