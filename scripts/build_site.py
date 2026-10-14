@@ -521,6 +521,8 @@ def bets_records():
             plans = plans_of(b)
             st = {}
             for n, pl in plans.items():
+                if n in bet_mod.OPS_PLANS and pl.get("logic") != bet_mod.OPS_LOGIC:
+                    continue   # 運用プランは今の版のロジックで作った買い目だけ集計する
                 st[n] = 0 if pl.get("skip") else list(settle(pl, result))
             pred = preds.get(key)
             rec = dict(d=date, v=jcd, r=int(race), res=result["combo3t"], pay=int(result["payout3t"]), s=st)
@@ -528,13 +530,13 @@ def bets_records():
             if p2 and not p2.get("skip"):
                 rec["tk"] = [[t["combo"], t["units"], t.get("role")] for t in p2["tickets"]]
             pin = plans.get("pickin")
-            if pin and not pin.get("skip"):
+            if pin and not pin.get("skip") and "pickin" in st:
                 rec["pickin_tk"] = [[t["combo"], t["units"], None] for t in pin["tickets"]]
             pbi = plans.get("pickbin")
-            if pbi and not pbi.get("skip"):
+            if pbi and not pbi.get("skip") and "pickbin" in st:
                 rec["pickbin_tk"] = [[t["combo"], t["units"], t.get("role")] for t in pbi["tickets"]]
             p2t = plans.get("pick2tan")
-            if p2t and not p2t.get("skip"):
+            if p2t and not p2t.get("skip") and "pick2tan" in st:
                 rec["pick2tan_tk"] = [[t["combo"], t["units"], t.get("role")] for t in p2t["tickets"]]
             if pred and pred.get("scene"):
                 h1 = pred["scene"]["head"][0] == 0
@@ -895,7 +897,7 @@ def ops_page():
             + '<p class="sub">試験買い目のうち、実オッズで検証した専用プランの収支をまとめて見る画面です。'
               'カードをタップすると各プランの詳細(日別実績・買い目・ロジック)に移動します。'
               '現在稼働中は2連単の3プランのみ(3連単は実オッズ検証の成績が良くないため非表示)。'
-              f'3プラン(外・2連単の絞り込み、イン逃げの逆張り、B級イン・2連単)がそろった{since_label}から'
+              f'3プラン(外・2連単の絞り込み、イン逃げの逆張り、B級イン・2連単)に切り替えた{since_label}の途中から'
               '集計し直していて、それ以前の実績は表示していません。</p>'
             + '<div id="total" class="card total-card"><p class="sub">読み込み中…</p></div>'
             + '<div id="cards" class="plan-grid"></div>'

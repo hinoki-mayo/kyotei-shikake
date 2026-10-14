@@ -95,17 +95,20 @@ PICKIN_GAP_MIN = 1.0     # 市場のオッズ比(2位/1位)がモデルの確率
                          # がROI146.6%・上位3件除いても110.2%と頑丈だった)
 PICKIN_MIN_ODDS = 1.5    # 2連単オッズの下限
 PICKIN_BUDGET = 4000     # 確率2位の1点に全額集中
-PICKIN_LOGIC_SINCE = "20261015"   # 運用タブの集計開始日(3プランそろえて仕切り直し。逆張りロジックは10/14から)
+PICKIN_LOGIC_SINCE = "20261014"   # 運用タブの集計開始日(実際の区切りはOPS_LOGICの印)
 PICK2TAN_BUDGET = 4000   # 1レースの予算。本命・次点の両方が対象なら半分ずつ
                               # (合計4,000円。実オッズ検証で両頭合計200%、一番大きい的中5件を除いても118%)
 PICK2TAN_PROB_MIN = 0.20     # 外の頭の2連単確率1位がこれ以上の時だけ買う
-PICK2TAN_LOGIC_SINCE = "20261015"   # 運用タブの集計をここから開始(3プランそろえて仕切り直し)
+PICK2TAN_LOGIC_SINCE = "20261014"   # 運用タブの集計開始日(実際の区切りはOPS_LOGICの印)
 PICKBIN_HP_MIN = 0.20      # 1コース(本物B級)の1着確率がこれ以上のレースだけ対象
 PICKBIN_FAKE_WIN = 5.5     # B級でも全国勝率がこれ以上なら「嘘B級」(F休み明けなどで一時的にB級の実力者)
 PICKBIN_FAKE_MONTHS = 36   # 直近この月数の番組表で1度でもA級だった選手も「嘘B級」
 PICKBIN_UNITS = (16, 24)   # 2着の確率1位・2位に何口ずつ(合計4,000円)。2位の方が配当が良く回収率も
                            # 高かった(1位のみ105%・2位のみ118%)ので2位を厚めに。均等111%→この配分113%
-PICKBIN_LOGIC_SINCE = "20261015"   # 運用タブの集計開始日(3プランそろえて仕切り直し)
+PICKBIN_LOGIC_SINCE = "20261014"   # 運用タブの集計開始日(実際の区切りはOPS_LOGICの印)
+OPS_PLANS = ("pick2tan", "pickin", "pickbin")   # 運用ダッシュボードに出すプラン
+OPS_LOGIC = "2026-10-14b"   # 運用プランのロジックの版。変えたらここも変えると、それ以前の記録は集計から外れる
+                            # (10/14の途中で3プラン・各4,000円に切り替え、ここから集計し直し)
 M = ["逃げ", "まくり", "差し", "まくり差し"]
 
 # 公式オッズ表の並び: 20行×6列(列=1着の枠)。列の中は(2着,3着)の昇順
@@ -495,6 +498,8 @@ def make_bet(pred, odds_w, odds2_w=None, date=None):
     out["pickin"] = _pickin(pred, p, odds2_w, waku)
     out["pick2tan"] = _pick2tan(pred, p, odds2_w, waku)
     out["pickbin"] = _pickbin(pred, odds2_w, waku, date)
+    for name in OPS_PLANS:   # 運用プランには今のロジックの印を付ける(集計はこの印があるものだけ)
+        out[name]["logic"] = OPS_LOGIC
     # 締切前オッズそのもの(公式表の並び)も残す。締切時オッズとの差の分析用
     raw = [odds_w.get(c) for c in ODDS_ORDER]
     return dict(plans=out, odds=raw, cond=_conditions(pred, waku))
