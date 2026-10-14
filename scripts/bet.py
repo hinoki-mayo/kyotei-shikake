@@ -38,9 +38,18 @@
                                   2連単にすると本命185%・次点215%・両方で200%。一番大きい的中5件を除いても
                                   118%で、予測確率と実際の的中率もほぼ一致(過大評価なし)。pickinと同じ
                                   「2連単市場は3連単市場より値付けが甘い」構造がpick2側にもあったとみられる)
+    pickbin   B級イン・2連単      1コースが「本物の」B級(勝率5.5未満、かつ直近3年にA級だった期がない=F明けなどで
+                                  一時的にB級になった実力者を除く)で、モデルの1コース1着確率がPICKBIN_HP_MIN以上の
+                                  レースだけ。1コース頭で、モデルの2連単確率1位の1点に予算を全額。
+                                  (2026-10-02〜13・実オッズ1,659Rの検証: 本物B級インの1着率は実際38.4%に対し市場
+                                  (3連単オッズから逆算)は29.5%と、市場が大きく割り引いていた。モデル20%以上の
+                                  214Rでは実際39.3%・市場28.9%・モデル37.2%、2連単1点の回収率102%(90%区間72〜133%)。
+                                  嘘B級は逆にモデルが過大評価(モデル43%→実際37%)していたので除外。
+                                  まだサンプルが小さいので、本番で貯めて確かめるための試験プラン)
 例: python scripts/bet.py   (entry.pyから毎回呼ばれる)
 """
 import datetime as dt
+import functools
 import itertools
 import json
 import re
@@ -48,6 +57,7 @@ import time
 import urllib.request
 
 import numpy as np
+import pandas as pd
 
 from common import DATA, JST, UA, now_jst
 from place import PERMS
@@ -61,7 +71,7 @@ ANA_MAX = 10            # 穴狙いの最大点数
 PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": "イン・期待値重視",
          "out_hit": "イン以外・的中重視", "out_ana": "イン以外・穴", "e2_top1": "2連単・確率1位(進入変化×頭注目≠1)",
          "pick2": "厳選頭2頭(本命・次点)", "pickin": "イン逃げ2連単・逆張り(確率2位)",
-         "pick2tan": "厳選頭2頭・2連単(確率1位1点)"}
+         "pick2tan": "厳選頭2頭・2連単(確率1位1点)", "pickbin": "B級イン・2連単(確率1位1点)"}
 PICK2_NIGE_MAX = 0.22   # pressedの中でもこれ未満だけ対象(実オッズ検証: 頻度と回収率のバランスで22%に)
 PICK2_MIN_ODDS = 2.25   # 5分前時点オッズなので、損益分岐の2倍より変動分の余裕を見て高め
 PICK2_MAX_ODDS = 50     # これを超える穴目は除外(過大評価しがちで実オッズ検証でも回収率を下げていた)
@@ -84,6 +94,11 @@ PICKIN_LOGIC_SINCE = "20261014"   # 逆張りロジックに変えた日(運用�
 PICK2TAN_HEAD_BUDGET = 2000   # pick2と同じ対象レースの2連単版。本命・次点それぞれ確率1位の1点に全額
                               # (合計4,000円。実オッズ検証で両頭合計200%、一番大きい的中5件を除いても118%)
 PICK2TAN_LOGIC_SINCE = "20261014"   # 運用タブの集計をここから開始(それ以前はテスト運用のノイズとして除外)
+PICKBIN_HP_MIN = 0.20      # 1コース(本物B級)の1着確率がこれ以上のレースだけ対象
+PICKBIN_FAKE_WIN = 5.5     # B級でも全国勝率がこれ以上なら「嘘B級」(F休み明けなどで一時的にB級の実力者)
+PICKBIN_FAKE_MONTHS = 36   # 直近この月数の番組表で1度でもA級だった選手も「嘘B級」
+PICKBIN_BUDGET = 2000      # 2連単の確率1位の1点に全額
+PICKBIN_LOGIC_SINCE = "20261014"
 M = ["逃げ", "まくり", "差し", "まくり差し"]
 
 # 公式オッズ表の並び: 20行×6列(列=1着の枠)。列の中は(2着,3着)の昇順
@@ -375,14 +390,70 @@ def _pick2tan(pred, p, odds2_w, waku):
                 scenario=scenario, tickets=tickets)
 
 
-def make_bet(pred, odds_w, odds2_w=None):
+@functools.lru_cache(maxsize=1)
+def _grade_history():
+    """登録番号 -> {年月: 級}。番組表の記録から(嘘B級の判定用)"""
+    fr = [pd.read_parquet(f, columns=["date", "toban", "grade"])
+          for f in sorted((DATA / "programs").glob("*.parquet"))[-4:]]
+    if not fr:
+        return {}
+    df = pd.concat(fr).drop_duplicates(["toban", "date"])
+    hist = {}
+    for toban, ym, g in zip(df.toban, df.date.str[:6], df.grade):
+        hist.setdefault(toban, {})[ym] = g
+    return hist
+
+
+def real_b(boat, date):
+    """本物のB級か。F明けなどで一時的にB級になっている実力者(全国勝率が高い・直近でA級だった)は除く"""
+    if not boat["grade"].startswith("B") or boat["nat_win"] >= PICKBIN_FAKE_WIN:
+        return False
+    hist = _grade_history().get(boat["toban"], {})
+    y, m = int(date[:4]), int(date[4:6])
+    for k in range(1, PICKBIN_FAKE_MONTHS + 1):
+        yy, mm = divmod(y * 12 + m - 1 - k, 12)
+        if hist.get(f"{yy}{mm + 1:02d}", "B").startswith("A"):
+            return False
+    return True
+
+
+def _pickbin_target(pred, date):
+    """B級イン・2連単の対象レースか(2連単オッズを取りに行くかの判定にも使う)"""
+    return bool(date) and pred["scene"]["head_prob"][0] >= PICKBIN_HP_MIN and real_b(pred["boats"][0], date)
+
+
+def _pickbin(pred, odds2_w, waku, date):
+    """1コースが本物のB級で、モデルの1コース1着確率がPICKBIN_HP_MIN以上のレースだけ、
+    1コース頭・モデルの2連単確率1位の1点を買う。市場はB級のインを割り引きすぎている
+    (実オッズ1,659Rで実際の1着率38.4%に対し市場29.5%)ので、その分を取りに行く"""
+    if not _pickbin_target(pred, date) or not odds2_w:
+        return dict(skip=True, bet="2t")
+    sec = {}
+    for p, (a, b, _) in zip(pred["tri"], PERMS):
+        if a == 0:
+            sec[b] = sec.get(b, 0) + p
+    j = max(sec, key=sec.get)
+    o = odds2_w.get((waku[0] - 1, waku[j] - 1))
+    if o is None:
+        return dict(skip=True, bet="2t")
+    units = PICKBIN_BUDGET // 100
+    hp = pred["scene"]["head_prob"][0]
+    b = pred["boats"][0]
+    return dict(skip=False, bet="2t", head=waku[0], himo=None, ev=round(sec[j] * o, 3), hit=round(sec[j], 4),
+                stake=units * 100,
+                scenario=f"{waku[0]}号艇(1コース・{b['grade']}・勝率{b['nat_win']:.2f})が逃げて{waku[j]}号艇が続く展開"
+                         f"(1コースの1着確率{hp:.0%}。市場はB級のインを割り引きがち)",
+                tickets=[dict(combo=f"{waku[0]}-{waku[j]}", units=units, odds=o, prob=round(sec[j], 4))])
+
+
+def make_bet(pred, odds_w, odds2_w=None, date=None):
     """予想(コース基準)と枠番オッズから、保存用の買い目(5通り)を作る"""
     waku = [b["waku"] for b in pred["boats"]]            # コース -> 枠番
     odds_c = [odds_w.get((waku[i] - 1, waku[j] - 1, waku[k] - 1)) for i, j, k in PERMS]
     p, plans = plan(pred["tri"], odds_c)
     out = {}
     for name in PLANS:
-        if name in ("pick2", "pickin", "pick2tan"):
+        if name in ("pick2", "pickin", "pick2tan", "pickbin"):
             continue
         r = plans.get(name)
         if r is None:
@@ -400,6 +471,7 @@ def make_bet(pred, odds_w, odds2_w=None):
     out["pick2"] = _pick2(pred, p, odds_c, waku)
     out["pickin"] = _pickin(pred, p, odds2_w, waku)
     out["pick2tan"] = _pick2tan(pred, p, odds2_w, waku)
+    out["pickbin"] = _pickbin(pred, odds2_w, waku, date)
     # 締切前オッズそのもの(公式表の並び)も残す。締切時オッズとの差の分析用
     raw = [odds_w.get(c) for c in ODDS_ORDER]
     return dict(plans=out, odds=raw, cond=_conditions(pred, waku))
@@ -450,11 +522,12 @@ def run(now=None):
             continue
         odds2 = None
         sc = pred["scene"]
-        need_odds2 = sc["nige"] >= PICKIN_NIGE_MIN or (sc["pressed"] and sc["nige"] < PICK2_NIGE_MAX)
-        if need_odds2:   # イン逃げ・pick2tan対象の時だけ2連単オッズも取りに行く
+        need_odds2 = (sc["nige"] >= PICKIN_NIGE_MIN or (sc["pressed"] and sc["nige"] < PICK2_NIGE_MAX)
+                      or _pickbin_target(pred, date))
+        if need_odds2:   # イン逃げ・pick2tan・pickbin対象の時だけ2連単オッズも取りに行く
             odds2 = fetch_odds2(date, pred["jcd"], pred["race"])
             time.sleep(1.0)
-        bets[key] = dict(make_bet(pred, odds, odds2), odds_at=now.strftime("%H:%M"))
+        bets[key] = dict(make_bet(pred, odds, odds2, date), odds_at=now.strftime("%H:%M"))
         done.append(key)
     if done:
         bp.write_text(json.dumps(bets, ensure_ascii=False, indent=0))

@@ -427,7 +427,9 @@ SKIP_TEXT = {"balance": "的中確率30%以上で期待回収率100%を超える
              "pickin": f"1コース1着確率{bet_mod.PICKIN_NIGE_MIN:.0%}以上のレースのみ対象。2連単の確率1位が"
                        f"オッズ{bet_mod.PICKIN_MIN_ODDS}倍未満なら見送り",
              "pick2tan": f"1コース1着確率{bet_mod.PICK2_NIGE_MAX:.0%}未満の厳選レースのみ対象。"
-                         "2連単オッズが取得できなかった場合のみ見送り"}
+                         "2連単オッズが取得できなかった場合のみ見送り",
+             "pickbin": f"1コースが本物のB級(勝率{bet_mod.PICKBIN_FAKE_WIN}未満・直近でA級なし)で、"
+                        f"1コース1着確率{bet_mod.PICKBIN_HP_MIN:.0%}以上のレースのみ対象"}
 
 
 def _plan_card(name, pl, result):
@@ -528,6 +530,9 @@ def bets_records():
             pin = plans.get("pickin")
             if pin and not pin.get("skip"):
                 rec["pickin_tk"] = [[t["combo"], t["units"], None] for t in pin["tickets"]]
+            pbi = plans.get("pickbin")
+            if pbi and not pbi.get("skip"):
+                rec["pickbin_tk"] = [[t["combo"], t["units"], None] for t in pbi["tickets"]]
             p2t = plans.get("pick2tan")
             if p2t and not p2t.get("skip"):
                 rec["pick2tan_tk"] = [[t["combo"], t["units"], t.get("role")] for t in p2t["tickets"]]
@@ -801,7 +806,7 @@ def pick_page(hi_list, lo_list):
     return page("狙い目", body, "", "/pick.html", noindex=True)
 
 
-DASH_PLANS = {"pick2tan": "外・2連単", "pickin": "内・2連単・逆張り"}
+DASH_PLANS = {"pick2tan": "外・2連単", "pickin": "内・2連単・逆張り", "pickbin": "B級イン・2連単"}
 # 3連単(pick2)は実オッズで良い結果が出てないためダッシュボードには出さない。
 # bet.py側の集計(bets-data.json)は変わらず続けているので、見たくなれば/ops/pick2.htmlで確認できる。
 
@@ -873,8 +878,9 @@ fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;render()});
 """
 
 PLAN_SINCE = {"pick2": bet_mod.PICK2_LOGIC_SINCE, "pick2tan": bet_mod.PICK2TAN_LOGIC_SINCE,
-              "pickin": bet_mod.PICKIN_LOGIC_SINCE}
-DASH_SINCE = {"pick2tan": bet_mod.PICK2TAN_LOGIC_SINCE, "pickin": bet_mod.PICKIN_LOGIC_SINCE}
+              "pickin": bet_mod.PICKIN_LOGIC_SINCE, "pickbin": bet_mod.PICKBIN_LOGIC_SINCE}
+DASH_SINCE = {"pick2tan": bet_mod.PICK2TAN_LOGIC_SINCE, "pickin": bet_mod.PICKIN_LOGIC_SINCE,
+              "pickbin": bet_mod.PICKBIN_LOGIC_SINCE}
 ALL_PLAN_LABELS = {"pick2": "外・3連単", **DASH_PLANS}   # 詳細ページ用。pick2はダッシュボード非表示だがページ自体は残す
 
 
@@ -888,9 +894,9 @@ def ops_page():
     body = ('<h1>運用</h1>' + own_tabs("ops")
             + '<p class="sub">試験買い目のうち、実オッズで検証した専用プランの収支をまとめて見る画面です。'
               'カードをタップすると各プランの詳細(日別実績・買い目・ロジック)に移動します。'
-              f'現在稼働中は2連単の2プランのみ(3連単は実オッズ検証の成績が良くないため非表示)。'
-              f'{since_label}にイン逃げを逆張りロジックへ変更したのに合わせて、'
-              'どちらのプランもそれ以降の実績だけを表示しています。</p>'
+              '現在稼働中は2連単の3プランのみ(3連単は実オッズ検証の成績が良くないため非表示)。'
+              f'{since_label}にイン逃げを逆張りロジックへ変更し、B級イン・2連単を追加したのに合わせて、'
+              'どのプランもそれ以降の実績だけを表示しています。</p>'
             + '<div id="total" class="card total-card"><p class="sub">読み込み中…</p></div>'
             + '<div id="cards" class="plan-grid"></div>'
             + f'<script>{js}</script>')
@@ -1029,6 +1035,25 @@ def _pick2tan_logic_card():
         '過大評価による見かけ上の数字ではない。一番大きな的中5件を除いても118%で残っていて、少数の大当たりに'
         '支えられているわけでもない'
         '(目安であり保証ではありません。パラメータは今後の検証で変わることがあります)。</p></div>')
+
+
+def _pickbin_logic_card():
+    b = bet_mod
+    steps = [
+        ("対象レース", f'1コースが「本物の」B級で、モデルの1コース1着確率が{b.PICKBIN_HP_MIN:.0%}以上のレースだけ'),
+        ("嘘B級の除外", f'B級でも全国勝率{b.PICKBIN_FAKE_WIN}以上、または直近{b.PICKBIN_FAKE_MONTHS // 12}年の番組表で'
+                     '1度でもA級だった選手(フライング休み明けなどで一時的にB級の実力者)は対象外'),
+        ("買い方", f'1コース頭の2連単のうち、モデルの確率が一番高い1点に予算{b.PICKBIN_BUDGET:,}円を全額'),
+        ("なぜB級インか", "市場はB級のインを割り引きすぎている。実オッズ1,659レースで、本物B級インの1着率は"
+                       "実際38.4%に対し、オッズから逆算した市場の確率は29.5%だった(A級インは65.8%対59.0%)。"
+                       "嘘B級は逆にモデルが勝率の高さから過大評価していたので除外している"),
+    ]
+    rows = "".join(f'<div class="boat"><div><b>{title}</b><br><span class="sub">{body}</span></div></div>' for title, body in steps)
+    return (f'<div class="card"><b>B級イン・2連単(pickbin)のロジック</b>{rows}</div>'
+            '<div class="card"><p class="sub" style="margin:0">2026年10月2日〜13日・締切前の実オッズ1,659レースで検証。'
+            'モデル20%以上の214レースで実際の1着率39.3%(市場28.9%)、2連単1点の回収率102%(90%区間72〜133%)。'
+            'サンプルが小さく、まだ偶然と区別できないため、本番で実績を貯めて確かめる試験プランです。'
+            '目安であり保証ではありません。</p></div>')
 
 
 def _escape_logic_card():
@@ -1302,7 +1327,8 @@ def main():
     (OUT / "pick.html").write_text(pick_page(pick_hi, pick_lo))
     (OUT / "ops.html").write_text(ops_page())
     (OUT / "ops").mkdir(exist_ok=True)
-    for pk, logic_html in (("pick2", _pick2_logic_card()), ("pick2tan", _pick2tan_logic_card()), ("pickin", _escape_logic_card())):
+    for pk, logic_html in (("pick2", _pick2_logic_card()), ("pick2tan", _pick2tan_logic_card()), ("pickin", _escape_logic_card()),
+                            ("pickbin", _pickbin_logic_card())):
         (OUT / "ops" / f"{pk}.html").write_text(ops_detail_page(pk, logic_html))
     key = os.environ.get("SHARE_KEY")
     if key:   # 投稿用の隠しページ(今日と前日の仕掛け成功)。サイトマップには入れない
