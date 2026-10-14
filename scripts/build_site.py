@@ -515,7 +515,10 @@ def bets_records():
         preds = json.loads(pp.read_text())["races"] if pp.exists() else {}
         bf = DATA / "bets_backfill" / f"{date}.json"
         backfill = json.loads(bf.read_text()) if bf.exists() else {}
-        for key, b in json.loads(f.read_text()).items():
+        day = json.loads(f.read_text())
+        for key in backfill.keys() - day.keys():   # 取り逃がして後から作り直したレース
+            day[key] = {"plans": backfill[key]}
+        for key, b in day.items():
             jcd, race = key.split("-")
             result = {**live.get(key, {}), **(keyed.get((date, jcd, int(race))) or {})}   # 2連単は結果ページの記録から
             if not result.get("combo3t") or pd.isna(result.get("payout3t")):
