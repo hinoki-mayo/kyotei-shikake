@@ -532,7 +532,8 @@ def bets_records():
                     continue   # 運用プランは今の版のロジックで作った買い目だけ集計する
                 st[n] = 0 if pl.get("skip") else list(settle(pl, result))
             pred = preds.get(key)
-            rec = dict(d=date, v=jcd, r=int(race), res=result["combo3t"], pay=int(result["payout3t"]), s=st)
+            rec = dict(d=date, v=jcd, r=int(race), res=result["combo3t"], pay=int(result["payout3t"]), s=st,
+                       t=(preds.get(key) or {}).get("deadline", ""))   # 締切時刻(一覧を時刻順に並べる)
             p2 = plans.get("pick2")
             if p2 and not p2.get("skip"):
                 rec["tk"] = [[t["combo"], t["units"], t.get("role")] for t in p2["tickets"]]
@@ -923,7 +924,7 @@ function entries(){
     if(x.d<SINCE) continue;
     const v=x.s[PLAN];
     if(v===undefined) continue;
-    out.push({d:x.d, v:x.v, r:x.r, res:x.res, pay:x.pay,
+    out.push({d:x.d, t:x.t||'', v:x.v, r:x.r, res:x.res, pay:x.pay,
                skip:v===0, st:v===0?0:v[0], ret:v===0?0:v[1], tk:(PLAN==='pick2'?x.tk:x[PLAN+'_tk'])||[]});
   }
   return out;
@@ -960,7 +961,7 @@ function render(){
       `<div class="boat"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}・${x.res}</span></div>`+
       `<b style="color:var(--green)">${yen(x.pay)}円</b></div>`).join('') + `</div>`;
   }
-  const list = used.slice().sort((a,b)=> b.d.localeCompare(a.d) || b.r-a.r);
+  const list = used.slice().sort((a,b)=> b.d.localeCompare(a.d) || b.t.localeCompare(a.t) || b.r-a.r);   // 新しい日・締切が遅い順
   s += `<div class="card"><b>レース一覧</b>` + list.map(x=>{
     const hit=x.ret>0;
     const grp = {};
@@ -970,7 +971,7 @@ function render(){
       grp[k].map(([c,u])=>`<span class="sub" style="display:inline-block;margin:1px 6px 1px 0${c===x.res?';color:var(--green);font-weight:700':''}">${c}×${u}口</span>`).join('')
       +`</div>`).join('');
     return `<div class="boat" style="flex-direction:column;align-items:flex-start;gap:4px">`+
-      `<div style="display:flex;width:100%"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}・結果 ${x.res}・投資${yen(x.st)}円</span></div>`+
+      `<div style="display:flex;width:100%"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}${x.t?' '+x.t:''}・結果 ${x.res}・投資${yen(x.st)}円</span></div>`+
       `<b style="color:${hit?'var(--green)':'var(--red)'}">${hit?'的中':'外れ'} ${x.ret-x.st>=0?'+':''}${yen(x.ret-x.st)}円</b></div>`+
       (tk?`<details style="width:100%"><summary class="sub">買い目(${x.tk.length}点)を見る</summary><div style="margin-top:4px">${tk}</div></details>`:'')+
       `</div>`;
