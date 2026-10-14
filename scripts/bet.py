@@ -326,7 +326,7 @@ def _pickin(pred, p, odds2_w, waku):
         return dict(skip=True, bet="2t")
     cand = []
     for j in range(1, 6):
-        o = odds2_w.get((0, j))
+        o = odds2_w.get((waku[0] - 1, waku[j] - 1))   # 2連単オッズは枠番で並んでいる
         if o is None:
             continue
         p2 = sum(p[PI[(0, j, k)]] for k in range(6) if k not in (0, j))
@@ -371,7 +371,7 @@ def _pick2tan(pred, p, odds2_w, waku):
         for j in range(6):
             if j == w:
                 continue
-            o = odds2_w.get((w, j))
+            o = odds2_w.get((waku[w] - 1, waku[j] - 1))   # 枠番で引く(コース番号ではない)
             if o is None:
                 continue
             p2 = sum(p[PI[(w, j, k)]] for k in range(6) if k not in (w, j))
