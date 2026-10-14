@@ -77,7 +77,8 @@ PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": 
          "out_hit": "イン以外・的中重視", "out_ana": "イン以外・穴", "e2_top1": "2連単・確率1位(進入変化×頭注目≠1)",
          "pick2": "厳選頭2頭(本命・次点)", "pickin": "イン逃げ2連単・逆張り(確率2位)",
          "pick2tan": "外・2連単(確率20%以上の本命頭)", "pickbin": "B級イン・2連単(2着2艇)",
-         "pick6a": "6コースだけA級・2連単(立説中)", "pick21": "2差し1残し・2連単2-1(立説中)"}
+         "pick6a": "6コースだけA級・2連単(立説中)", "pick21": "2差し1残し・2連単2-1(立説中)",
+         "pick21t": "2差し1残し・3連単2-1-□(立説中)"}
 PICK2_NIGE_MAX = 0.22   # pressedの中でもこれ未満だけ対象(実オッズ検証: 頻度と回収率のバランスで22%に)
 PICK2_MIN_ODDS = 2.25   # 5分前時点オッズなので、損益分岐の2倍より変動分の余裕を見て高め
 PICK2_MAX_ODDS = 50     # これを超える穴目は除外(過大評価しがちで実オッズ検証でも回収率を下げていた)
@@ -108,12 +109,13 @@ PICKBIN_UNITS = (16, 24)   # 2着の確率1位・2位に何口ずつ(合計4,000
                            # 高かった(1位のみ105%・2位のみ118%)ので2位を厚めに。均等111%→この配分113%
 PICKBIN_LOGIC_SINCE = "20261014"   # 運用タブの集計開始日(実際の区切りはOPS_LOGICの印)
 OPS_PLANS = ("pick2tan", "pickin", "pickbin")   # 運用ダッシュボードに出すプラン
-SHADOW_PLANS = ("pick6a", "pick21")   # 立説中: ダッシュボードには別枠で出し、総合収支には含めない
+SHADOW_PLANS = ("pick6a", "pick21", "pick21t")   # 立説中: ダッシュボードには別枠で出し、総合収支には含めない
 PICK6A_UNITS = (24, 36)      # 6コースだけA級: 2着の確率1位・2位に何口ずつ(合計6,000円)
 PICK6A_LOGIC_SINCE = "20261014"
 PICK21_ST_GAP = 0.02         # 2コースの予想STが1コースよりこれだけ速いレースが対象
 PICK21_UNITS = 40            # 2連単2-1の1点に4,000円
 PICK21_LOGIC_SINCE = "20261014"
+PICK21T_UNITS = (14, 13, 13)  # 3連単2-1-□: 3着のモデル上位3艇に何口ずつ(合計4,000円)
 OPS_LOGIC = "2026-10-14b"   # 運用プランのロジックの版。変えたらここも変えると、それ以前の記録は集計から外れる
                             # (10/14の途中で3プラン・各4,000円に切り替え、ここから集計し直し)
 M = ["逃げ", "まくり", "差し", "まくり差し"]
@@ -541,6 +543,28 @@ def _pick21(pred, odds2_w, waku):
                 tickets=[dict(combo=f"{waku[1]}-{waku[0]}", units=PICK21_UNITS, odds=o, prob=round(p, 4))])
 
 
+def _pick21t(pred, odds_c, waku):
+    """立説中: pick21の3連単版。2-1-□で、3着はモデルの確率上位3艇(2-1が決まった時の3着は
+    3〜6コースにばらけるので3点)。記録済み242Rで的中32・回収率185%(2連単2-1は191%)"""
+    if not _pick21_target(pred):
+        return dict(skip=True)
+    thirds = sorted(range(2, 6), key=lambda x: -pred["tri"][PI[(1, 0, x)]])[:3]
+    tickets = []
+    for x, u in zip(thirds, PICK21T_UNITS):
+        o = odds_c[PI[(1, 0, x)]]
+        if o is None:
+            continue
+        tickets.append(dict(combo=f"{waku[1]}-{waku[0]}-{waku[x]}", units=u, odds=o,
+                            prob=round(pred["tri"][PI[(1, 0, x)]], 4), role=f"3着{len(tickets) + 1}位"))
+    if not tickets:
+        return dict(skip=True)
+    hit = sum(t["prob"] for t in tickets)
+    return dict(skip=False, head=waku[1], himo=None, hit=round(hit, 4),
+                ev=round(sum(t["prob"] * t["odds"] * t["units"] for t in tickets) / sum(t["units"] for t in tickets), 3),
+                stake=sum(t["units"] for t in tickets) * 100,
+                scenario=f"2-1の3連単版。3着は{'・'.join(t['combo'][-1] for t in tickets)}号艇", tickets=tickets)
+
+
 def make_bet(pred, odds_w, odds2_w=None, date=None):
     """予想(コース基準)と枠番オッズから、保存用の買い目(5通り)を作る"""
     waku = [b["waku"] for b in pred["boats"]]            # コース -> 枠番
@@ -548,7 +572,7 @@ def make_bet(pred, odds_w, odds2_w=None, date=None):
     p, plans = plan(pred["tri"], odds_c)
     out = {}
     for name in PLANS:
-        if name in ("pick2", "pickin", "pick2tan", "pickbin", "pick6a", "pick21"):
+        if name in ("pick2", "pickin", "pick2tan", "pickbin", "pick6a", "pick21", "pick21t"):
             continue
         r = plans.get(name)
         if r is None:
@@ -569,6 +593,7 @@ def make_bet(pred, odds_w, odds2_w=None, date=None):
     out["pickbin"] = _pickbin(pred, odds2_w, waku, date)
     out["pick6a"] = _pick6a(pred, odds2_w, waku)
     out["pick21"] = _pick21(pred, odds2_w, waku)
+    out["pick21t"] = _pick21t(pred, odds_c, waku)
     for name in OPS_PLANS + SHADOW_PLANS:   # 運用プランには今のロジックの印を付ける(集計はこの印があるものだけ)
         out[name]["logic"] = OPS_LOGIC
     # 締切前オッズそのもの(公式表の並び)も残す。締切時オッズとの差の分析用
