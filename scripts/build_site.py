@@ -851,8 +851,8 @@ def pick_page(hi_list, lo_list):
     return page("狙い目", body, "", "/pick.html", noindex=True)
 
 
-DASH_PLANS = {"pick2tan": "外・2連単", "pickin": "内・2連単・逆張り", "pickbin": "B級イン・2連単"}
-SHADOW_LABELS = {"pick6a": "6コースだけA級・2連単", "pick21": "2差し1残し・2連単2-1",
+DASH_PLANS = {"pickin": "内・2連単・逆張り", "pickbin": "B級イン・2連単"}
+SHADOW_LABELS = {"pick2tan": "外・2連単", "pick6a": "6コースだけA級・2連単", "pick21": "2差し1残し・2連単2-1",
                  "pick21t": "2差し1残し・3連単2-1-□"}   # 立説中(総合収支に含めない)
 # 3連単(pick2)は実オッズで良い結果が出てないためダッシュボードには出さない。
 # bet.py側の集計(bets-data.json)は変わらず続けているので、見たくなれば/ops/pick2.htmlで確認できる。
