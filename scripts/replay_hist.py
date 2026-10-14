@@ -35,23 +35,25 @@ def day_results(res, date):
         rank = {int(w): r for w, r in zip(g.waku, g["rank"])}
         win = [w for w, r in rank.items() if r == "01"]
         sec = [w for w, r in rank.items() if r == "02"]
+        thr = [w for w, r in rank.items() if r == "03"]
         out[f"{jcd}-{race:02d}"] = dict(
             order=[int(w) for w in g.sort_values("course").waku],
             tenji=[float(x) if x == x else None for x in g.tenji],
             wind_dir=g.wind_dir.iloc[0], wind=float(g.wind.iloc[0]), wave=float(g.wave.iloc[0]),
             rain=g.weather.iloc[0] == "雨",
-            win=win[0] if win else None, sec=sec[0] if sec else None,
+            win=win[0] if win else None, sec=sec[0] if sec else None, thr=thr[0] if thr else None,
             combo3t=g.combo3t.dropna().iloc[0] if g.combo3t.notna().any() else None,
             payout3t=g.payout3t.dropna().iloc[0] if g.payout3t.notna().any() else None)
     return out
 
 
 def odds_hist(date):
-    p = DATA / "odds_hist" / f"{date[:6]}.parquet"
-    if not p.exists():
+    fr = [pd.read_parquet(p) for p in (DATA / "odds_hist" / f"{date[:6]}.parquet",
+                                        DATA / "odds_hist" / f"{date}.parquet") if p.exists()]
+    if not fr:
         return {}
-    df = pd.read_parquet(p)
-    df = df[df.date == date]
+    df = pd.concat(fr)
+    df = df[df.date == date].drop_duplicates(["jcd", "race"])
     out = {}
     for r in df.itertuples():
         o3 = {c: v for c, v in zip(bet.ODDS_ORDER, r.o3) if v == v} if len(r.o3) else {}
@@ -73,7 +75,7 @@ def odds_bets(date):
     return out
 
 
-def settle(plan, r, o2):
+def settle(plan, r, o2, o3=None):
     if not plan or plan.get("skip"):
         return None
     if plan.get("bet") == "2t":
@@ -85,7 +87,10 @@ def settle(plan, r, o2):
         combo, pay = f"{r['win']}-{r['sec']}", round(pay * 100)
     else:
         combo, pay = r["combo3t"], r["payout3t"]
-        if not combo or pay is None:
+        if (not combo or pay is None or pay != pay) and o3 and r["win"] and r["sec"] and r["thr"]:
+            o = o3.get((r["win"] - 1, r["sec"] - 1, r["thr"] - 1))   # 競走成績に払戻が無い時は確定3連単オッズで
+            combo, pay = f"{r['win']}-{r['sec']}-{r['thr']}", (round(o * 100) if o else None)
+        if not combo or pay is None or pay != pay:
             return None
     ret = sum(t["units"] * int(pay) for t in plan["tickets"] if t["combo"] == combo)
     return plan["stake"], ret
@@ -116,10 +121,24 @@ def run_day(date, res, src, tmp):
                    g0=pred["boats"][0]["grade"], st01=pred["st"][0] - pred["st"][1],
                    win=results[key]["win"], sec=results[key]["sec"], o2_real=bool(o2))
         for n in PLANS:
-            s = settle(made[n], results[key], o2 or bet_est_odds2(o3))
+            s = settle(made[n], results[key], o2 or bet_est_odds2(o3), o3)
             row[n + "_stake"], row[n + "_ret"] = (s if s else (0, 0))
         rows.append(row)
+        inv = sum(1 / x for x in o3.values())
+        tj = [results[key]["tenji"][b["waku"] - 1] for b in pred["boats"]]
+        tjr = pd.Series([t if t else np.nan for t in tj]).rank().tolist()
+        for i, b in enumerate(pred["boats"]):
+            w = b["waku"] - 1
+            BOATS.append(dict(date=date, key=key, course=b["course"], grade=b["grade"], nat=b["nat_win"],
+                              hp=pred["scene"]["head_prob"][i], f=pred["fcnt"][i], tjrank=tjr[i],
+                              qw=sum(1 / x for c, x in o3.items() if c[0] == w) / inv,
+                              q2=sum(1 / x for c, x in o3.items() if w in c[:2]) / inv,
+                              win=results[key]["win"] == b["waku"],
+                              top2=b["waku"] in (results[key]["win"], results[key]["sec"])))
     return rows
+
+
+BOATS = []
 
 
 def bet_est_odds2(o3):
@@ -148,6 +167,7 @@ def main():
     df = pd.DataFrame(rows)
     if a.out:
         df.to_parquet(a.out, index=False)
+        pd.DataFrame(BOATS).to_parquet(a.out.replace(".parquet", "_boats.parquet"), index=False)
     for n in PLANS:
         b = df[df[n + "_stake"] > 0]
         st, rt = b[n + "_stake"].sum(), b[n + "_ret"].sum()
