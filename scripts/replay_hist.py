@@ -108,6 +108,8 @@ def run_day(date, res, src, tmp):
     predict.DATA = tmp
     predict.run(date, model=Model(load_results(date), date), allow_late=True)
     preds = json.loads((tmp / "predictions" / f"{date}.json").read_text())["races"]
+    if KEEP:
+        (KEEP / f"{date}.json").write_text(json.dumps(preds, ensure_ascii=False))
     rows = []
     for key, pred in preds.items():
         if key not in results or key not in odds or not pred.get("tri"):
@@ -139,6 +141,7 @@ def run_day(date, res, src, tmp):
 
 
 BOATS = []
+KEEP = None   # 作り直した予想を残すフォルダ(--keep)
 
 
 def bet_est_odds2(o3):
@@ -152,7 +155,12 @@ def main():
     ap.add_argument("end")
     ap.add_argument("--odds", default="hist", choices=["hist", "bets"])
     ap.add_argument("--out")
+    ap.add_argument("--keep", help="作り直した予想を日付.jsonで残すフォルダ")
     a = ap.parse_args()
+    global KEEP
+    if a.keep:
+        KEEP = pathlib.Path(a.keep)
+        KEEP.mkdir(parents=True, exist_ok=True)
     s, e = dt.date.fromisoformat(a.start), dt.date.fromisoformat(a.end)
     res = pd.concat([pd.read_parquet(DATA / "results" / f"{y}.parquet") for y in range(s.year, e.year + 1)])
     res = res[(res.date >= f"{s:%Y%m%d}") & (res.date <= f"{e:%Y%m%d}")]

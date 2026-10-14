@@ -1,6 +1,7 @@
 """試験用の買い目: 締切前の3連単オッズ × 2・3着モデルの確率で、5通りの買い方を組む
 
-・締切の約2〜9分前に1レース1回だけオッズを見に行き、買い目を data/bets/日付.json に保存する
+・締切の1〜9分前のレースについて、5分おきの自動処理のたびにオッズを見直して買い目を作り直す
+  (締切に近いオッズで決めるため。最後に作った買い目=締切1〜6分前のオッズのものが残る)
 ・締切を過ぎたレースは書き換えない(予想と同じく封印)
 ・確率は「モデル」と「オッズから読んだ市場の確率」を混ぜたもの(BLEND)。モデル単独だと
   穴目を大きく過大評価していた(万舟帯で予測0.62%→実際0.12%)。市場の方がかなり正確なので重みは市場寄り
@@ -70,7 +71,7 @@ from place import PERMS
 URL = "https://www.boatrace.jp/owpc/pc/race/odds3t?rno={race}&jcd={jcd}&hd={date}"
 ODDS_RE = re.compile(r'class="oddsPoint[^"]*">([^<]*)<')
 BLEND = (0.13, 0.99)    # 確率の混ぜ方(モデル, 市場)の重み。2025-26年のランダム1,500レースの締切時オッズで推定(モデル0.13±0.05)
-WINDOW = (2, 9)         # 締切の何分前のレースを対象にするか
+WINDOW = (1, 9)         # 締切の何分前のレースを対象にするか(この間は毎回作り直す)
 ANA_ODDS = 60           # 穴狙いの対象にするオッズの下限
 ANA_MAX = 10            # 穴狙いの最大点数
 PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": "イン・期待値重視",
@@ -640,7 +641,7 @@ def run(now=None):
     bets = json.loads(bp.read_text()) if bp.exists() else {}
     done = []
     for key, pred in preds.items():
-        if key in bets or pred.get("version") != "final" or not pred.get("tri"):
+        if pred.get("version") != "final" or not pred.get("tri"):
             continue
         t = dt.datetime.strptime(date + pred["deadline"], "%Y%m%d%H:%M").replace(tzinfo=JST)
         if not (now + dt.timedelta(minutes=WINDOW[0]) < t <= now + dt.timedelta(minutes=WINDOW[1])):
@@ -659,7 +660,8 @@ def run(now=None):
         if need_odds2:   # pickin・pick2tan・pickbin対象の時だけ2連単オッズも取りに行く
             odds2 = fetch_odds2(date, pred["jcd"], pred["race"])
             time.sleep(1.0)
-        bets[key] = dict(make_bet(pred, odds, odds2, date), odds_at=now.strftime("%H:%M"))
+        n = bets.get(key, {}).get("n_decided", 0) + 1   # 何回作り直したか
+        bets[key] = dict(make_bet(pred, odds, odds2, date), odds_at=now.strftime("%H:%M"), n_decided=n)
         done.append(key)
     if done:
         bp.write_text(json.dumps(bets, ensure_ascii=False, indent=0))
