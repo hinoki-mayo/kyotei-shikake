@@ -79,7 +79,8 @@ PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": 
          "pick2": "厳選頭2頭(本命・次点)", "pickin": "イン逃げ2連単・逆張り(確率2位)",
          "pick2tan": "外・2連単(確率20%以上の本命頭)", "pickbin": "B級イン・2連単(2着2艇)",
          "pick6a": "6コースだけA級・2連単(立説中)", "pick21": "2差し1残し・2連単2-1(立説中)",
-         "pick21t": "2差し1残し・3連単2-1-□(立説中)", "pickbinx": "B級イン・絞り込み(立説中)"}
+         "pick21t": "2差し1残し・3連単2-1-□(立説中)", "pickbinx": "B級イン・絞り込み(立説中)",
+         "pickbinc": "B級イン・凪で強敵なし(立説中)", "pickbint": "B級イン・凪で展示1位(立説中)"}
 PICK2_NIGE_MAX = 0.22   # pressedの中でもこれ未満だけ対象(実オッズ検証: 頻度と回収率のバランスで22%に)
 PICK2_MIN_ODDS = 2.25   # 5分前時点オッズなので、損益分岐の2倍より変動分の余裕を見て高め
 PICK2_MAX_ODDS = 50     # これを超える穴目は除外(過大評価しがちで実オッズ検証でも回収率を下げていた)
@@ -110,7 +111,7 @@ PICKBIN_UNITS = (16, 24)   # 2着の確率1位・2位に何口ずつ(合計4,000
                            # 高かった(1位のみ105%・2位のみ118%)ので2位を厚めに。均等111%→この配分113%
 PICKBIN_LOGIC_SINCE = "20261014"   # 運用タブの集計開始日(実際の区切りはOPS_LOGICの印)
 OPS_PLANS = ("pickin", "pickbin")   # 運用ダッシュボードに出すプラン
-SHADOW_PLANS = ("pick2tan", "pick6a", "pick21", "pick21t", "pickbinx")   # 立説中: ダッシュボードには別枠で出し、総合収支には含めない
+SHADOW_PLANS = ("pickbinc", "pickbint", "pickbinx", "pick21", "pick21t", "pick6a", "pick2tan")   # 優先度の高い順   # 立説中: ダッシュボードには別枠で出し、総合収支には含めない
                     # (外・2連単は6/1〜10/11の実オッズで232点・89%だったので10/15に運用から立説中へ下げた)
 PICK6A_UNITS = (24, 36)      # 6コースだけA級: 2着の確率1位・2位に何口ずつ(合計6,000円)
 PICK6A_LOGIC_SINCE = "20261014"
@@ -120,7 +121,10 @@ PICK21_LOGIC_SINCE = "20261014"
 PICK21T_UNITS = (14, 13, 13)
 PICKBINX_RIVAL_MAX = 0.20    # B級イン・絞り込み: 1コース以外の市場1着確率(3連単オッズから)が全部これ未満
 PICKBINX_UNITS = 40          # 2着は人気上位3艇、どれが来ても払戻がほぼ同じになるようオッズに合わせて配分(合計4,000円)
-PICKBINX_LOGIC_SINCE = "20261014"  # 3連単2-1-□: 3着のモデル上位3艇に何口ずつ(合計4,000円)
+PICKBINX_LOGIC_SINCE = "20261014"
+PICKBIN_CALM_WIND = 2        # 凪の目安: 風速(m)がこれ以下(展示の時点の水面気象)
+PICKBINC_LOGIC_SINCE = "20261014"
+PICKBINT_LOGIC_SINCE = "20261014"  # 3連単2-1-□: 3着のモデル上位3艇に何口ずつ(合計4,000円)
 OPS_LOGIC = "2026-10-14c"   # 運用プランのロジックの版。変えたらここも変えると、それ以前の記録は集計から外れる
                             # (10/14の途中で3プラン・各4,000円に切り替え、ここから集計し直し。
                             #  同日夜にB級インからF持ちのインを外して c に。その日の分は backfill_ops で作り直し)
@@ -510,6 +514,11 @@ def _pickbinx(pred, odds_c, odds2_w, waku, date):
     2着はAI上位2艇・2位厚めより、人気上位3艇のオッズ配分の方が安定していた"""
     if not odds2_w or not _pickbinx_target(pred, odds_c, date):
         return dict(skip=True, bet="2t")
+    return _in_top3(pred, odds2_w, waku, f"(他に市場の1着確率{PICKBINX_RIVAL_MAX:.0%}以上の艇なし)")
+
+
+def _in_top3(pred, odds2_w, waku, why):
+    """1コース頭の2連単、2着は人気上位3艇、オッズの逆数に比例して配分(B級イン系の立説中プランで共通)"""
     cand = [(j, odds2_w.get((waku[0] - 1, waku[j] - 1))) for j in range(1, 6)]
     cand = sorted([(j, o) for j, o in cand if o], key=lambda t: t[1])[:3]
     if not cand:
@@ -521,9 +530,41 @@ def _pickbinx(pred, odds_c, odds2_w, waku, date):
                for k, ((j, o), u) in enumerate(zip(cand, units))]
     b = pred["boats"][0]
     return dict(skip=False, bet="2t", head=waku[0], himo=None, stake=PICKBINX_UNITS * 100,
-                scenario=f"{waku[0]}号艇(1コース・{b['grade']}・勝率{b['nat_win']:.2f})がスタートで先手を取って逃げる展開"
-                         f"(他に市場の1着確率{PICKBINX_RIVAL_MAX:.0%}以上の艇なし)",
+                scenario=f"{waku[0]}号艇(1コース・{b['grade']}・勝率{b['nat_win']:.2f})が逃げる展開{why}",
                 tickets=tickets)
+
+
+def _market_q1(odds_c):
+    """3連単オッズ(コース基準)から各コースの市場の1着確率"""
+    inv = [1 / o if o else 0 for o in odds_c]
+    tot = sum(inv)
+    return [sum(v for v, (a, _, _) in zip(inv, PERMS) if a == i) / tot for i in range(6)] if tot else None
+
+
+def _calm(live):
+    return bool(live) and live.get("wind") is not None and live["wind"] <= PICKBIN_CALM_WIND
+
+
+def _pickbinc(pred, odds_c, odds2_w, waku, date, live):
+    """B級イン・凪で強敵なし: B級インの条件 + 風速2m以下 + 他の艇の市場1着確率が全部20%未満。
+    確定オッズ8/10〜10/13で前半44R・114%、後半85R・107%、インの1着 実際÷市場1.52・1.27"""
+    if not odds2_w or not _calm(live) or not _pickbin_target(pred, date):
+        return dict(skip=True, bet="2t")
+    q1 = _market_q1(odds_c)
+    if not q1 or max(q1[1:]) >= PICKBINX_RIVAL_MAX:
+        return dict(skip=True, bet="2t")
+    return _in_top3(pred, odds2_w, waku, f"(風{live['wind']:.0f}m、他に強い艇なし)")
+
+
+def _pickbint(pred, odds2_w, waku, date, live):
+    """B級イン・凪で展示1位: B級インの条件 + 風速2m以下 + 1コースの展示タイムが6艇で一番速い(同タイム含む)。
+    確定オッズ8/10〜10/13で前半98R・118%、後半164R・103%、インの1着 実際÷市場1.37・1.28"""
+    if not odds2_w or not _calm(live) or not _pickbin_target(pred, date):
+        return dict(skip=True, bet="2t")
+    tj = (live or {}).get("tenji")
+    if not tj or len(tj) != 6 or any(t is None for t in tj) or tj[waku[0] - 1] > min(tj):
+        return dict(skip=True, bet="2t")
+    return _in_top3(pred, odds2_w, waku, f"(風{live['wind']:.0f}m、展示タイム1位)")
 
 
 def _pick6a_target(pred):
@@ -610,7 +651,7 @@ def _pick21t(pred, odds_c, waku):
                 scenario=f"2-1の3連単版。3着は{'・'.join(t['combo'][-1] for t in tickets)}号艇", tickets=tickets)
 
 
-def make_bet(pred, odds_w, odds2_w=None, date=None):
+def make_bet(pred, odds_w, odds2_w=None, date=None, live=None):
     """予想(コース基準)と枠番オッズから、保存用の買い目(5通り)を作る"""
     waku = [b["waku"] for b in pred["boats"]]            # コース -> 枠番
     odds_c = [odds_w.get((waku[i] - 1, waku[j] - 1, waku[k] - 1)) for i, j, k in PERMS]
@@ -640,6 +681,8 @@ def make_bet(pred, odds_w, odds2_w=None, date=None):
     out["pick21"] = _pick21(pred, odds2_w, waku)
     out["pick21t"] = _pick21t(pred, odds_c, waku)
     out["pickbinx"] = _pickbinx(pred, odds_c, odds2_w, waku, date)
+    out["pickbinc"] = _pickbinc(pred, odds_c, odds2_w, waku, date, live)
+    out["pickbint"] = _pickbint(pred, odds2_w, waku, date, live)
     for name in OPS_PLANS + SHADOW_PLANS:   # 運用プランには今のロジックの印を付ける(集計はこの印があるものだけ)
         out[name]["logic"] = OPS_LOGIC
     # 締切前オッズそのもの(公式表の並び)も残す。締切時オッズとの差の分析用
@@ -679,6 +722,8 @@ def run(now=None):
     bp = DATA / "bets" / f"{date}.json"
     bp.parent.mkdir(parents=True, exist_ok=True)
     bets = json.loads(bp.read_text()) if bp.exists() else {}
+    ep = DATA / "entries" / f"{date}.json"
+    entries = json.loads(ep.read_text()) if ep.exists() else {}   # 展示タイム・水面気象
     done = []
     for key, pred in preds.items():
         if pred.get("version") != "final" or not pred.get("tri"):
@@ -701,7 +746,8 @@ def run(now=None):
             odds2 = fetch_odds2(date, pred["jcd"], pred["race"])
             time.sleep(1.0)
         n = bets.get(key, {}).get("n_decided", 0) + 1   # 何回作り直したか
-        bets[key] = dict(make_bet(pred, odds, odds2, date), odds_at=now.strftime("%H:%M"), n_decided=n)
+        live = entries.get(key) if isinstance(entries.get(key), dict) else None
+        bets[key] = dict(make_bet(pred, odds, odds2, date, live), odds_at=now.strftime("%H:%M"), n_decided=n)
         done.append(key)
     if done:
         bp.write_text(json.dumps(bets, ensure_ascii=False, indent=0))
