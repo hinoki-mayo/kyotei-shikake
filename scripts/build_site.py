@@ -35,8 +35,8 @@ PTS = {"01": 10, "02": 8, "03": 6, "04": 4, "05": 2, "06": 1}
 DAYS_BACK = 0
 
 CSS = """
-:root{--bg:#f4f5f7;--card:#fff;--tx:#1f2328;--sub:#6b7079;--bd:#e3e5e9;--navy:#1B2A4A;--ac:#185FA5;--hot:#E8742E;--red:#A32D2D;--green:#0F6E56;--off:#eceef1;--gain:#2A6FDB;--loss:#C7443A}
-@media (prefers-color-scheme:dark){:root{--bg:#131518;--card:#1d2025;--tx:#e9eaec;--sub:#9aa0a8;--bd:#2d3138;--ac:#85B7EB;--off:#1a1c20;--gain:#4F8EE8;--loss:#E06559}}
+:root{--bg:#f4f5f7;--card:#fff;--tx:#1f2328;--sub:#6b7079;--bd:#e3e5e9;--navy:#1B2A4A;--ac:#185FA5;--hot:#E8742E;--red:#A32D2D;--green:#0F6E56;--off:#eceef1;--gain:#2A6FDB;--loss:#C7443A;--mark:#FFF1C9}
+@media (prefers-color-scheme:dark){:root{--bg:#131518;--card:#1d2025;--tx:#e9eaec;--sub:#9aa0a8;--bd:#2d3138;--ac:#85B7EB;--off:#1a1c20;--gain:#4F8EE8;--loss:#E06559;--mark:#4A3D14}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:'Hiragino Sans','Noto Sans JP',sans-serif;line-height:1.6}
 a{color:inherit;text-decoration:none}header{background:var(--navy);color:#fff;padding:12px 16px;font-weight:700}
 main{max-width:760px;margin:0 auto;padding:10px}h1{font-size:19px;margin:10px 0}h2{font-size:16px;margin:18px 0 8px}
@@ -63,6 +63,7 @@ main{max-width:760px;margin:0 auto;padding:10px}h1{font-size:19px;margin:10px 0}
 .plan-card{display:block;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;text-decoration:none;color:var(--tx)}
 .pc-head{display:flex;justify-content:space-between;align-items:baseline}.pc-head b{font-size:14.5px}
 .pc-roi{font-size:18px;font-weight:800}.pc-chart{margin:6px 0 2px}.pc-foot{display:flex;justify-content:space-between}
+.pc-split{margin-top:8px;border-top:1px solid var(--bd);padding-top:4px}.pc-srow{display:grid;grid-template-columns:1fr auto 3.2em;gap:8px;font-size:13px;padding:2px 0;align-items:baseline}.pc-srow b{text-align:right}
 .back-lk{display:inline-block;margin:6px 0 2px;color:var(--ac);font-size:13px}
 .boat{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}.boat:last-child{border:0}
 .chip{width:30px;height:30px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;border:1px solid var(--bd)}
@@ -405,11 +406,13 @@ def settle(plan, result):
     2連単の買い方(bet="2t")は2連単の結果で精算する"""
     if not plan or plan.get("skip") or not result:
         return None
-    kind = plan.get("bet", "3t")
-    combo, pay = result.get(f"combo{kind}"), result.get(f"payout{kind}")
-    if not combo or pay is None or pd.isna(pay):
-        return None
-    ret = sum(t["units"] * int(pay) for t in plan["tickets"] if t["combo"] == combo)
+    ret = 0
+    for kind in {t.get("bet", plan.get("bet", "3t")) for t in plan["tickets"]}:   # 買い目ごとに券種が違うプランもある
+        combo, pay = result.get(f"combo{kind}"), result.get(f"payout{kind}")
+        if not combo or pay is None or pd.isna(pay):
+            return None
+        ret += sum(t["units"] * int(pay) for t in plan["tickets"]
+                   if t.get("bet", plan.get("bet", "3t")) == kind and t["combo"] == combo)
     return plan["stake"], ret
 
 
@@ -589,6 +592,9 @@ def bets_records():
                 pl = plans.get(pk)
                 if pl and not pl.get("skip") and pk in st:
                     rec[pk + "_tk"] = [[t["combo"], t["units"], t.get("role")] for t in pl["tickets"]]
+            pu = plans.get("pickura")
+            if pu and not pu.get("skip") and "pickura" in st:
+                rec["pickura_tag"] = int(any(h.get("tags") for h in pu.get("heads", [])))   # 絞り込み候補の印があるか
             p2t = plans.get("pick2tan")
             if p2t and not p2t.get("skip") and "pick2tan" in st:
                 rec["pick2tan_tk"] = [[t["combo"], t["units"], t.get("role")] for t in p2t["tickets"]]
@@ -877,7 +883,8 @@ function renderUpcoming(el, U, PL, VN, only){
   el.innerHTML='<div class="card"><b>これから</b> <span class="sub">締切前に決めた買い目・結果待ち</span>'+rows.map(x=>
     `<div class="boat" style="flex-direction:column;align-items:flex-start;gap:2px"><div><b>${x.t} ${VN[x.v]} ${x.r}R</b>`+
     (only?'':` <span class="sub">${PL[x.p]||x.p}</span>`)+`</div><div>`+
-    x.tk.map(([c,u,role,o])=>`<span class="tri-chip" style="font-size:15px">${c}</span> <span class="sub">${role?role+' ':''}${(u*100).toLocaleString()}円${o?'・'+o+'倍':''}</span>`).join('　')+
+    x.tk.map(([c,u,role,o])=>{const mk=(role||'').includes('【');   // 絞り込み候補の印がある頭は目立たせる
+      return `<span style="${mk?'background:var(--mark);border-radius:6px;padding:1px 4px':''}"><span class="tri-chip" style="font-size:15px">${c}</span> <span class="sub">${mk?'★':''}${role?role+' ':''}${(u*100).toLocaleString()}円${o?'・'+o+'倍':''}</span></span>`;}).join('　')+
     `</div></div>`).join('')+'<p class="sub" style="margin:6px 0 0">オッズは買い目を決めた時点のもの。締切までに動きます。</p></div>';
 }
 """
@@ -938,6 +945,30 @@ function pnlCharts(el, days){
 DASH_JS = r"""
 const SINCE=__SINCE__, PLANS=__PLANS__, SHADOW=__SHADOW__;
 let D=[];
+// 運用プランを同じ画面で小分けにして見る(同じレース・同じ買い目のうち、条件に当てはまるレースだけの成績)
+const has=k=>x=>Array.isArray(x.s[k]);
+const SPLITS={
+  pickura:[['★印あり',x=>x.pickura_tag===1],['印なし',x=>x.pickura_tag===0]],
+  pickbin:[['凪で強敵なし',has('pickbinc')],['凪で展示1位',has('pickbint')],['市場の強敵なし＋ST最速',has('pickbinx')],['裏の穴も出たレース',has('pickura')],['裏の穴が出ないレース',x=>!has('pickura')(x)]],
+};
+function subStats(pk, f){
+  let n=0, hit=0, st=0, ret=0;
+  for(const x of D){
+    if(x.d<SINCE[pk]) continue;
+    const v=x.s[pk];
+    if(!Array.isArray(v)||!f(x)) continue;
+    n++; st+=v[0]; ret+=v[1]; hit+=v[1]>0?1:0;
+  }
+  return {n, hit, st, ret};
+}
+function splitRows(pk){
+  if(!SPLITS[pk]) return '';
+  return `<div class="pc-split">`+SPLITS[pk].map(([lb,f])=>{
+    const r=subStats(pk,f), roi=r.st?Math.round(r.ret/r.st*100):null, pl=r.ret-r.st;
+    return `<div class="pc-srow"><span>${lb}</span><span class="sub">${r.n}R・的中${r.n?Math.round(r.hit/r.n*100):0}%</span>`+
+      `<b style="color:${pl>=0?'var(--green)':'var(--red)'}">${roi===null?'-':roi+'%'}</b></div>`;
+  }).join('')+`</div>`;
+}
 const $=id=>document.getElementById(id), yen=n=>n.toLocaleString();
 
 function cumSeries(planKeys){
@@ -996,7 +1027,7 @@ function render(){
       `<div class="pc-head"><b>${PLANS[pk]}</b><span class="pc-roi" style="color:${col}">${pts.length?roi.toFixed(0)+'%':'-'}</span></div>`+
       `<div class="pc-chart">${pts.length?sparkline(pts,260,56,col):'<p class="sub" style="margin:18px 0 0">まだ実績がありません</p>'}</div>`+
       `<div class="pc-foot sub"><span>${pts.length?(pl>=0?'+':'')+yen(pl)+'円':''}</span><span>${pts.length}日分</span></div>`+
-      `</a>`;
+      splitRows(pk)+`</a>`;
   }
   $('cards').innerHTML = cards;
   $('shadow').innerHTML = Object.keys(SHADOW).map(pk=>{
@@ -1039,7 +1070,7 @@ def ops_page():
     body = ('<h1>運用</h1>' + own_tabs("ops")
             + '<p class="sub">試験買い目のうち、実オッズで検証した専用プランの収支をまとめて見る画面です。'
               'カードをタップすると各プランの詳細(日別実績・買い目・ロジック)に移動します。'
-              '現在稼働中は2連単の2プラン(B級イン・裏の穴、B級イン・2連単)。外・2連単は10/15、イン逃げの逆張りは10/16に立説中へ下げました。'
+              '現在稼働中は2プラン(B級イン・裏の穴＝2連単と3連単の高い方で買う、B級イン・2連単)。カードの下は、同じ買い目を条件で小分けにした成績です(★印あり=絞り込み候補の印が付いた頭)。外・2連単は10/15、イン逃げの逆張りは10/16に立説中へ下げました。'
               f'{since_label}から集計しています。切り替えはその日の途中だったため、切り替え前のレースは締切前に記録したオッズで'
               '今のロジックの買い目を後から作り直して含めています(1日単位で比べるため)。'
               'グラフの日をタップすると、その日の損益・的中率が出ます。</p>'
@@ -1094,13 +1125,14 @@ function render(){
   s += `<div class="card"><b>レース一覧</b>` + list.map(x=>{
     const hit=x.ret>0;
     const grp = {};
-    for(const [c,u,role] of x.tk){ const k=(role||'').split('・')[0]||'買い目'; (grp[k]=grp[k]||[]).push([c,u]); }
+    const mk = {};
+    for(const [c,u,role] of x.tk){ const k=(role||'').split('・')[0]||'買い目'; (grp[k]=grp[k]||[]).push([c,u]); if((role||'').includes('【')) mk[k]=(role.match(/【(.*)】/)||[])[1]; }
     const tk = Object.keys(grp).map(k=>
-      `<div style="margin-top:2px"><span class="sub" style="font-weight:700">${k}</span> `+
-      grp[k].map(([c,u])=>`<span class="sub" style="display:inline-block;margin:1px 6px 1px 0${c===x.res?';color:var(--green);font-weight:700':''}">${c}×${u}口</span>`).join('')
+      `<div style="margin-top:2px${mk[k]?';background:var(--mark);border-radius:6px;padding:2px 4px':''}"><span class="sub" style="font-weight:700">${mk[k]?'★':''}${k}${mk[k]?' 【'+mk[k]+'】':''}</span> `+
+      grp[k].map(([c,u])=>`<span class="sub" style="display:inline-block;margin:1px 6px 1px 0${(c===x.res||(c.length===3&&x.res&&x.res.startsWith(c+'-')))?';color:var(--green);font-weight:700':''}">${c}×${u}口</span>`).join('')
       +`</div>`).join('');
     return `<div class="boat" style="flex-direction:column;align-items:flex-start;gap:4px">`+
-      `<div style="display:flex;width:100%"><div style="flex:1"><b>${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}${x.t?' '+x.t:''}・結果 ${x.res}・投資${yen(x.st)}円</span></div>`+
+      `<div style="display:flex;width:100%"><div style="flex:1"><b>${Object.keys(mk).length?'★':''}${VN[x.v]} ${x.r}R</b> <span class="sub">${+x.d.slice(4,6)}/${+x.d.slice(6)}${x.t?' '+x.t:''}・結果 ${x.res}・投資${yen(x.st)}円</span></div>`+
       `<b style="color:${hit?'var(--green)':'var(--red)'}">${hit?'的中':'外れ'} ${x.ret-x.st>=0?'+':''}${yen(x.ret-x.st)}円</b></div>`+
       (tk?`<details style="width:100%"><summary class="sub">買い目(${x.tk.length}点)を見る</summary><div style="margin-top:4px">${tk}</div></details>`:'')+
       `</div>`;
@@ -1214,8 +1246,10 @@ def _pickura_logic_card():
         ("② 頭", "オッズを使わず実績だけで作った1着確率の予想(選手のコース別成績・勝率・級・年齢・体重・モーター・ボート・"
                  f"平均ST・F・展示タイム・風・波)が、市場の1着確率の{b.PICKURA_RATIO}倍以上かつ{b.PICKURA_MIN_P:.0%}以上と見る"
                  "1コース以外の艇。何艇でも"),
-        ("③ 買い目と配分", f"頭1艇につき2着5艇の2連単を、オッズの逆数に比例して{b.PICKURA_UNITS * 100:,}円(単勝を買うのと同じ形)"),
-        ("④ 印", "あとで確かめるため、絞り込み候補に入った頭に印を付ける: モーター上位×単勝相当10〜20倍、"
+        ("③ 買い目と配分", f"頭1艇につき2着5艇を、オッズの逆数に比例して{b.PICKURA_UNITS * 100:,}円(単勝を買うのと同じ形)。"
+                         "2着ごとに、2連単と3連単(3着4点をオッズ配分した合成)のオッズが高い方で買う"
+                         "(同じ結果に高い値段の券種を選ぶだけ。確定オッズで回収率+5〜10ポイント)"),
+        ("④ 印(★)", "あとで確かめるため、絞り込み候補に入った頭に★印を付け、運用画面で印あり・なしを分けて集計する: モーター上位×単勝相当10〜20倍、"
                  "インの市場35%未満×比1.7〜2.0、4コース×風3m以上"),
     ]
     rows = "".join(f'<div class="boat"><div><b>{t}</b><br><span class="sub">{x}</span></div></div>' for t, x in steps)

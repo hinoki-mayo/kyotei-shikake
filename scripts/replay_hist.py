@@ -75,24 +75,30 @@ def odds_bets(date):
     return out
 
 
+def _hit(kind, r, o2, o3):
+    """その券種の的中組番と100円あたり払戻。出せなければ(None, None)"""
+    if kind == "2t":
+        if not r["win"] or not r["sec"] or not o2:
+            return None, None
+        pay = o2.get((r["win"] - 1, r["sec"] - 1))
+        return (f"{r['win']}-{r['sec']}", round(pay * 100)) if pay else (None, None)
+    combo, pay = r["combo3t"], r["payout3t"]
+    if (not combo or pay is None or pay != pay) and o3 and r["win"] and r["sec"] and r["thr"]:
+        o = o3.get((r["win"] - 1, r["sec"] - 1, r["thr"] - 1))   # 競走成績に払戻が無い時は確定3連単オッズで
+        combo, pay = f"{r['win']}-{r['sec']}-{r['thr']}", (round(o * 100) if o else None)
+    return (combo, pay) if combo and pay is not None and pay == pay else (None, None)
+
+
 def settle(plan, r, o2, o3=None):
     if not plan or plan.get("skip"):
         return None
-    if plan.get("bet") == "2t":
-        if not r["win"] or not r["sec"] or not o2:
+    ret = 0
+    for kind in {t.get("bet", plan.get("bet", "3t")) for t in plan["tickets"]}:   # 買い目ごとに券種が違うプランもある
+        combo, pay = _hit(kind, r, o2, o3)
+        if combo is None:
             return None
-        pay = o2.get((r["win"] - 1, r["sec"] - 1))
-        if pay is None:
-            return None
-        combo, pay = f"{r['win']}-{r['sec']}", round(pay * 100)
-    else:
-        combo, pay = r["combo3t"], r["payout3t"]
-        if (not combo or pay is None or pay != pay) and o3 and r["win"] and r["sec"] and r["thr"]:
-            o = o3.get((r["win"] - 1, r["sec"] - 1, r["thr"] - 1))   # 競走成績に払戻が無い時は確定3連単オッズで
-            combo, pay = f"{r['win']}-{r['sec']}-{r['thr']}", (round(o * 100) if o else None)
-        if not combo or pay is None or pay != pay:
-            return None
-    ret = sum(t["units"] * int(pay) for t in plan["tickets"] if t["combo"] == combo)
+        ret += sum(t["units"] * int(pay) for t in plan["tickets"]
+                   if t.get("bet", plan.get("bet", "3t")) == kind and t["combo"] == combo)
     return plan["stake"], ret
 
 

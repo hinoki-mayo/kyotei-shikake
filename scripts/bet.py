@@ -551,7 +551,8 @@ def _calm(live):
 
 def _pickura(pred, odds_c, odds2_w, waku, date, live):
     """B級イン・裏の穴: B級インのレースで、実績だけの予想(gbm_win)が市場の1.7倍以上・10%以上と見る他艇を頭に、
-    2着5艇をオッズ配分(単勝と同じ形)で買う。確定オッズで6〜7月395点・90%、8〜10月502点・95%、1着は市場の1.26・1.28倍。
+    2着5艇をオッズ配分(単勝と同じ形)で買う。2着ごとに2連単と3連単(3着4点の合成)の高い方を選ぶ。
+    確定オッズで6〜7月395点・90%、8〜10月502点・95%(高い方で買うと97%・105%)、1着は市場の1.26・1.28倍。
     あとで確かめるため、絞り込み候補(モーター1〜3位&単勝相当10〜20倍、インの市場35%未満&比1.7〜2.0、4コース&風3m以上)を印で残す"""
     if not odds2_w or not _pickbin_target(pred, date):
         return dict(skip=True, bet="2t")
@@ -574,16 +575,36 @@ def _pickura(pred, odds_c, odds2_w, waku, date, live):
         tags = [t for t, ok in (("モーター上位×10〜20倍", mot[i] <= 3 and 10 <= ow < 20),
                                 ("インの市場35%未満×比1.7〜2.0", q1[0] < 0.35 and g[i] / q1[i] < 2.0),
                                 ("4コース×風3m以上", i == 3 and (live or {}).get("wind") is not None and live["wind"] >= 3)) if ok]
-        units = [max(1, round(PICKURA_UNITS * (1 / o) / sum(1 / oo for _, oo in cand))) for _, o in cand]
-        units[0] += PICKURA_UNITS - sum(units)
+        # 2着ごとに、2連単 i-j と 3連単 i-j-□(4点をオッズ配分した合成)の高い方で買う(同じ結果に高い値段の券種を選ぶ)
+        legs = []                                   # (2着, 実効オッズ, [(券種, 組番, オッズ, 重み)])
+        for j, o2 in cand:
+            c3 = [(k, odds_c[PI[(i, j, k)]]) for k in range(6) if k not in (i, j)]
+            syn = 1 / sum(1 / o for _, o in c3) if all(o for _, o in c3) else 0
+            if syn > o2:
+                legs.append((j, syn, [("3t", f"{waku[i]}-{waku[j]}-{waku[k]}", o, (1 / o) * syn) for k, o in c3]))
+            else:
+                legs.append((j, o2, [("2t", f"{waku[i]}-{waku[j]}", o2, 1.0)]))
+        ow = 1 / sum(1 / e for _, e, _ in legs)    # 高い方で買った時の単勝相当のオッズ
+        items = [(kind, combo, o, (1 / e) * w) for _, e, parts in legs for kind, combo, o, w in parts]
+        units = _alloc([w for *_, w in items], PICKURA_UNITS)
         role = f"頭{waku[i]}号艇(予想{g[i]:.0%}・市場{q1[i]:.0%})" + ("【" + "・".join(tags) + "】" if tags else "")
-        tickets += [dict(combo=f"{waku[i]}-{waku[j]}", units=u, odds=o, role=role) for (j, o), u in zip(cand, units)]
+        tickets += [dict(combo=combo, units=u, odds=o, role=role, bet=kind) for (kind, combo, o, _), u in zip(items, units) if u]
         heads.append(dict(head=waku[i], p=round(float(g[i]), 4), q=round(float(q1[i]), 4), win_odds=round(ow, 1), tags=tags))
     if not tickets:
         return dict(skip=True, bet="2t")
     return dict(skip=False, bet="2t", head=heads[0]["head"], himo=None, stake=sum(t["units"] for t in tickets) * 100,
                 heads=heads, scenario="B級インのレースで、実績から見て市場が軽く見ている" +
                 "・".join(f"{h['head']}号艇" for h in heads) + "が勝つ展開", tickets=tickets)
+
+
+def _alloc(weights, total):
+    """重みに比例してtotal口を配る(最大剰余法。0口の目は買わない)"""
+    tw = sum(weights)
+    raw = [total * w / tw for w in weights]
+    units = [int(r) for r in raw]
+    for k in sorted(range(len(raw)), key=lambda k: raw[k] - units[k], reverse=True)[:total - sum(units)]:
+        units[k] += 1
+    return units
 
 
 def _pickbinc(pred, odds_c, odds2_w, waku, date, live):
