@@ -80,7 +80,7 @@ PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": 
          "pick2tan": "外・2連単(確率20%以上の本命頭)", "pickbin": "B級イン・2連単(2着2艇)",
          "pick6a": "6コースだけA級・2連単(立説中)", "pick21": "2差し1残し・2連単2-1(立説中)",
          "pick21t": "2差し1残し・3連単2-1-□(立説中)", "pickbinx": "B級イン・絞り込み(立説中)",
-         "pickbinc": "B級イン・凪で強敵なし(立説中)", "pickbint": "B級イン・凪で展示1位(立説中)"}
+         "pickura": "B級イン・裏の穴(立説中)", "pickbinc": "B級イン・凪で強敵なし(立説中)", "pickbint": "B級イン・凪で展示1位(立説中)"}
 PICK2_NIGE_MAX = 0.22   # pressedの中でもこれ未満だけ対象(実オッズ検証: 頻度と回収率のバランスで22%に)
 PICK2_MIN_ODDS = 2.25   # 5分前時点オッズなので、損益分岐の2倍より変動分の余裕を見て高め
 PICK2_MAX_ODDS = 50     # これを超える穴目は除外(過大評価しがちで実オッズ検証でも回収率を下げていた)
@@ -111,7 +111,7 @@ PICKBIN_UNITS = (16, 24)   # 2着の確率1位・2位に何口ずつ(合計4,000
                            # 高かった(1位のみ105%・2位のみ118%)ので2位を厚めに。均等111%→この配分113%
 PICKBIN_LOGIC_SINCE = "20261014"   # 運用タブの集計開始日(実際の区切りはOPS_LOGICの印)
 OPS_PLANS = ("pickin", "pickbin")   # 運用ダッシュボードに出すプラン
-SHADOW_PLANS = ("pickbinc", "pickbint", "pickbinx", "pick21", "pick21t", "pick6a", "pick2tan")   # 優先度の高い順   # 立説中: ダッシュボードには別枠で出し、総合収支には含めない
+SHADOW_PLANS = ("pickura", "pickbinc", "pickbint", "pickbinx", "pick21", "pick21t", "pick6a", "pick2tan")   # 優先度の高い順   # 立説中: ダッシュボードには別枠で出し、総合収支には含めない
                     # (外・2連単は6/1〜10/11の実オッズで232点・89%だったので10/15に運用から立説中へ下げた)
 PICK6A_UNITS = (24, 36)      # 6コースだけA級: 2着の確率1位・2位に何口ずつ(合計6,000円)
 PICK6A_LOGIC_SINCE = "20261014"
@@ -124,7 +124,11 @@ PICKBINX_UNITS = 40          # 2着は人気上位3艇、どれが来ても払�
 PICKBINX_LOGIC_SINCE = "20261014"
 PICKBIN_CALM_WIND = 2        # 凪の目安: 風速(m)がこれ以下(展示の時点の水面気象)
 PICKBINC_LOGIC_SINCE = "20261014"
-PICKBINT_LOGIC_SINCE = "20261014"  # 3連単2-1-□: 3着のモデル上位3艇に何口ずつ(合計4,000円)
+PICKBINT_LOGIC_SINCE = "20261014"
+PICKURA_RATIO = 1.7          # B級イン・裏の穴: 実績だけの予想(gbm_win)÷市場の1着確率がこれ以上の他艇
+PICKURA_MIN_P = 0.10         # かつ実績だけの予想で1着確率がこれ以上
+PICKURA_UNITS = 40           # 頭1艇につき4,000円、2着5艇をオッズの逆数に比例して配分(=単勝と同じ形)
+PICKURA_LOGIC_SINCE = "20261014"  # 3連単2-1-□: 3着のモデル上位3艇に何口ずつ(合計4,000円)
 OPS_LOGIC = "2026-10-14c"   # 運用プランのロジックの版。変えたらここも変えると、それ以前の記録は集計から外れる
                             # (10/14の途中で3プラン・各4,000円に切り替え、ここから集計し直し。
                             #  同日夜にB級インからF持ちのインを外して c に。その日の分は backfill_ops で作り直し)
@@ -545,6 +549,43 @@ def _calm(live):
     return bool(live) and live.get("wind") is not None and live["wind"] <= PICKBIN_CALM_WIND
 
 
+def _pickura(pred, odds_c, odds2_w, waku, date, live):
+    """B級イン・裏の穴: B級インのレースで、実績だけの予想(gbm_win)が市場の1.7倍以上・10%以上と見る他艇を頭に、
+    2着5艇をオッズ配分(単勝と同じ形)で買う。確定オッズで6〜7月395点・90%、8〜10月502点・95%、1着は市場の1.26・1.28倍。
+    あとで確かめるため、絞り込み候補(モーター1〜3位&単勝相当10〜20倍、インの市場35%未満&比1.7〜2.0、4コース&風3m以上)を印で残す"""
+    if not odds2_w or not _pickbin_target(pred, date):
+        return dict(skip=True, bet="2t")
+    q1 = _market_q1(odds_c)
+    if not q1:
+        return dict(skip=True, bet="2t")
+    import gbm_win
+    g = gbm_win.probs(pred, date, live)
+    if not g:
+        return dict(skip=True, bet="2t")
+    mot = pd.Series([b["motor_2r"] for b in pred["boats"]]).rank(ascending=False, method="min").tolist()
+    tickets, heads = [], []
+    for i in range(1, 6):
+        if g[i] < PICKURA_MIN_P or g[i] / max(q1[i], 1e-9) < PICKURA_RATIO:
+            continue
+        cand = [(j, odds2_w.get((waku[i] - 1, waku[j] - 1))) for j in range(6) if j != i]
+        if any(o is None for _, o in cand):
+            continue
+        ow = 1 / sum(1 / o for _, o in cand)          # 単勝相当のオッズ
+        tags = [t for t, ok in (("モーター上位×10〜20倍", mot[i] <= 3 and 10 <= ow < 20),
+                                ("インの市場35%未満×比1.7〜2.0", q1[0] < 0.35 and g[i] / q1[i] < 2.0),
+                                ("4コース×風3m以上", i == 3 and (live or {}).get("wind") is not None and live["wind"] >= 3)) if ok]
+        units = [max(1, round(PICKURA_UNITS * (1 / o) / sum(1 / oo for _, oo in cand))) for _, o in cand]
+        units[0] += PICKURA_UNITS - sum(units)
+        role = f"頭{waku[i]}号艇(予想{g[i]:.0%}・市場{q1[i]:.0%})" + ("【" + "・".join(tags) + "】" if tags else "")
+        tickets += [dict(combo=f"{waku[i]}-{waku[j]}", units=u, odds=o, role=role) for (j, o), u in zip(cand, units)]
+        heads.append(dict(head=waku[i], p=round(float(g[i]), 4), q=round(float(q1[i]), 4), win_odds=round(ow, 1), tags=tags))
+    if not tickets:
+        return dict(skip=True, bet="2t")
+    return dict(skip=False, bet="2t", head=heads[0]["head"], himo=None, stake=sum(t["units"] for t in tickets) * 100,
+                heads=heads, scenario="B級インのレースで、実績から見て市場が軽く見ている" +
+                "・".join(f"{h['head']}号艇" for h in heads) + "が勝つ展開", tickets=tickets)
+
+
 def _pickbinc(pred, odds_c, odds2_w, waku, date, live):
     """B級イン・凪で強敵なし: B級インの条件 + 風速2m以下 + 他の艇の市場1着確率が全部20%未満。
     確定オッズ8/10〜10/13で前半44R・114%、後半85R・107%、インの1着 実際÷市場1.52・1.27"""
@@ -681,6 +722,7 @@ def make_bet(pred, odds_w, odds2_w=None, date=None, live=None):
     out["pick21"] = _pick21(pred, odds2_w, waku)
     out["pick21t"] = _pick21t(pred, odds_c, waku)
     out["pickbinx"] = _pickbinx(pred, odds_c, odds2_w, waku, date)
+    out["pickura"] = _pickura(pred, odds_c, odds2_w, waku, date, live)
     out["pickbinc"] = _pickbinc(pred, odds_c, odds2_w, waku, date, live)
     out["pickbint"] = _pickbint(pred, odds2_w, waku, date, live)
     for name in OPS_PLANS + SHADOW_PLANS:   # 運用プランには今のロジックの印を付ける(集計はこの印があるものだけ)

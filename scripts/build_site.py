@@ -431,6 +431,8 @@ SKIP_TEXT = {"balance": "的中確率30%以上で期待回収率100%を超える
              "pick6a": "A級が6コースだけで、1〜5コースが全員B級のレースのみ対象",
              "pick21t": f"2コースの予想スタートが1コースより{bet_mod.PICK21_ST_GAP}秒以上速いレースのみ対象",
              "pick21": f"2コースの予想スタートが1コースより{bet_mod.PICK21_ST_GAP}秒以上速いレースのみ対象",
+             "pickura": "B級インのレースで、実績だけの予想が市場の1着確率の"
+                        f"{bet_mod.PICKURA_RATIO}倍以上・{bet_mod.PICKURA_MIN_P:.0%}以上と見る他艇がいる時だけ買います",
              "pickbinc": f"B級インの条件に加えて、風速{bet_mod.PICKBIN_CALM_WIND}m以下で、他の艇の市場の1着確率が全部"
                          f"{bet_mod.PICKBINX_RIVAL_MAX:.0%}未満のレースのみ対象",
              "pickbint": f"B級インの条件に加えて、風速{bet_mod.PICKBIN_CALM_WIND}m以下で、1コースの展示タイムが一番速いレースのみ対象",
@@ -583,7 +585,7 @@ def bets_records():
             p6a = plans.get("pick6a")
             if p6a and not p6a.get("skip") and "pick6a" in st:
                 rec["pick6a_tk"] = [[t["combo"], t["units"], t.get("role")] for t in p6a["tickets"]]
-            for pk in ("pickbinx", "pickbinc", "pickbint"):
+            for pk in ("pickbinx", "pickbinc", "pickbint", "pickura"):
                 pl = plans.get(pk)
                 if pl and not pl.get("skip") and pk in st:
                     rec[pk + "_tk"] = [[t["combo"], t["units"], t.get("role")] for t in pl["tickets"]]
@@ -861,7 +863,7 @@ def pick_page(hi_list, lo_list):
 
 
 DASH_PLANS = {"pickin": "内・2連単・逆張り", "pickbin": "B級イン・2連単"}
-SHADOW_LABELS = {"pickbinc": "B級イン・凪で強敵なし", "pickbint": "B級イン・凪で展示1位",
+SHADOW_LABELS = {"pickura": "B級イン・裏の穴", "pickbinc": "B級イン・凪で強敵なし", "pickbint": "B級イン・凪で展示1位",
                  "pickbinx": "B級イン・絞り込み", "pick21": "2差し1残し・2連単2-1",
                  "pick21t": "2差し1残し・3連単2-1-□", "pick6a": "6コースだけA級・2連単",
                  "pick2tan": "外・2連単"}   # 立説中(総合収支に含めない)。並びが優先度(上ほど有望)   # 立説中(総合収支に含めない)
@@ -1014,12 +1016,13 @@ PLAN_SINCE = {"pick2": bet_mod.PICK2_LOGIC_SINCE, "pick2tan": bet_mod.PICK2TAN_L
               "pickin": bet_mod.PICKIN_LOGIC_SINCE, "pickbin": bet_mod.PICKBIN_LOGIC_SINCE,
               "pick6a": bet_mod.PICK6A_LOGIC_SINCE, "pick21": bet_mod.PICK21_LOGIC_SINCE,
               "pick21t": bet_mod.PICK21_LOGIC_SINCE, "pickbinx": bet_mod.PICKBINX_LOGIC_SINCE,
-              "pickbinc": bet_mod.PICKBINC_LOGIC_SINCE, "pickbint": bet_mod.PICKBINT_LOGIC_SINCE}
+              "pickbinc": bet_mod.PICKBINC_LOGIC_SINCE, "pickbint": bet_mod.PICKBINT_LOGIC_SINCE,
+              "pickura": bet_mod.PICKURA_LOGIC_SINCE}
 DASH_SINCE = {"pick2tan": bet_mod.PICK2TAN_LOGIC_SINCE, "pickin": bet_mod.PICKIN_LOGIC_SINCE,
               "pickbin": bet_mod.PICKBIN_LOGIC_SINCE, "pick6a": bet_mod.PICK6A_LOGIC_SINCE,
               "pick21": bet_mod.PICK21_LOGIC_SINCE, "pick21t": bet_mod.PICK21_LOGIC_SINCE,
               "pickbinx": bet_mod.PICKBINX_LOGIC_SINCE, "pickbinc": bet_mod.PICKBINC_LOGIC_SINCE,
-              "pickbint": bet_mod.PICKBINT_LOGIC_SINCE}
+              "pickbint": bet_mod.PICKBINT_LOGIC_SINCE, "pickura": bet_mod.PICKURA_LOGIC_SINCE}
 ALL_PLAN_LABELS = {"pick2": "外・3連単", **DASH_PLANS, **SHADOW_LABELS}   # 詳細ページ用。pick2はダッシュボード非表示だがページ自体は残す
 
 
@@ -1202,6 +1205,25 @@ def _pick21t_logic_card():
     return (f'<div class="card"><b>2差し1残し・3連単2-1-□(pick21t)のロジック</b>{rows}</div>'
             '<div class="card"><p class="sub" style="margin:0">立説中の運用です。2026年9月末〜10月の記録242レースで的中32・'
             '回収率185%(2連単2-1は191%)。同じレースで2連単版と比べるために並べて記録しています。総合収支には含めていません。</p></div>')
+
+
+def _pickura_logic_card():
+    b = bet_mod
+    steps = [
+        ("① 対象レース", "B級イン・2連単と同じ(1コースが本物のB級・F持ちでない・モデルの1着確率20%以上)"),
+        ("② 頭", "オッズを使わず実績だけで作った1着確率の予想(選手のコース別成績・勝率・級・年齢・体重・モーター・ボート・"
+                 f"平均ST・F・展示タイム・風・波)が、市場の1着確率の{b.PICKURA_RATIO}倍以上かつ{b.PICKURA_MIN_P:.0%}以上と見る"
+                 "1コース以外の艇。何艇でも"),
+        ("③ 買い目と配分", f"頭1艇につき2着5艇の2連単を、オッズの逆数に比例して{b.PICKURA_UNITS * 100:,}円(単勝を買うのと同じ形)"),
+        ("④ 印", "あとで確かめるため、絞り込み候補に入った頭に印を付ける: モーター上位×単勝相当10〜20倍、"
+                 "インの市場35%未満×比1.7〜2.0、4コース×風3m以上"),
+    ]
+    rows = "".join(f'<div class="boat"><div><b>{t}</b><br><span class="sub">{x}</span></div></div>' for t, x in steps)
+    return (f'<div class="card"><b>B級イン・裏の穴(pickura)のロジック</b>{rows}</div>'
+            '<div class="card"><p class="sub" style="margin:0">実績だけの予想は2026年5月までで学習し、6〜10月の確定オッズで確かめた。'
+            'B級インのレースは市場がインも外の艇も級で見すぎる。6〜7月395点・回収率90%、8〜10月502点・95%で、'
+            '頭の1着は両方の期間とも市場の見立ての1.26倍・1.28倍。条件をいろいろ試して選んだものではなく、最初に決めた形のまま'
+            '両方の期間でそろったので、立説中の優先度1。凪のB級イン系3つは6〜7月で100%を割った(84%・74%・78%)。</p></div>')
 
 
 def _calm_logic_card(key, name, cond, evidence):
@@ -1568,7 +1590,7 @@ def main():
                             ("pickbin", _pickbin_logic_card()), ("pick6a", _pick6a_logic_card()),
                             ("pick21", _pick21_logic_card()), ("pick21t", _pick21t_logic_card()),
                             ("pickbinx", _pickbinx_logic_card()), ("pickbinc", _pickbinc_logic_card()),
-                            ("pickbint", _pickbint_logic_card())):
+                            ("pickbint", _pickbint_logic_card()), ("pickura", _pickura_logic_card())):
         (OUT / "ops" / f"{pk}.html").write_text(ops_detail_page(pk, logic_html))
     key = os.environ.get("SHARE_KEY")
     if key:   # 投稿用の隠しページ(今日と前日の仕掛け成功)。サイトマップには入れない
