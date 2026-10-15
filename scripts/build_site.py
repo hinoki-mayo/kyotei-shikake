@@ -431,6 +431,8 @@ SKIP_TEXT = {"balance": "的中確率30%以上で期待回収率100%を超える
              "pick6a": "A級が6コースだけで、1〜5コースが全員B級のレースのみ対象",
              "pick21t": f"2コースの予想スタートが1コースより{bet_mod.PICK21_ST_GAP}秒以上速いレースのみ対象",
              "pick21": f"2コースの予想スタートが1コースより{bet_mod.PICK21_ST_GAP}秒以上速いレースのみ対象",
+             "pickbinx": f"B級インの条件に加えて、他の艇の市場の1着確率が全部{bet_mod.PICKBINX_RIVAL_MAX:.0%}未満で、"
+                         "1コースの予想スタートが一番速いレースのみ対象",
              "pickbin": f"1コースが本物のB級(勝率{bet_mod.PICKBIN_FAKE_WIN}未満・直近でA級なし・F持ちでない)で、"
                         f"1コース1着確率{bet_mod.PICKBIN_HP_MIN:.0%}以上のレースのみ対象"}
 
@@ -578,6 +580,9 @@ def bets_records():
             p6a = plans.get("pick6a")
             if p6a and not p6a.get("skip") and "pick6a" in st:
                 rec["pick6a_tk"] = [[t["combo"], t["units"], t.get("role")] for t in p6a["tickets"]]
+            pbx = plans.get("pickbinx")
+            if pbx and not pbx.get("skip") and "pickbinx" in st:
+                rec["pickbinx_tk"] = [[t["combo"], t["units"], t.get("role")] for t in pbx["tickets"]]
             p2t = plans.get("pick2tan")
             if p2t and not p2t.get("skip") and "pick2tan" in st:
                 rec["pick2tan_tk"] = [[t["combo"], t["units"], t.get("role")] for t in p2t["tickets"]]
@@ -853,7 +858,7 @@ def pick_page(hi_list, lo_list):
 
 DASH_PLANS = {"pickin": "内・2連単・逆張り", "pickbin": "B級イン・2連単"}
 SHADOW_LABELS = {"pick2tan": "外・2連単", "pick6a": "6コースだけA級・2連単", "pick21": "2差し1残し・2連単2-1",
-                 "pick21t": "2差し1残し・3連単2-1-□"}   # 立説中(総合収支に含めない)
+                 "pick21t": "2差し1残し・3連単2-1-□", "pickbinx": "B級イン・絞り込み"}   # 立説中(総合収支に含めない)
 # 3連単(pick2)は実オッズで良い結果が出てないためダッシュボードには出さない。
 # bet.py側の集計(bets-data.json)は変わらず続けているので、見たくなれば/ops/pick2.htmlで確認できる。
 
@@ -1002,10 +1007,11 @@ fetch('/bets-upcoming.json').then(r=>r.json()).then(u=>renderUpcoming($('up'),u,
 PLAN_SINCE = {"pick2": bet_mod.PICK2_LOGIC_SINCE, "pick2tan": bet_mod.PICK2TAN_LOGIC_SINCE,
               "pickin": bet_mod.PICKIN_LOGIC_SINCE, "pickbin": bet_mod.PICKBIN_LOGIC_SINCE,
               "pick6a": bet_mod.PICK6A_LOGIC_SINCE, "pick21": bet_mod.PICK21_LOGIC_SINCE,
-              "pick21t": bet_mod.PICK21_LOGIC_SINCE}
+              "pick21t": bet_mod.PICK21_LOGIC_SINCE, "pickbinx": bet_mod.PICKBINX_LOGIC_SINCE}
 DASH_SINCE = {"pick2tan": bet_mod.PICK2TAN_LOGIC_SINCE, "pickin": bet_mod.PICKIN_LOGIC_SINCE,
               "pickbin": bet_mod.PICKBIN_LOGIC_SINCE, "pick6a": bet_mod.PICK6A_LOGIC_SINCE,
-              "pick21": bet_mod.PICK21_LOGIC_SINCE, "pick21t": bet_mod.PICK21_LOGIC_SINCE}
+              "pick21": bet_mod.PICK21_LOGIC_SINCE, "pick21t": bet_mod.PICK21_LOGIC_SINCE,
+              "pickbinx": bet_mod.PICKBINX_LOGIC_SINCE}
 ALL_PLAN_LABELS = {"pick2": "外・3連単", **DASH_PLANS, **SHADOW_LABELS}   # 詳細ページ用。pick2はダッシュボード非表示だがページ自体は残す
 
 
@@ -1188,6 +1194,24 @@ def _pick21t_logic_card():
     return (f'<div class="card"><b>2差し1残し・3連単2-1-□(pick21t)のロジック</b>{rows}</div>'
             '<div class="card"><p class="sub" style="margin:0">立説中の運用です。2026年9月末〜10月の記録242レースで的中32・'
             '回収率185%(2連単2-1は191%)。同じレースで2連単版と比べるために並べて記録しています。総合収支には含めていません。</p></div>')
+
+
+def _pickbinx_logic_card():
+    b = bet_mod
+    steps = [
+        ("① 対象レース", "B級イン・2連単と同じ(1コースが本物のB級・F持ちでない・モデルの1着確率20%以上)に加えて、"
+                       f"1コース以外の艇の市場の1着確率(3連単オッズから計算)が全部{b.PICKBINX_RIVAL_MAX:.0%}未満、"
+                       "かつ1コースの予想スタートが6艇で一番速いレース"),
+        ("② 買い目", "1コース頭の2連単。2着は2連単オッズの人気上位3艇"),
+        ("③ 配分", f"オッズの逆数に比例して{b.PICKBINX_UNITS * 100:,}円を配る(どの目が来ても払戻がほぼ同じになる)"),
+    ]
+    rows = "".join(f'<div class="boat"><div><b>{t}</b><br><span class="sub">{x}</span></div></div>' for t, x in steps)
+    return (f'<div class="card"><b>B級イン・絞り込み(pickbinx)のロジック</b>{rows}</div>'
+            '<div class="card"><p class="sub" style="margin:0">8/10〜10/13の確定オッズで確かめた結果から。B級イン全体は'
+            '回収率81%だったが、他に強い艇がいない時はインの1着が市場の1.2倍(前半・後半とも)で的中率も約6割。'
+            'さらに1コースの予想スタートが一番速い時は1.44倍・1.29倍、回収率115%・106%(85レース、1日1〜2レース)。'
+            '20個ほど試した条件のうち一番良かったものなので、本番では下がる前提で記録している。'
+            '2着はAI上位2艇・2位厚めより、人気上位3艇をオッズに合わせて配分する方が安定していた。</p></div>')
 
 
 def _pick6a_logic_card():
@@ -1506,7 +1530,8 @@ def main():
     (OUT / "ops").mkdir(exist_ok=True)
     for pk, logic_html in (("pick2", _pick2_logic_card()), ("pick2tan", _pick2tan_logic_card()), ("pickin", _escape_logic_card()),
                             ("pickbin", _pickbin_logic_card()), ("pick6a", _pick6a_logic_card()),
-                            ("pick21", _pick21_logic_card()), ("pick21t", _pick21t_logic_card())):
+                            ("pick21", _pick21_logic_card()), ("pick21t", _pick21t_logic_card()),
+                            ("pickbinx", _pickbinx_logic_card())):
         (OUT / "ops" / f"{pk}.html").write_text(ops_detail_page(pk, logic_html))
     key = os.environ.get("SHARE_KEY")
     if key:   # 投稿用の隠しページ(今日と前日の仕掛け成功)。サイトマップには入れない

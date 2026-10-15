@@ -79,7 +79,7 @@ PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": 
          "pick2": "厳選頭2頭(本命・次点)", "pickin": "イン逃げ2連単・逆張り(確率2位)",
          "pick2tan": "外・2連単(確率20%以上の本命頭)", "pickbin": "B級イン・2連単(2着2艇)",
          "pick6a": "6コースだけA級・2連単(立説中)", "pick21": "2差し1残し・2連単2-1(立説中)",
-         "pick21t": "2差し1残し・3連単2-1-□(立説中)"}
+         "pick21t": "2差し1残し・3連単2-1-□(立説中)", "pickbinx": "B級イン・絞り込み(立説中)"}
 PICK2_NIGE_MAX = 0.22   # pressedの中でもこれ未満だけ対象(実オッズ検証: 頻度と回収率のバランスで22%に)
 PICK2_MIN_ODDS = 2.25   # 5分前時点オッズなので、損益分岐の2倍より変動分の余裕を見て高め
 PICK2_MAX_ODDS = 50     # これを超える穴目は除外(過大評価しがちで実オッズ検証でも回収率を下げていた)
@@ -110,14 +110,17 @@ PICKBIN_UNITS = (16, 24)   # 2着の確率1位・2位に何口ずつ(合計4,000
                            # 高かった(1位のみ105%・2位のみ118%)ので2位を厚めに。均等111%→この配分113%
 PICKBIN_LOGIC_SINCE = "20261014"   # 運用タブの集計開始日(実際の区切りはOPS_LOGICの印)
 OPS_PLANS = ("pickin", "pickbin")   # 運用ダッシュボードに出すプラン
-SHADOW_PLANS = ("pick2tan", "pick6a", "pick21", "pick21t")   # 立説中: ダッシュボードには別枠で出し、総合収支には含めない
+SHADOW_PLANS = ("pick2tan", "pick6a", "pick21", "pick21t", "pickbinx")   # 立説中: ダッシュボードには別枠で出し、総合収支には含めない
                     # (外・2連単は6/1〜10/11の実オッズで232点・89%だったので10/15に運用から立説中へ下げた)
 PICK6A_UNITS = (24, 36)      # 6コースだけA級: 2着の確率1位・2位に何口ずつ(合計6,000円)
 PICK6A_LOGIC_SINCE = "20261014"
 PICK21_ST_GAP = 0.02         # 2コースの予想STが1コースよりこれだけ速いレースが対象
 PICK21_UNITS = 40            # 2連単2-1の1点に4,000円
 PICK21_LOGIC_SINCE = "20261014"
-PICK21T_UNITS = (14, 13, 13)  # 3連単2-1-□: 3着のモデル上位3艇に何口ずつ(合計4,000円)
+PICK21T_UNITS = (14, 13, 13)
+PICKBINX_RIVAL_MAX = 0.20    # B級イン・絞り込み: 1コース以外の市場1着確率(3連単オッズから)が全部これ未満
+PICKBINX_UNITS = 40          # 2着は人気上位3艇、どれが来ても払戻がほぼ同じになるようオッズに合わせて配分(合計4,000円)
+PICKBINX_LOGIC_SINCE = "20261014"  # 3連単2-1-□: 3着のモデル上位3艇に何口ずつ(合計4,000円)
 OPS_LOGIC = "2026-10-14c"   # 運用プランのロジックの版。変えたらここも変えると、それ以前の記録は集計から外れる
                             # (10/14の途中で3プラン・各4,000円に切り替え、ここから集計し直し。
                             #  同日夜にB級インからF持ちのインを外して c に。その日の分は backfill_ops で作り直し)
@@ -487,6 +490,42 @@ def _pickbin(pred, odds2_w, waku, date):
                 tickets=tickets)
 
 
+def _pickbinx_target(pred, odds_c, date):
+    """B級イン・絞り込み: B級インの条件に加えて、他に強い艇がいない(市場の1着確率が全艇PICKBINX_RIVAL_MAX未満)
+    かつ1コースの予想STが6艇で一番速いレース"""
+    if not _pickbin_target(pred, date):
+        return False
+    inv = [1 / o if o else 0 for o in odds_c]
+    tot = sum(inv)
+    if not tot:
+        return False
+    q1 = [sum(v for v, (a, _, _) in zip(inv, PERMS) if a == i) / tot for i in range(6)]
+    return max(q1[1:]) < PICKBINX_RIVAL_MAX and pred["st"][0] <= min(pred["st"][1:])
+
+
+def _pickbinx(pred, odds_c, odds2_w, waku, date):
+    """1コース頭、2着は2連単の人気上位3艇。オッズの逆数に比例して配分(どれが来ても払戻がほぼ同じ)。
+    確定オッズで8/10〜10/13を確かめた時、強い艇がいないB級インはインの1着が市場の1.2倍(前半・後半とも)、
+    さらにインの予想STが一番速い時は1.44倍・1.29倍(85レース、回収率115%・106%)。
+    2着はAI上位2艇・2位厚めより、人気上位3艇のオッズ配分の方が安定していた"""
+    if not odds2_w or not _pickbinx_target(pred, odds_c, date):
+        return dict(skip=True, bet="2t")
+    cand = [(j, odds2_w.get((waku[0] - 1, waku[j] - 1))) for j in range(1, 6)]
+    cand = sorted([(j, o) for j, o in cand if o], key=lambda t: t[1])[:3]
+    if not cand:
+        return dict(skip=True, bet="2t")
+    w = [1 / o for _, o in cand]
+    units = [max(1, round(PICKBINX_UNITS * v / sum(w))) for v in w]
+    units[0] += PICKBINX_UNITS - sum(units)
+    tickets = [dict(combo=f"{waku[0]}-{waku[j]}", units=u, odds=o, role=f"人気{k + 1}位")
+               for k, ((j, o), u) in enumerate(zip(cand, units))]
+    b = pred["boats"][0]
+    return dict(skip=False, bet="2t", head=waku[0], himo=None, stake=PICKBINX_UNITS * 100,
+                scenario=f"{waku[0]}号艇(1コース・{b['grade']}・勝率{b['nat_win']:.2f})がスタートで先手を取って逃げる展開"
+                         f"(他に市場の1着確率{PICKBINX_RIVAL_MAX:.0%}以上の艇なし)",
+                tickets=tickets)
+
+
 def _pick6a_target(pred):
     """6コースだけA級で、1〜5コースは全員B級のレース"""
     g = [b["grade"][:1] for b in pred["boats"]]
@@ -600,6 +639,7 @@ def make_bet(pred, odds_w, odds2_w=None, date=None):
     out["pick6a"] = _pick6a(pred, odds2_w, waku)
     out["pick21"] = _pick21(pred, odds2_w, waku)
     out["pick21t"] = _pick21t(pred, odds_c, waku)
+    out["pickbinx"] = _pickbinx(pred, odds_c, odds2_w, waku, date)
     for name in OPS_PLANS + SHADOW_PLANS:   # 運用プランには今のロジックの印を付ける(集計はこの印があるものだけ)
         out[name]["logic"] = OPS_LOGIC
     # 締切前オッズそのもの(公式表の並び)も残す。締切時オッズとの差の分析用
