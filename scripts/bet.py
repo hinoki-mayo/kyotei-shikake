@@ -110,8 +110,8 @@ PICKBIN_FAKE_MONTHS = 36   # 直近この月数の番組表で1度でもA級だ�
 PICKBIN_UNITS = (16, 24)   # 2着の確率1位・2位に何口ずつ(合計4,000円)。2位の方が配当が良く回収率も
                            # 高かった(1位のみ105%・2位のみ118%)ので2位を厚めに。均等111%→この配分113%
 PICKBIN_LOGIC_SINCE = "20261014"   # 運用タブの集計開始日(実際の区切りはOPS_LOGICの印)
-OPS_PLANS = ("pickin", "pickbin")   # 運用ダッシュボードに出すプラン
-SHADOW_PLANS = ("pickura", "pickbinc", "pickbint", "pickbinx", "pick21", "pick21t", "pick6a", "pick2tan")   # 優先度の高い順   # 立説中: ダッシュボードには別枠で出し、総合収支には含めない
+OPS_PLANS = ("pickura", "pickbin")   # 運用ダッシュボードに出すプラン(10/16: 逆張りを立説中へ下げ、裏の穴を上げた)
+SHADOW_PLANS = ("pickbinc", "pickbint", "pickbinx", "pickin", "pick21", "pick21t", "pick6a", "pick2tan")   # 立説中(総合収支に含めない)。優先度の高い順
                     # (外・2連単は6/1〜10/11の実オッズで232点・89%だったので10/15に運用から立説中へ下げた)
 PICK6A_UNITS = (24, 36)      # 6コースだけA級: 2着の確率1位・2位に何口ずつ(合計6,000円)
 PICK6A_LOGIC_SINCE = "20261014"
