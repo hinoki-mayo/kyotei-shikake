@@ -35,8 +35,8 @@ PTS = {"01": 10, "02": 8, "03": 6, "04": 4, "05": 2, "06": 1}
 DAYS_BACK = 0
 
 CSS = """
-:root{--bg:#f4f5f7;--card:#fff;--tx:#1f2328;--sub:#6b7079;--bd:#e3e5e9;--navy:#1B2A4A;--ac:#185FA5;--hot:#E8742E;--red:#A32D2D;--green:#0F6E56;--off:#eceef1}
-@media (prefers-color-scheme:dark){:root{--bg:#131518;--card:#1d2025;--tx:#e9eaec;--sub:#9aa0a8;--bd:#2d3138;--ac:#85B7EB;--off:#1a1c20}}
+:root{--bg:#f4f5f7;--card:#fff;--tx:#1f2328;--sub:#6b7079;--bd:#e3e5e9;--navy:#1B2A4A;--ac:#185FA5;--hot:#E8742E;--red:#A32D2D;--green:#0F6E56;--off:#eceef1;--gain:#2A6FDB;--loss:#C7443A}
+@media (prefers-color-scheme:dark){:root{--bg:#131518;--card:#1d2025;--tx:#e9eaec;--sub:#9aa0a8;--bd:#2d3138;--ac:#85B7EB;--off:#1a1c20;--gain:#4F8EE8;--loss:#E06559}}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font-family:'Hiragino Sans','Noto Sans JP',sans-serif;line-height:1.6}
 a{color:inherit;text-decoration:none}header{background:var(--navy);color:#fff;padding:12px 16px;font-weight:700}
 main{max-width:760px;margin:0 auto;padding:10px}h1{font-size:19px;margin:10px 0}h2{font-size:16px;margin:18px 0 8px}
@@ -860,12 +860,65 @@ SHADOW_LABELS = {"pick2tan": "外・2連単", "pick6a": "6コースだけA級・
 UPCOMING_JS = r"""
 function renderUpcoming(el, U, PL, VN, only){
   const rows=U.filter(x=>!only||x.p===only);
-  if(!rows.length){ el.innerHTML='<div class="card"><b>これから</b><p class="sub" style="margin:4px 0 0">締切前に決めた買い目はまだありません(締切の2〜9分前に決まります)。</p></div>'; return; }
+  if(!rows.length){ el.innerHTML='<div class="card"><b>これから</b><p class="sub" style="margin:4px 0 0">締切前に決めた買い目はまだありません(締切の9分前から締切1分前まで、5分おきに決め直します)。</p></div>'; return; }
   el.innerHTML='<div class="card"><b>これから</b> <span class="sub">締切前に決めた買い目・結果待ち</span>'+rows.map(x=>
     `<div class="boat" style="flex-direction:column;align-items:flex-start;gap:2px"><div><b>${x.t} ${VN[x.v]} ${x.r}R</b>`+
     (only?'':` <span class="sub">${PL[x.p]||x.p}</span>`)+`</div><div>`+
     x.tk.map(([c,u,role,o])=>`<span class="tri-chip" style="font-size:15px">${c}</span> <span class="sub">${role?role+' ':''}${(u*100).toLocaleString()}円${o?'・'+o+'倍':''}</span>`).join('　')+
     `</div></div>`).join('')+'<p class="sub" style="margin:6px 0 0">オッズは買い目を決めた時点のもの。締切までに動きます。</p></div>';
+}
+"""
+
+CHART_JS = r"""
+// 日ごとの損益: 累積の折れ線 + 日別の棒(0を境に上下) + タップで日の詳細 + 表
+const WD='日月火水木金土';
+function mdw(d){const t=new Date(+d.slice(0,4),+d.slice(4,6)-1,+d.slice(6));return `${+d.slice(4,6)}/${+d.slice(6)}(${WD[t.getDay()]})`;}
+function sgn(n){return (n>0?'+':'')+n.toLocaleString()+'円';}
+function pnlCharts(el, days){
+  // days: [{d, st, ret, n, hit}] 日付順
+  if(!days.length){ el.innerHTML='<p class="sub">まだ実績がありません</p>'; return; }
+  let cum=0; const pts=days.map(x=>{cum+=x.ret-x.st; return {...x, pl:x.ret-x.st, cum};});
+  const pct=(r,s)=>{if(!s) return 0; const v=r/s*100; return v<100?Math.floor(v):Math.round(v);};
+  const W=600, H1=130, H2=90, n=pts.length, step=W/n, uid='c'+Math.random().toString(36).slice(2,8);
+  const cx=i=>step*(i+0.5);
+  const cmin=Math.min(0,...pts.map(p=>p.cum)), cmax=Math.max(0,...pts.map(p=>p.cum)), cr=(cmax-cmin)||1;
+  const cy=v=>6+(cmax-v)/cr*(H1-12);
+  const line=`0,${cy(0).toFixed(1)} `+pts.map((p,i)=>`${cx(i).toFixed(1)},${cy(p.cum).toFixed(1)}`).join(' ');   // 0円から始める
+  const pmax=Math.max(1,...pts.map(p=>Math.abs(p.pl))), mid=H2/2, by=v=>mid-v/pmax*(mid-4);
+  const bw=Math.max(2,Math.min(26,step-2));
+  const bars=pts.map((p,i)=>{const y=by(p.pl), top=Math.min(y,mid), h=Math.max(1.5,Math.abs(y-mid));
+    return `<rect x="${(cx(i)-bw/2).toFixed(1)}" y="${top.toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" rx="2" fill="var(${p.pl>=0?'--gain':'--loss'})"/>`;}).join('');
+  const hits=pts.map((p,i)=>`<rect data-i="${i}" x="${(i*step).toFixed(1)}" y="0" width="${step.toFixed(1)}" height="100%" fill="transparent"/>`).join('');
+  const last=pts[n-1];
+  el.innerHTML=
+    `<div class="sub" style="display:flex;justify-content:space-between"><span>累計損益の推移</span><span>最高 ${sgn(cmax)}</span></div>`+
+    `<svg id="${uid}a" viewBox="0 0 ${W} ${H1}" width="100%" height="${H1}" preserveAspectRatio="none" style="touch-action:pan-y">`+
+      `<line x1="0" x2="${W}" y1="${cy(0)}" y2="${cy(0)}" stroke="var(--sub)" stroke-width="1" stroke-dasharray="3,3" vector-effect="non-scaling-stroke"/>`+
+      `<line class="gd" x1="0" x2="0" y1="0" y2="${H1}" stroke="var(--sub)" stroke-width="1" vector-effect="non-scaling-stroke" visibility="hidden"/>`+
+      `<polyline points="${line}" fill="none" stroke="var(--ac)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>`+
+      hits+`</svg>`+
+    `<div class="sub" style="display:flex;justify-content:space-between;margin-bottom:6px"><span>最低 ${sgn(cmin)}</span><span>${n}日分</span></div>`+
+    `<div class="sub">日別の損益 <span style="color:var(--gain)">■</span>プラス <span style="color:var(--loss)">■</span>マイナス</div>`+
+    `<svg id="${uid}b" viewBox="0 0 ${W} ${H2}" width="100%" height="${H2}" preserveAspectRatio="none" style="touch-action:pan-y">`+
+      `<line x1="0" x2="${W}" y1="${mid}" y2="${mid}" stroke="var(--bd)" stroke-width="1" vector-effect="non-scaling-stroke"/>`+
+      `<line class="gd" x1="0" x2="0" y1="0" y2="${H2}" stroke="var(--sub)" stroke-width="1" vector-effect="non-scaling-stroke" visibility="hidden"/>`+
+      bars+hits+`</svg>`+
+    `<div class="sub" style="display:flex;justify-content:space-between"><span>${mdw(pts[0].d)}</span><span>${mdw(last.d)}</span></div>`+
+    `<div id="${uid}i" class="card" style="margin:8px 0 4px;padding:8px 10px;background:var(--off)"></div>`+
+    `<details><summary class="sub">日別の表を見る</summary><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px;margin-top:6px;white-space:nowrap">`+
+      `<tr class="sub" style="text-align:right"><th style="text-align:left">日付</th><th>レース</th><th>的中</th><th>的中率</th><th>投資</th><th>払戻</th><th>損益</th><th>回収率</th><th>累計</th></tr>`+
+      pts.slice().reverse().map(p=>`<tr style="text-align:right;border-top:1px solid var(--bd)"><td style="text-align:left">${mdw(p.d)}</td><td>${p.n}</td><td>${p.hit}</td><td>${p.n?Math.round(p.hit/p.n*100):0}%</td>`+
+        `<td>${p.st.toLocaleString()}</td><td>${p.ret.toLocaleString()}</td><td style="font-weight:700">${sgn(p.pl)}</td><td>${pct(p.ret,p.st)}%</td><td>${sgn(p.cum)}</td></tr>`).join('')+
+    `</table></div></details>`;
+  const info=document.getElementById(uid+'i');
+  const show=i=>{const p=pts[i];
+    info.innerHTML=`<b>${mdw(p.d)}</b>　損益 <b>${sgn(p.pl)}</b>（回収率 ${pct(p.ret,p.st)}%）<br>`+
+      `<span class="sub">${p.n}レース・的中 ${p.hit}（${p.n?Math.round(p.hit/p.n*100):0}%）・投資 ${p.st.toLocaleString()}円 → 払戻 ${p.ret.toLocaleString()}円・累計 ${sgn(p.cum)}</span>`;
+    for(const k of ['a','b']){const g=document.querySelector('#'+uid+k+' .gd'); g.setAttribute('x1',cx(i)); g.setAttribute('x2',cx(i)); g.setAttribute('visibility','visible');}
+  };
+  for(const k of ['a','b']) document.getElementById(uid+k).addEventListener('pointermove',e=>{const r=e.target.closest('rect[data-i]'); if(r) show(+r.dataset.i);});
+  for(const k of ['a','b']) document.getElementById(uid+k).addEventListener('click',e=>{const r=e.target.closest('rect[data-i]'); if(r) show(+r.dataset.i);});
+  show(n-1);
 }
 """
 
@@ -877,21 +930,21 @@ const $=id=>document.getElementById(id), yen=n=>n.toLocaleString();
 function cumSeries(planKeys){
   const byDay={};
   for(const x of D){
-    let st=0, ret=0, any=false;
+    let st=0, ret=0, any=false, hit=0, n=0;
     for(const pk of planKeys){
       if(x.d<SINCE[pk]) continue;
       const v=x.s[pk];
       if(v===undefined||v===0) continue;
-      any=true; st+=v[0]; ret+=v[1];
+      any=true; st+=v[0]; ret+=v[1]; n++; hit+=v[1]>0?1:0;
     }
     if(!any) continue;
-    (byDay[x.d]=byDay[x.d]||{st:0,ret:0});
-    byDay[x.d].st+=st; byDay[x.d].ret+=ret;
+    (byDay[x.d]=byDay[x.d]||{st:0,ret:0,n:0,hit:0});
+    byDay[x.d].st+=st; byDay[x.d].ret+=ret; byDay[x.d].n+=n; byDay[x.d].hit+=hit;
   }
   const days=Object.keys(byDay).sort();
   let cum=0, totSt=0, totRet=0;
   const pts=days.map(d=>{cum+=byDay[d].ret-byDay[d].st; totSt+=byDay[d].st; totRet+=byDay[d].ret; return {d,pl:cum};});
-  return {pts, totSt, totRet};
+  return {pts, totSt, totRet, days:days.map(d=>({d,...byDay[d]}))};
 }
 
 function sparkline(pts, w, h, color){
@@ -911,14 +964,15 @@ function sparkline(pts, w, h, color){
 
 function render(){
   const allKeys=Object.keys(PLANS);
-  const {pts:totPts, totSt, totRet}=cumSeries(allKeys);
+  const {pts:totPts, totSt, totRet, days:totDays}=cumSeries(allKeys);
   const totRoi=totSt?totRet/totSt*100:0;
   const totPl=totPts.length?totPts[totPts.length-1].pl:0;
   const tcol=totPl>=0?'var(--green)':'var(--red)';
   $('total').innerHTML = `<div class="sub">総合収支</div>`+
     `<div class="tot-num" style="color:${tcol}">${totPl>=0?'+':''}${yen(totPl)}円</div>`+
     `<div class="sub">回収率 ${totRoi.toFixed(0)}%・投資 ${yen(totSt)}円・${totPts.length}日分</div>`+
-    `<div class="tot-chart">${totPts.length?sparkline(totPts,600,90,tcol):'<p class="sub">まだ実績がありません</p>'}</div>`;
+    `<div class="tot-chart" id="totchart"></div>`;
+  pnlCharts($('totchart'), totDays);
 
   let cards='';
   for(const pk of allKeys){
@@ -963,15 +1017,15 @@ def ops_page():
                  .replace("__PLANS__", json.dumps(DASH_PLANS, ensure_ascii=False))
                  .replace("__SHADOW__", json.dumps(SHADOW_LABELS, ensure_ascii=False))
                  .replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False)))
-    js = UPCOMING_JS + js
+    js = UPCOMING_JS + CHART_JS + js
     since_label = jp(bet_mod.PICKIN_LOGIC_SINCE)
     body = ('<h1>運用</h1>' + own_tabs("ops")
             + '<p class="sub">試験買い目のうち、実オッズで検証した専用プランの収支をまとめて見る画面です。'
               'カードをタップすると各プランの詳細(日別実績・買い目・ロジック)に移動します。'
-              '現在稼働中は2連単の3プランのみ(3連単は実オッズ検証の成績が良くないため非表示)。'
-              f'3プラン(外・2連単の絞り込み、イン逃げの逆張り、B級イン・2連単)に切り替えた{since_label}から'
-              '集計し直しています。切り替えはその日の途中だったため、切り替え前のレースは締切前に記録したオッズで'
-              '今のロジックの買い目を後から作り直して含めています(1日単位で比べるため)。</p>'
+              '現在稼働中は2連単の2プラン(イン逃げの逆張り、B級イン・2連単)。外・2連単は10/15に立説中へ下げました。'
+              f'{since_label}から集計しています。切り替えはその日の途中だったため、切り替え前のレースは締切前に記録したオッズで'
+              '今のロジックの買い目を後から作り直して含めています(1日単位で比べるため)。'
+              'グラフの日をタップすると、その日の損益・的中率が出ます。</p>'
             + '<div id="up"></div>'
             + '<div id="total" class="card total-card"><p class="sub">読み込み中…</p></div>'
             + '<div id="cards" class="plan-grid"></div>'
@@ -1011,17 +1065,8 @@ function render(){
   let s = `<div class="card"><b>通算</b> <b style="color:${roi>=1?'var(--green)':'var(--red)'};font-size:22px">${Math.round(roi*100)}%</b>`+
     `<br><span class="sub">投資 ${yen(st)}円 → 払戻 ${yen(ret)}円（${ret-st>=0?'+':''}${yen(ret-st)}円）・的中 ${hitN}/${used.length}件（${Math.round(hitN/used.length*100)}%）</span></div>`;
   const byDay={};
-  for(const x of used)(byDay[x.d]=byDay[x.d]||[]).push(x);
-  const days=Object.keys(byDay).sort();
-  const bars = days.map(d=>{
-    const g=byDay[d], gst=g.reduce((a,x)=>a+x.st,0), gret=g.reduce((a,x)=>a+x.ret,0);
-    const r=gst?gret/gst:0, h=Math.max(2,Math.min(120,r*60)), col=r>=1?'var(--green)':'var(--red)';
-    return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:22px">`+
-      `<span class="sub" style="font-size:10px;white-space:nowrap">${Math.round(r*100)}%</span>`+
-      `<div style="width:16px;height:${h}px;background:${col};border-radius:2px"></div>`+
-      `<span class="sub" style="font-size:9px">${+d.slice(4,6)}/${+d.slice(6)}</span></div>`;
-  }).join('');
-  s += `<div class="card"><b>日別回収率</b><div style="position:relative;display:flex;align-items:flex-end;gap:4px;height:160px;margin-top:10px;overflow-x:auto;padding-bottom:2px;border-bottom:1px solid var(--bd)">${bars}</div></div>`;
+  for(const x of used){const g=(byDay[x.d]=byDay[x.d]||{st:0,ret:0,n:0,hit:0}); g.st+=x.st; g.ret+=x.ret; g.n++; g.hit+=x.ret>0?1:0;}
+  s += `<div class="card"><b>損益の推移</b><div id="pnl4" style="margin-top:6px"></div></div>`;
   const oofune = used.filter(x=>x.ret>0 && x.pay>=10000).sort((a,b)=>b.pay-a.pay);
   if(oofune.length){
     s += `<div class="card"><b>万舟的中</b>` + oofune.map(x=>
@@ -1044,6 +1089,7 @@ function render(){
       `</div>`;
   }).join('') + `</div>`;
   $('out4').innerHTML = s;
+  pnlCharts($('pnl4'), Object.keys(byDay).sort().map(d=>({d,...byDay[d]})));
 }
 fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;render()});
 fetch('/bets-upcoming.json').then(r=>r.json()).then(u=>renderUpcoming($('up'),u,{},VN,PLAN)).catch(()=>{});
@@ -1057,7 +1103,7 @@ def ops_detail_page(plan_key, logic_card_html):
     js = (DETAIL_JS.replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False))
                    .replace("__SINCE__", json.dumps(PLAN_SINCE[plan_key]))
                    .replace("__PLAN__", json.dumps(plan_key)))
-    js = UPCOMING_JS + js
+    js = UPCOMING_JS + CHART_JS + js
     label = ALL_PLAN_LABELS[plan_key]
     body = (f'<h1>{label}</h1><a class="back-lk" href="/ops.html">← 運用ダッシュボードに戻る</a><div id="up"></div>'
             + '<div class="card" style="display:grid;grid-template-columns:1fr;gap:8px">'
