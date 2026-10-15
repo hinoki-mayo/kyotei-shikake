@@ -32,6 +32,9 @@ def est_odds2(odds_w):
 def run(date, fetch=False):
     bets = json.loads((DATA / "bets" / f"{date}.json").read_text())
     preds = json.loads((DATA / "predictions" / f"{date}.json").read_text())["races"]
+    ep = DATA / "entries" / f"{date}.json"
+    entries = json.loads(ep.read_text()) if ep.exists() else {}
+    live = lambda k: entries.get(k) if isinstance(entries.get(k), dict) else None
     out = {}
     if fetch:   # 締切を過ぎたのに記録が無いレースは、確定オッズを取って記録の代わりにする
         now = now_jst()
@@ -45,7 +48,7 @@ def run(date, fetch=False):
             time.sleep(1.0)
             if not odds_w:
                 continue
-            made = bet.make_bet(pred, odds_w, odds2 or est_odds2(odds_w), date)["plans"]
+            made = bet.make_bet(pred, odds_w, odds2 or est_odds2(odds_w), date, live(key))["plans"]
             out[key] = {n: dict(made[n], backfill=True, odds_final=True) for n in bet.OPS_PLANS + bet.SHADOW_PLANS}
     for key, rec in bets.items():
         plans = rec.get("plans", {})
@@ -61,7 +64,7 @@ def run(date, fetch=False):
             time.sleep(1.0)   # 公式サーバーに負担をかけないよう間を空ける
             if odds2:
                 mark = {"odds2_final": True}
-        made = bet.make_bet(pred, odds_w, odds2 or est_odds2(odds_w), date)["plans"]
+        made = bet.make_bet(pred, odds_w, odds2 or est_odds2(odds_w), date, live(key))["plans"]
         out[key] = {n: dict(made[n], backfill=True, **mark) for n in bet.OPS_PLANS + bet.SHADOW_PLANS}
     p = DATA / "bets_backfill" / f"{date}.json"
     p.parent.mkdir(parents=True, exist_ok=True)
