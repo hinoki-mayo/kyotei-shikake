@@ -14,14 +14,21 @@
 "backfill": true,
 "odds_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -84,7 +91,14 @@
 "backfill": true,
 "odds_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -107,14 +121,21 @@
 "backfill": true,
 "odds_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -134,7 +155,14 @@
 "backfill": true,
 "odds_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -157,14 +185,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -184,7 +219,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -207,14 +249,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -234,7 +283,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -257,14 +313,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -284,7 +347,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -307,14 +377,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -334,7 +411,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -357,14 +441,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -384,7 +475,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -407,29 +505,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
-"skip": false,
+"pickbinc": {
+"skip": true,
 "bet": "2t",
-"head": null,
-"himo": null,
-"ev": 136.0,
-"hit": 0.281,
-"stake": 4000,
-"scenario": "1コース以外の艇がはっきり本命のレース。2連単の確率が20%以上の目だけ(本命は4-1)",
-"tickets": [
-{
-"combo": "4-1",
-"units": 40,
-"odds": 3.4,
-"prob": 0.2813,
-"role": "本命"
-}
-],
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -492,9 +582,31 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
 "skip": true,
 "bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
+"skip": false,
+"bet": "2t",
+"head": null,
+"himo": null,
+"ev": 136.0,
+"hit": 0.281,
+"stake": 4000,
+"scenario": "1コース以外の艇がはっきり本命のレース。2連単の確率が20%以上の目だけ(本命は4-1)",
+"tickets": [
+{
+"combo": "4-1",
+"units": 40,
+"odds": 3.4,
+"prob": 0.2813,
+"role": "本命"
+}
+],
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
@@ -515,14 +627,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -542,7 +661,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -565,14 +691,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -592,7 +725,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -615,14 +755,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -642,7 +789,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -665,14 +819,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -692,7 +853,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -715,14 +883,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -785,7 +960,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -808,14 +990,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -835,7 +1024,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -858,14 +1054,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -885,7 +1088,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -908,14 +1118,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -935,7 +1152,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -958,14 +1182,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -985,7 +1216,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1008,14 +1246,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1035,7 +1280,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1058,14 +1310,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1085,7 +1344,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1102,6 +1368,47 @@
 "odds2_final": true
 },
 "pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21t": {
+"skip": true,
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1129,33 +1436,6 @@
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
-},
-"pick6a": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pick21": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pick21t": {
-"skip": true,
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pickbinx": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
 }
 },
 "11-02": {
@@ -1173,14 +1453,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1200,7 +1487,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1223,14 +1517,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1250,7 +1551,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1273,14 +1581,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1300,7 +1615,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1323,14 +1645,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1393,7 +1722,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1416,14 +1752,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1443,7 +1786,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1488,14 +1838,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1558,7 +1915,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1581,14 +1945,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1608,7 +1979,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1631,14 +2009,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1658,7 +2043,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1681,14 +2073,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1708,7 +2107,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1731,14 +2137,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1801,7 +2214,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1824,14 +2244,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1851,7 +2278,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1874,14 +2308,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1901,7 +2342,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1924,14 +2372,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1951,7 +2406,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -1996,14 +2458,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2066,7 +2535,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2089,14 +2565,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2116,7 +2599,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2139,14 +2629,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2166,7 +2663,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2211,14 +2715,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2238,7 +2749,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2261,14 +2779,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2288,7 +2813,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2333,14 +2865,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2360,7 +2899,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2405,14 +2951,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2432,7 +2985,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2477,14 +3037,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2504,7 +3071,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2527,14 +3101,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2554,7 +3135,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2571,6 +3159,47 @@
 "odds2_final": true
 },
 "pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21t": {
+"skip": true,
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2598,33 +3227,6 @@
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
-},
-"pick6a": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pick21": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pick21t": {
-"skip": true,
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pickbinx": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
 }
 },
 "06-03": {
@@ -2642,14 +3244,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2712,7 +3321,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2735,14 +3351,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2762,7 +3385,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2785,14 +3415,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2812,7 +3449,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2835,14 +3479,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2905,7 +3556,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2928,14 +3586,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2955,7 +3620,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -2978,14 +3650,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3005,7 +3684,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3028,14 +3714,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3055,7 +3748,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3078,14 +3778,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3105,7 +3812,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3128,14 +3842,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3155,7 +3876,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3178,14 +3906,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3205,7 +3940,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3228,14 +3970,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3255,7 +4004,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3300,14 +4056,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3370,7 +4133,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3393,14 +4163,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3463,7 +4240,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3486,14 +4270,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3513,7 +4304,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3536,14 +4334,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3563,7 +4368,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3586,14 +4398,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3613,7 +4432,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3636,14 +4462,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3663,7 +4496,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3686,14 +4526,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3713,7 +4560,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3736,14 +4590,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3763,7 +4624,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3780,6 +4648,47 @@
 "odds2_final": true
 },
 "pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21t": {
+"skip": true,
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3807,33 +4716,6 @@
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
-},
-"pick6a": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pick21": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pick21t": {
-"skip": true,
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pickbinx": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
 }
 },
 "11-08": {
@@ -3851,14 +4733,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3878,7 +4767,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3901,14 +4797,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3928,7 +4831,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3951,14 +4861,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -3978,7 +4895,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4001,14 +4925,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4028,7 +4959,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4073,14 +5011,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4100,7 +5045,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4123,14 +5075,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4150,7 +5109,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4173,14 +5139,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4200,7 +5173,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4245,14 +5225,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4272,7 +5259,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4295,14 +5289,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4322,7 +5323,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4367,14 +5375,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4394,7 +5409,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4417,14 +5439,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4444,7 +5473,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4489,14 +5525,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4516,7 +5559,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4539,14 +5589,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4566,7 +5623,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4589,14 +5653,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4616,7 +5687,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4639,14 +5717,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4666,7 +5751,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4689,14 +5781,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4716,7 +5815,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4739,14 +5845,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4809,7 +5922,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4832,14 +5952,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4859,7 +5986,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4882,14 +6016,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4909,7 +6050,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4932,14 +6080,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4959,7 +6114,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -4982,14 +6144,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5009,7 +6178,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5032,14 +6208,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5059,7 +6242,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5104,14 +6294,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5131,7 +6328,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5176,29 +6380,16 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
 "skip": true,
 "bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pick21": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pick21t": {
-"skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
@@ -5209,7 +6400,7 @@
 "head": 1,
 "himo": null,
 "stake": 4000,
-"scenario": "1号艇(1コース・B1・勝率4.32)がスタートで先手を取って逃げる展開(他に市場の1着確率20%以上の艇なし)",
+"scenario": "1号艇(1コース・B1・勝率4.32)が逃げる展開(他に市場の1着確率20%以上の艇なし)",
 "tickets": [
 {
 "combo": "1-3",
@@ -5233,6 +6424,33 @@
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
+},
+"pick21": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21t": {
+"skip": true,
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
 }
 },
 "20-01": {
@@ -5250,14 +6468,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5277,7 +6502,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5322,14 +6554,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5349,7 +6588,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5372,14 +6618,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5399,7 +6652,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5422,14 +6682,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5449,7 +6716,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5472,14 +6746,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5499,7 +6780,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5522,14 +6810,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5549,7 +6844,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5572,38 +6874,23 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
-"skip": false,
+"pickbint": {
+"skip": true,
 "bet": "2t",
-"head": 1,
-"himo": null,
-"ev": 0.852,
-"hit": 0.2594,
-"stake": 6000,
-"scenario": "A級は6コースの6号艇(A2)だけ。市場が買いかぶりがちな6コースのA級を外して、1号艇(1コース・B級)の逃げから",
-"tickets": [
-{
-"combo": "1-2",
-"units": 24,
-"odds": 3.3,
-"prob": 0.1414,
-"role": "2着1位"
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
 },
-{
-"combo": "1-3",
-"units": 36,
-"odds": 9.4,
-"prob": 0.1181,
-"role": "2着2位"
-}
-],
+"pickbinx": {
+"skip": true,
+"bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
@@ -5664,7 +6951,36 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": false,
+"bet": "2t",
+"head": 1,
+"himo": null,
+"ev": 0.852,
+"hit": 0.2594,
+"stake": 6000,
+"scenario": "A級は6コースの6号艇(A2)だけ。市場が買いかぶりがちな6コースのA級を外して、1号艇(1コース・B級)の逃げから",
+"tickets": [
+{
+"combo": "1-2",
+"units": 24,
+"odds": 3.3,
+"prob": 0.1414,
+"role": "2着1位"
+},
+{
+"combo": "1-3",
+"units": 36,
+"odds": 9.4,
+"prob": 0.1181,
+"role": "2着2位"
+}
+],
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5687,14 +7003,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5714,7 +7037,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5737,14 +7067,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5764,7 +7101,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5787,14 +7131,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5814,7 +7165,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5837,14 +7195,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5864,7 +7229,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5887,14 +7259,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5914,7 +7293,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5937,14 +7323,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5964,7 +7357,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -5987,14 +7387,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6014,7 +7421,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6037,14 +7451,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6064,7 +7485,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6087,14 +7515,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6114,7 +7549,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6137,14 +7579,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6164,7 +7613,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6187,14 +7643,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6214,7 +7677,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6231,6 +7701,47 @@
 "odds2_final": true
 },
 "pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21t": {
+"skip": true,
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6258,33 +7769,6 @@
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
-},
-"pick6a": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pick21": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pick21t": {
-"skip": true,
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pickbinx": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
 }
 },
 "12-04": {
@@ -6302,14 +7786,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6329,7 +7820,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6352,14 +7850,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6379,7 +7884,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6402,14 +7914,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6429,7 +7948,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6452,14 +7978,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6479,7 +8012,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6502,14 +8042,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6529,7 +8076,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6552,14 +8106,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6579,7 +8140,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6624,14 +8192,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6651,7 +8226,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6674,14 +8256,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6701,7 +8290,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6724,29 +8320,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
-"skip": false,
+"pickbinc": {
+"skip": true,
 "bet": "2t",
-"head": null,
-"himo": null,
-"ev": 212.0,
-"hit": 0.223,
-"stake": 4000,
-"scenario": "1コース以外の艇がはっきり本命のレース。2連単の確率が20%以上の目だけ(本命は2-4)",
-"tickets": [
-{
-"combo": "2-4",
-"units": 40,
-"odds": 5.3,
-"prob": 0.2227,
-"role": "本命"
-}
-],
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6809,9 +8397,31 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
 "skip": true,
 "bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
+"skip": false,
+"bet": "2t",
+"head": null,
+"himo": null,
+"ev": 212.0,
+"hit": 0.223,
+"stake": 4000,
+"scenario": "1コース以外の艇がはっきり本命のレース。2連単の確率が20%以上の目だけ(本命は2-4)",
+"tickets": [
+{
+"combo": "2-4",
+"units": 40,
+"odds": 5.3,
+"prob": 0.2227,
+"role": "本命"
+}
+],
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
@@ -6832,14 +8442,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6859,7 +8476,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6882,14 +8506,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6909,7 +8540,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6932,14 +8570,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6959,7 +8604,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -6982,14 +8634,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7009,7 +8668,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7026,6 +8692,47 @@
 "odds2_final": true
 },
 "pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21t": {
+"skip": true,
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7053,33 +8760,6 @@
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
-},
-"pick6a": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pick21": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pick21t": {
-"skip": true,
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pickbinx": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
 }
 },
 "12-07": {
@@ -7097,14 +8777,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7124,7 +8811,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7147,14 +8841,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7174,7 +8875,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7197,14 +8905,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7224,7 +8939,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7247,9 +8969,36 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21t": {
+"skip": true,
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
@@ -7283,20 +9032,7 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick21": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pick21t": {
-"skip": true,
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pickbinx": {
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7319,14 +9055,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7346,7 +9089,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7369,14 +9119,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7396,7 +9153,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7419,14 +9183,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7446,7 +9217,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7491,14 +9269,69 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
-"skip": true,
+"pickbinc": {
+"skip": false,
 "bet": "2t",
+"head": 1,
+"himo": null,
+"stake": 4000,
+"scenario": "1号艇(1コース・B1・勝率4.67)が逃げる展開(風2m、他に強い艇なし)",
+"tickets": [
+{
+"combo": "1-2",
+"units": 21,
+"odds": 2.9,
+"role": "人気1位"
+},
+{
+"combo": "1-4",
+"units": 11,
+"odds": 5.7,
+"role": "人気2位"
+},
+{
+"combo": "1-3",
+"units": 8,
+"odds": 7.7,
+"role": "人気3位"
+}
+],
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": false,
+"bet": "2t",
+"head": 1,
+"himo": null,
+"stake": 4000,
+"scenario": "1号艇(1コース・B1・勝率4.67)が逃げる展開(風2m、展示タイム1位)",
+"tickets": [
+{
+"combo": "1-2",
+"units": 21,
+"odds": 2.9,
+"role": "人気1位"
+},
+{
+"combo": "1-4",
+"units": 11,
+"odds": 5.7,
+"role": "人気2位"
+},
+{
+"combo": "1-3",
+"units": 8,
+"odds": 7.7,
+"role": "人気3位"
+}
+],
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7518,7 +9351,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7541,14 +9381,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7568,7 +9415,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7585,6 +9439,47 @@
 "odds2_final": true
 },
 "pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick21t": {
+"skip": true,
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick6a": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7612,33 +9507,6 @@
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
-},
-"pick6a": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pick21": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pick21t": {
-"skip": true,
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
-},
-"pickbinx": {
-"skip": true,
-"bet": "2t",
-"logic": "2026-10-14c",
-"backfill": true,
-"odds2_final": true
 }
 },
 "12-09": {
@@ -7656,14 +9524,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7683,7 +9558,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7706,14 +9588,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7733,7 +9622,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7778,14 +9674,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7805,7 +9708,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7828,14 +9738,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7855,7 +9772,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7878,14 +9802,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7905,7 +9836,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7928,14 +9866,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7955,7 +9900,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -7978,14 +9930,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8005,7 +9964,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8028,14 +9994,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8055,7 +10028,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8078,14 +10058,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8148,7 +10135,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8171,14 +10165,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8198,7 +10199,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8221,14 +10229,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8248,7 +10263,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8271,14 +10293,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8298,7 +10327,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8321,14 +10357,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8348,7 +10391,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8371,14 +10421,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8398,7 +10455,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8421,14 +10485,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8448,7 +10519,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8471,14 +10549,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8498,7 +10583,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8521,14 +10613,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8548,7 +10647,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8571,14 +10677,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8598,7 +10711,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8621,14 +10741,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8691,7 +10818,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8714,14 +10848,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8741,7 +10882,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8764,14 +10912,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8791,7 +10946,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8814,14 +10976,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8841,7 +11010,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8864,14 +11040,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8934,7 +11117,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8957,14 +11147,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -8984,7 +11181,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -9029,14 +11233,21 @@
 "backfill": true,
 "odds2_final": true
 },
-"pick2tan": {
+"pickbinc": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
 "backfill": true,
 "odds2_final": true
 },
-"pick6a": {
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pickbinx": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
@@ -9099,7 +11310,14 @@
 "backfill": true,
 "odds2_final": true
 },
-"pickbinx": {
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c",
+"backfill": true,
+"odds2_final": true
+},
+"pick2tan": {
 "skip": true,
 "bet": "2t",
 "logic": "2026-10-14c",
