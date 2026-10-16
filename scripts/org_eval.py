@@ -56,7 +56,7 @@ def run(pred_dirs, gbm_path):
     return pd.DataFrame(rows)
 
 
-def report(df, conf, label):
+def report(df, conf, label, mode="head"):
     """最終決裁者(v1)と、全部採用(参考)の成績"""
     props = df.to_dict("records")
     by_race = {}
@@ -64,11 +64,11 @@ def report(df, conf, label):
         by_race.setdefault((p["date"], p["key"]), []).append(p)
     st = ret = n = 0
     for ps in by_race.values():
-        for p in org_tree.decide(ps, conf):
+        for p in org_tree.decide(ps, conf, mode):
             st += p["stake"]
             ret += p["ret"]
             n += 1
-    print(f"■ {label}: 決裁者v1 {n}件 投資{st:,} 払戻{ret:,} 回収率{ret / st:.1%}" if st else f"■ {label}: 決裁者v1 採用なし")
+    print(f"■ {label}({mode}): 決裁者v1 {n}件 投資{st:,} 払戻{ret:,} 回収率{ret / st:.1%}" if st else f"■ {label}: 決裁者v1 採用なし")
     for pk, g in df.groupby("plan"):
         print(f"   参考 {pk:9s} 全部採用 {len(g):5d}件 回収率 {g.ret.sum() / g.stake.sum():.1%}")
 
@@ -93,7 +93,9 @@ def main():
             c = conf[nd]
             print(f"{'  ' * nd.count('.')}{nd:28s} {c['n']:5d}件 回収率{c['roi']:7.1%} 自信度{c['conf']:7.1%}")
         if a.test:
-            report(df[(df.date >= a.test[0]) & (df.date <= a.test[1])], conf, f"確かめ {a.test[0]}〜{a.test[1]}")
+            t = df[(df.date >= a.test[0]) & (df.date <= a.test[1])]
+            report(t, conf, f"確かめ {a.test[0]}〜{a.test[1]}", "head")
+            report(t, conf, f"確かめ {a.test[0]}〜{a.test[1]}", "side")
         if a.save:
             org_tree.CONF_P.parent.mkdir(parents=True, exist_ok=True)
             org_tree.CONF_P.write_text(json.dumps(dict(period=[lo, hi], shrink=org_tree.SHRINK, prior=org_tree.PRIOR, nodes=conf),

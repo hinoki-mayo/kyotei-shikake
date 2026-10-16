@@ -3,7 +3,7 @@
 木: ①最終決裁 → ②シナリオ(イン逃げ/イン負け) → ③誰が勝つか → ④説(プラン) → ⑤絞り(印)
 ・各プランの買い目を「頭の艇」ごとに分けて「提案」にし、頭のコース(とインの級)で③の箱に入れる
 ・自信度＝その箱の提案の推定回収率。レースが少ない箱は一つ上の箱の自信度へ寄せる(親が無い一番上は控除率並みの75%へ)
-・最終決裁者(v1): イン逃げ側・イン負け側それぞれで一番自信度が高い提案を選び、自信度が100%を超えていれば採用
+・最終決裁者(v1): 同じ頭の艇の提案同士で一番自信度が高いものを上げ、自信度が100%以上なら全部採用(違う頭なら複数残る)
 ・自信度の表(data/org/confidence.json)は scripts/org_eval.py で、確定オッズの過去データから作る
 """
 import json
@@ -106,14 +106,15 @@ def conf_of(p, table):
     return max(look(t) for t in p["tags"]) if p["tags"] else look(p["leaf"])
 
 
-def decide(props, table):
-    """最終決裁(v1)。イン逃げ側・イン負け側それぞれで自信度が一番高い提案を選び、ADOPT以上なら採用"""
+def decide(props, table, mode="head"):
+    """最終決裁(v1)。同じ結果を取り合う提案(同じ頭の艇)同士だけ比べて一番自信度が高いものを上げ、
+    上がった提案のうち自信度がADOPT以上のものは全部採用(違う頭なら複数残る)。mode="side"はイン側・負け側で1つずつ(比較用)"""
     best = {}
     for p in props:
         c = conf_of(p, table)
-        side = p["leaf"].split(".")[0]
-        if c >= ADOPT and (side not in best or c > best[side][0]):
-            best[side] = (c, p)
+        g = p["head"] if mode == "head" else p["leaf"].split(".")[0]
+        if c >= ADOPT and (g not in best or c > best[g][0]):
+            best[g] = (c, p)
     return [dict(p, conf=c) for c, p in best.values()]
 
 
