@@ -103,7 +103,8 @@ def conf_of(p, table):
             if a in table:
                 return table[a]["conf"]
         return PRIOR
-    return max(look(t) for t in p["tags"]) if p["tags"] else look(p["leaf"])
+    tags = list(p["tags"])
+    return max(look(t) for t in tags) if tags else look(p["leaf"])
 
 
 def decide(props, table, mode="head"):
