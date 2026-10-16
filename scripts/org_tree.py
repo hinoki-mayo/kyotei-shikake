@@ -15,7 +15,7 @@ CONF_P = DATA / "org" / "confidence.json"
 ORG_PLANS = tuple(bet.OPS_PLANS) + tuple(bet.SHADOW_PLANS) + ("pick2",)
 PRIOR = 0.75   # 一番上(何も分からない時)の回収率の見込み＝控除率並み
 SHRINK = 50    # 親へ寄せる強さ(レース数換算)。提案がこの数たまると自分の数字と親の数字が半々
-ADOPT = 1.0    # 決裁者が採用する自信度の下限
+ADOPT = 0.95   # 決裁者が採用する自信度の下限(別期間の確かめで100%とほぼ同じ成績・件数が少し増える)
 
 NODES = {
     "in": "イン逃げ(1着＝1コース)",
