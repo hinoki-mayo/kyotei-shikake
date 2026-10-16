@@ -65,6 +65,12 @@ main{max-width:760px;margin:0 auto;padding:10px}h1{font-size:19px;margin:10px 0}
 .pc-roi{font-size:18px;font-weight:800}.pc-chart{margin:6px 0 2px}.pc-foot{display:flex;justify-content:space-between}
 .pc-split{margin-top:8px;border-top:1px solid var(--bd);padding-top:4px}.pc-srow{display:grid;grid-template-columns:1fr auto 3.2em;gap:8px;font-size:13px;padding:2px 0;align-items:baseline}.pc-srow b{text-align:right}
 .back-lk{display:inline-block;margin:6px 0 2px;color:var(--ac);font-size:13px}
+.room-head{display:flex;gap:14px;align-items:center;margin:8px 0 12px}
+.org-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.org-tile{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin:0}
+.org-tile>div{min-width:0}.org-tile b{display:block;font-size:14.5px}.org-tile .sub{display:block;font-size:12px;line-height:1.45}
+.org-stat{display:block;font-size:12.5px;margin-top:2px}.org-boss{border:2px solid #7A5AE0;margin-top:6px}
+.org-line{width:2px;height:16px;background:var(--bd);margin:0 auto}
 .boat{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}.boat:last-child{border:0}
 .chip{width:30px;height:30px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;border:1px solid var(--bd)}
 .face{width:32px;height:44px;object-fit:cover;border-radius:4px;flex:none;background:var(--off)}
@@ -492,7 +498,7 @@ def bet_page(date, info, pred, races, result, bet):
         content += "".join(_plan_card(n, pl, result) for n, pl in plans_of(bet).items())
     content = TRIAL_NOTE + content
     content += ('<p class="sub">展開予想とは別に、モデルの確率とオッズから読んだ市場の確率を混ぜて機械的に組んでいます。'
-                'オッズは締切までに動くため、表示の期待回収率は目安です。<a href="/bets.html" style="color:var(--ac)">通算の収支</a></p>')
+                'オッズは締切までに動くため、表示の期待回収率は目安です。<a href="/ops.html" style="color:var(--ac)">予想組織図</a></p>')
     body = race_head(date, v, info, "bet", False, base, result is not None) + content \
         + rnav(date, info["jcd"], info["race"], races, "-bet")
     return page(f"{v}{info['race']}R 試験用買い目 {jp(date)}", body, "", f"/{date}/{info['jcd']}/{base}-bet.html", noindex=True)
@@ -594,7 +600,9 @@ def bets_records():
                     rec[pk + "_tk"] = [[t["combo"], t["units"], t.get("role")] for t in pl["tickets"]]
             pu = plans.get("pickura")
             if pu and not pu.get("skip") and "pickura" in st:
-                rec["pickura_tag"] = int(any(h.get("tags") for h in pu.get("heads", [])))   # 絞り込み候補の印があるか
+                tags = sorted({t for h in pu.get("heads", []) for t in h.get("tags", [])})
+                rec["pickura_tag"] = int(bool(tags))   # 絞り込み候補の印があるか
+                rec["pickura_tags"] = tags             # 裏の穴部の部員(印ごと)の集計用
             p2t = plans.get("pick2tan")
             if p2t and not p2t.get("skip") and "pick2tan" in st:
                 rec["pick2tan_tk"] = [[t["combo"], t["units"], t.get("role")] for t in p2t["tickets"]]
@@ -652,8 +660,8 @@ document.addEventListener('change',e=>{if(['per','cond','grp','plan'].includes(e
 """
 
 
-def bets_summary_page():
-    """試験用買い目の集計画面(期間・条件・集計単位・買い方で絞り込み)。データは bets-data.json"""
+def archive_body():
+    """資料室: 旧プランも含めた試験用買い目の集計(期間・条件・集計単位・買い方で絞り込み)。データは bets-data.json"""
     plans = {**bet_mod.PLANS, **EXTRA_PLANS}
     opt = lambda pairs: "".join(f'<option value="{v}">{t}</option>' for v, t in pairs)
     sel = 'style="font-size:15px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);width:100%"'
@@ -665,19 +673,10 @@ def bets_summary_page():
         f'<label class="sub">買い方<select id="plan" {sel}>{opt([("all", "全部")] + list(plans.items()))}</select></label>'
         '</div><p class="sub" id="n"></p>')
     js = BETS_JS.replace("__PLANS__", json.dumps(plans, ensure_ascii=False)).replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False))
-    body = ('<h1>試験用買い目の収支</h1>' + own_tabs("bets") + TRIAL_NOTE + controls + '<div id="out"><p class="sub">読み込み中…</p></div>'
+    return (TRIAL_NOTE + controls + '<div id="out"><p class="sub">読み込み中…</p></div>'
             '<p class="sub">結果が出たレースだけを集計しています。「切り替え」「頭-連-流し」は、保存してある予想と結果から計算した仮想の成績です。'
             '「頭-連-流し」は全レースで買った場合なので、条件で「頭注目≠1」などに絞って見てください。</p>'
-            f'<script>{js}</script>')
-    return page("試験用買い目の収支", body, "", "/bets.html", noindex=True)
-
-
-def own_tabs(cur):
-    """自分用ページ(収支・逃げ判定・狙い目・運用)の切り替えタブ"""
-    items = [("bets", "/bets.html", "収支"), ("nige", "/nige.html", "逃げ判定"), ("pick", "/pick.html", "狙い目"),
-             ("ops", "/ops.html", "運用")]
-    return '<nav class="tabs">' + "".join(
-        f'<a href="{u}"{" class=on" if k == cur else ""}>{t}</a>' for k, u, t in items) + '</nav>'
+            f'<script>(()=>{{{js}}})()</script>')
 
 
 def nige_records():
@@ -752,8 +751,8 @@ NIGE_REF = dict(h1="65.2%", h2="65.0%", h2head="30.4%", o1="46.2%", o2="71.6%", 
                 band=["22.9%", "38.0%", "52.7%", "67.5%", "79.4%"])
 
 
-def nige_page():
-    """逃げ判定(インが逃げたか・飛んだときに頭を当てたか)の集計画面。データは nige-data.json"""
+def nige_body():
+    """逃げ判定係の部屋の中身(インが逃げたか・飛んだときに頭を当てたか)。データは nige-data.json"""
     opt = lambda pairs: "".join(f'<option value="{v}">{t}</option>' for v, t in pairs)
     sel = 'style="font-size:15px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);width:100%"'
     controls = (
@@ -762,11 +761,10 @@ def nige_page():
         f'<label class="sub">集計<select id="grp" {sel}>{opt([("sum", "合計"), ("day", "日別"), ("venue", "場別")])}</select></label>'
         '</div><p class="sub" id="n"></p>')
     js = NIGE_JS.replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False)).replace("__REF__", json.dumps(NIGE_REF, ensure_ascii=False))
-    body = ('<h1>逃げ判定</h1>' + own_tabs("nige") + controls + '<div id="out"><p class="sub">読み込み中…</p></div>'
+    return (controls + '<div id="out"><p class="sub">読み込み中…</p></div>'
             '<p class="sub">結果が出たレースだけを集計しています。コースは展示の進入で見ています。「過去の目安」は、2025年1月〜2026年9月の約9.2万レースに'
             'モデルをあてて出した数字です。「2〜6コースの確率順」は、1コースを除いたモデルの1着確率の高い順です。</p>'
-            f'<script>{js}</script>')
-    return page("逃げ判定", body, "", "/nige.html", noindex=True)
+            f'<script>(()=>{{{js}}})()</script>')
 
 
 PICK_HI = 0.80   # 1コース1着確率がこれ以上なら「かなり確度高い逃げ」
@@ -830,8 +828,8 @@ document.addEventListener('change',e=>{if(e.target.id==='per3')render()});
 """
 
 
-def pick_page(hi_list, lo_list):
-    """狙い目(今日・明日の厳選レース一覧+この基準自体の過去集計)。一覧は静的、集計はnige-data.jsonを流用"""
+def pick_body(hi_list, lo_list):
+    """逃げ判定係の「今日の極端なレース」(今日・明日の厳選レース一覧+この基準自体の過去集計)。一覧は静的、集計はnige-data.jsonを流用"""
     def link(x):
         return f"/{x['date']}/{x['jcd']}/{x['race']:02d}-turn.html"
     hi_cards = "".join(
@@ -852,8 +850,7 @@ def pick_page(hi_list, lo_list):
     sel = 'style="font-size:15px;padding:6px;border-radius:8px;border:1px solid var(--bd);background:var(--card);color:var(--tx);width:100%"'
     js = (PICK_JS.replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False)).replace("__REF__", json.dumps(PICK_REF, ensure_ascii=False))
           .replace("__HI__", str(PICK_HI)).replace("__LO__", str(PICK_LO)))
-    body = ('<h1>狙い目</h1>' + own_tabs("pick")
-            + '<p class="sub">今日・明日の確定済み予想(展示反映後)から、1コースの1着確率が極端に高い/低いレースだけを抜き出しています。'
+    return ('<p class="sub">今日・明日の確定済み予想(展示反映後)から、1コースの1着確率が極端に高い/低いレースだけを抜き出しています。'
               'それ以外の帯は「よくわからない」として対象外です。厳選レースの頭は、本命(確率1位)だけだと的中率が低いので次点(確率2位)も併記しています。</p>'
             + f'<h2>かなり確度高い逃げ（1コース1着確率{PICK_HI:.0%}以上）</h2>'
             + f'<div class="card list">{hi_cards or NONE_MSG}</div>'
@@ -864,8 +861,7 @@ def pick_page(hi_list, lo_list):
             + f'<label class="sub">期間<select id="per3" {sel}>{opt([("today", "今日"), ("d7", "直近7日"), ("d30", "直近30日"), ("all", "全期間")])}</select></label>'
             + '</div><p class="sub" id="n3"></p><div id="out3"><p class="sub">読み込み中…</p></div>'
             + '<p class="sub">結果が出たレースのみ集計。「過去の目安」は2022年1月〜2026年9月・約24.5万レースにこの基準をあてた検証値。</p>'
-            + f'<script>{js}</script>')
-    return page("狙い目", body, "", "/pick.html", noindex=True)
+            + f'<script>(()=>{{{js}}})()</script>')
 
 
 DASH_PLANS = {"pickura": "B級イン・裏の穴", "pickbin": "B級イン・2連単"}
@@ -878,11 +874,11 @@ SHADOW_LABELS = {"pickbinc": "B級イン・凪で強敵なし", "pickbint": "B�
 
 UPCOMING_JS = r"""
 function renderUpcoming(el, U, PL, VN, only){
-  const rows=U.filter(x=>!only||x.p===only);
+  const rows=U.filter(x=>!only||(Array.isArray(only)?only.includes(x.p):x.p===only));
   if(!rows.length){ el.innerHTML='<div class="card"><b>これから</b><p class="sub" style="margin:4px 0 0">締切前に決めた買い目はまだありません(締切の9分前から締切1分前まで、5分おきに決め直します)。</p></div>'; return; }
   el.innerHTML='<div class="card"><b>これから</b> <span class="sub">締切前に決めた買い目・結果待ち</span>'+rows.map(x=>
     `<div class="boat" style="flex-direction:column;align-items:flex-start;gap:2px"><div><b>${x.t} ${VN[x.v]} ${x.r}R</b>`+
-    (only?'':` <span class="sub">${PL[x.p]||x.p}</span>`)+`</div><div>`+
+    ((only&&!Array.isArray(only))?'':` <span class="sub">${PL[x.p]||x.p}</span>`)+`</div><div>`+
     x.tk.map(([c,u,role,o])=>{const mk=(role||'').includes('【');   // 絞り込み候補の印がある頭は目立たせる
       return `<span style="${mk?'background:var(--mark);border-radius:6px;padding:1px 4px':''}"><span class="tri-chip" style="font-size:15px">${c}</span> <span class="sub">${mk?'★':''}${role?role+' ':''}${(u*100).toLocaleString()}円${o?'・'+o+'倍':''}</span></span>`;}).join('　')+
     `</div></div>`).join('')+'<p class="sub" style="margin:6px 0 0">オッズは買い目を決めた時点のもの。締切までに動きます。</p></div>';
@@ -942,145 +938,323 @@ function pnlCharts(el, days){
 }
 """
 
-DASH_JS = r"""
-const SINCE=__SINCE__, PLANS=__PLANS__, SHADOW=__SHADOW__;
-let D=[];
-// 運用プランを同じ画面で小分けにして見る(同じレース・同じ買い目のうち、条件に当てはまるレースだけの成績)
-const has=k=>x=>Array.isArray(x.s[k]);
-const SPLITS={
-  pickura:[['★印あり',x=>x.pickura_tag===1],['印なし',x=>x.pickura_tag===0]],
-  pickbin:[['凪で強敵なし',has('pickbinc')],['凪で展示1位',has('pickbint')],['市場の強敵なし＋ST最速',has('pickbinx')],['裏の穴も出たレース',has('pickura')],['裏の穴が出ないレース',x=>!has('pickura')(x)]],
-};
-function subStats(pk, f){
-  let n=0, hit=0, st=0, ret=0;
-  for(const x of D){
-    if(x.d<SINCE[pk]) continue;
-    const v=x.s[pk];
-    if(!Array.isArray(v)||!f(x)) continue;
-    n++; st+=v[0]; ret+=v[1]; hit+=v[1]>0?1:0;
-  }
-  return {n, hit, st, ret};
-}
-function splitRows(pk){
-  if(!SPLITS[pk]) return '';
-  return `<div class="pc-split">`+SPLITS[pk].map(([lb,f])=>{
-    const r=subStats(pk,f), roi=r.st?Math.round(r.ret/r.st*100):null, pl=r.ret-r.st;
-    return `<div class="pc-srow"><span>${lb}</span><span class="sub">${r.n}R・的中${r.n?Math.round(r.hit/r.n*100):0}%</span>`+
-      `<b style="color:${pl>=0?'var(--green)':'var(--red)'}">${roi===null?'-':roi+'%'}</b></div>`;
-  }).join('')+`</div>`;
-}
-const $=id=>document.getElementById(id), yen=n=>n.toLocaleString();
-
-function cumSeries(planKeys){
-  const byDay={};
-  for(const x of D){
-    let st=0, ret=0, any=false, hit=0, n=0;
-    for(const pk of planKeys){
-      if(x.d<SINCE[pk]) continue;
-      const v=x.s[pk];
-      if(v===undefined||v===0) continue;
-      any=true; st+=v[0]; ret+=v[1]; n++; hit+=v[1]>0?1:0;
-    }
-    if(!any) continue;
-    (byDay[x.d]=byDay[x.d]||{st:0,ret:0,n:0,hit:0});
-    byDay[x.d].st+=st; byDay[x.d].ret+=ret; byDay[x.d].n+=n; byDay[x.d].hit+=hit;
-  }
-  const days=Object.keys(byDay).sort();
-  let cum=0, totSt=0, totRet=0;
-  const pts=days.map(d=>{cum+=byDay[d].ret-byDay[d].st; totSt+=byDay[d].st; totRet+=byDay[d].ret; return {d,pl:cum};});
-  return {pts, totSt, totRet, days:days.map(d=>({d,...byDay[d]}))};
-}
-
-function sparkline(pts, w, h, color){
-  if(!pts.length) return '';
-  const vals=pts.map(p=>p.pl);
-  const min=Math.min(0,...vals), max=Math.max(0,...vals), range=(max-min)||1;
-  const stepX = pts.length>1 ? w/(pts.length-1) : 0;
-  const path = pts.map((p,i)=>`${(i*stepX).toFixed(1)},${(h-(p.pl-min)/range*h).toFixed(1)}`).join(' ');
-  const zeroY=(h-(0-min)/range*h).toFixed(1);
-  const lastX=((pts.length-1)*stepX).toFixed(1), lastY=(h-(pts[pts.length-1].pl-min)/range*h).toFixed(1);
-  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none">`+
-    `<line x1="0" y1="${zeroY}" x2="${w}" y2="${zeroY}" stroke="var(--bd)" stroke-width="1" stroke-dasharray="3,3"/>`+
-    `<polyline points="${path}" fill="none" stroke="${color}" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/>`+
-    (pts.length>1?`<circle cx="${lastX}" cy="${lastY}" r="3.2" fill="${color}"/>`:'')+
-    `</svg>`;
-}
-
-function render(){
-  const allKeys=Object.keys(PLANS);
-  const {pts:totPts, totSt, totRet, days:totDays}=cumSeries(allKeys);
-  const totRoi=totSt?totRet/totSt*100:0;
-  const totPl=totPts.length?totPts[totPts.length-1].pl:0;
-  const tcol=totPl>=0?'var(--green)':'var(--red)';
-  $('total').innerHTML = `<div class="sub">総合収支</div>`+
-    `<div class="tot-num" style="color:${tcol}">${totPl>=0?'+':''}${yen(totPl)}円</div>`+
-    `<div class="sub">回収率 ${totRoi.toFixed(0)}%・投資 ${yen(totSt)}円・${totPts.length}日分</div>`+
-    `<div class="tot-chart" id="totchart"></div>`;
-  pnlCharts($('totchart'), totDays);
-
-  let cards='';
-  for(const pk of allKeys){
-    const {pts, totSt:st, totRet:ret}=cumSeries([pk]);
-    const pl=pts.length?pts[pts.length-1].pl:0, roi=st?ret/st*100:0;
-    const col=pl>=0?'var(--green)':'var(--red)';
-    cards += `<a class="plan-card" href="/ops/${pk}.html">`+
-      `<div class="pc-head"><b>${PLANS[pk]}</b><span class="pc-roi" style="color:${col}">${pts.length?roi.toFixed(0)+'%':'-'}</span></div>`+
-      `<div class="pc-chart">${pts.length?sparkline(pts,260,56,col):'<p class="sub" style="margin:18px 0 0">まだ実績がありません</p>'}</div>`+
-      `<div class="pc-foot sub"><span>${pts.length?(pl>=0?'+':'')+yen(pl)+'円':''}</span><span>${pts.length}日分</span></div>`+
-      splitRows(pk)+`</a>`;
-  }
-  $('cards').innerHTML = cards;
-  $('shadow').innerHTML = Object.keys(SHADOW).map(pk=>{
-    const {pts, totSt:st, totRet:ret}=cumSeries([pk]);
-    const pl=pts.length?pts[pts.length-1].pl:0, roi=st?ret/st*100:0, col=pl>=0?'var(--green)':'var(--red)';
-    return `<a class="plan-card" href="/ops/${pk}.html">`+
-      `<div class="pc-head"><b><span class="sub" style="font-weight:700;margin-right:6px">優先${Object.keys(SHADOW).indexOf(pk)+1}</span>${SHADOW[pk]}</b><span class="pc-roi" style="color:${col}">${pts.length?roi.toFixed(0)+'%':'-'}</span></div>`+
-      `<div class="pc-chart">${pts.length?sparkline(pts,260,56,col):'<p class="sub" style="margin:18px 0 0">まだ実績がありません</p>'}</div>`+
-      `<div class="pc-foot sub"><span>${pts.length?(pl>=0?'+':'')+yen(pl)+'円':''}</span><span>${pts.length}日分</span></div></a>`;
-  }).join('');
-}
-fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;render()});
-fetch('/bets-upcoming.json').then(r=>r.json()).then(u=>renderUpcoming($('up'),u,{...PLANS,...SHADOW},__VENUES__,null)).catch(()=>{});
-"""
-
 PLAN_SINCE = {"pick2": bet_mod.PICK2_LOGIC_SINCE, "pick2tan": bet_mod.PICK2TAN_LOGIC_SINCE,
               "pickin": bet_mod.PICKIN_LOGIC_SINCE, "pickbin": bet_mod.PICKBIN_LOGIC_SINCE,
               "pick6a": bet_mod.PICK6A_LOGIC_SINCE, "pick21": bet_mod.PICK21_LOGIC_SINCE,
               "pick21t": bet_mod.PICK21_LOGIC_SINCE, "pickbinx": bet_mod.PICKBINX_LOGIC_SINCE,
               "pickbinc": bet_mod.PICKBINC_LOGIC_SINCE, "pickbint": bet_mod.PICKBINT_LOGIC_SINCE,
               "pickura": bet_mod.PICKURA_LOGIC_SINCE}
-DASH_SINCE = {"pick2tan": bet_mod.PICK2TAN_LOGIC_SINCE, "pickin": bet_mod.PICKIN_LOGIC_SINCE,
-              "pickbin": bet_mod.PICKBIN_LOGIC_SINCE, "pick6a": bet_mod.PICK6A_LOGIC_SINCE,
-              "pick21": bet_mod.PICK21_LOGIC_SINCE, "pick21t": bet_mod.PICK21_LOGIC_SINCE,
-              "pickbinx": bet_mod.PICKBINX_LOGIC_SINCE, "pickbinc": bet_mod.PICKBINC_LOGIC_SINCE,
-              "pickbint": bet_mod.PICKBINT_LOGIC_SINCE, "pickura": bet_mod.PICKURA_LOGIC_SINCE}
 ALL_PLAN_LABELS = {"pick2": "外・3連単", **DASH_PLANS, **SHADOW_LABELS}   # 詳細ページ用。pick2はダッシュボード非表示だがページ自体は残す
 
 
-def ops_page():
-    """運用ダッシュボード。総合収支の累積損益と、プランごとのミニカード(タップで詳細へ)。
-    データはbets-data.jsonを流用。3連単(pick2)は実オッズ検証で良い結果が出てないため非表示
-    (集計自体はbet.py側で継続)"""
-    js = (DASH_JS.replace("__SINCE__", json.dumps(DASH_SINCE, ensure_ascii=False))
-                 .replace("__PLANS__", json.dumps(DASH_PLANS, ensure_ascii=False))
-                 .replace("__SHADOW__", json.dumps(SHADOW_LABELS, ensure_ascii=False))
-                 .replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False)))
+
+# ===== 予想組織図 =====
+# 試験用買い目の収支を「予想する子たちの組織」として見せる。
+# 最上位に最終決裁者、その下に情報部(見立てを出すだけで買わない係)と買い目予想部(部長=買い目の型、部員=絞り込み)。
+# 数字はすべて bets-data.json(実際に記録した買い目の精算)から出す。情報部の静的な数字は確定オッズでの検証値。
+
+def robot_svg(color, acc="antenna", size=56, badge=False, dim=False):
+    """ロボットのキャラ(インラインSVG)。acc: antenna / crown / glasses / headset / visor / radar"""
+    eye = "#7FE3FF"
+    top = {
+        "crown": '<polygon points="19,13 22,1 29,8 32,0 35,8 42,1 45,13" fill="#F2C230" stroke="#B8901A" stroke-width="1"/>',
+        "radar": f'<path d="M22 9 A12 12 0 0 1 42 9" fill="none" stroke="{color}" stroke-width="2.5"/><path d="M26 10 A7 7 0 0 1 38 10" fill="none" stroke="{color}" stroke-width="2.5"/><line x1="32" y1="6" x2="32" y2="13" stroke="{color}" stroke-width="2.5"/>',
+    }.get(acc, f'<line x1="32" y1="4" x2="32" y2="13" stroke="{color}" stroke-width="2.5"/><circle cx="32" cy="4" r="3.2" fill="{color}"/>')
+    face = {
+        "glasses": f'<circle cx="25" cy="28" r="5.6" fill="none" stroke="#fff" stroke-width="1.6"/><circle cx="39" cy="28" r="5.6" fill="none" stroke="#fff" stroke-width="1.6"/><line x1="30.6" y1="28" x2="33.4" y2="28" stroke="#fff" stroke-width="1.6"/>',
+        "headset": f'<path d="M10 28 A22 22 0 0 1 54 28" fill="none" stroke="#2B2F36" stroke-width="3"/><path d="M54 32 Q54 42 44 42" fill="none" stroke="#2B2F36" stroke-width="2"/><circle cx="43" cy="42" r="2.2" fill="#2B2F36"/>',
+        "visor": '<rect x="17" y="24" width="30" height="8" rx="4" fill="#FF6B6B" opacity=".85"/>',
+    }.get(acc, "")
+    star = ('<polygon points="32,50 34,55 39.5,55 35,58.3 36.8,63 32,60 27.2,63 29,58.3 24.5,55 30,55" fill="#F2C230"/>'
+            if badge else "")
+    return (f'<svg viewBox="0 0 64 64" width="{size}" height="{size}" aria-hidden="true" style="flex:none{";opacity:.55;filter:grayscale(.6)" if dim else ""}">'
+            + top
+            + f'<rect x="6" y="23" width="5" height="12" rx="2.5" fill="{color}"/><rect x="53" y="23" width="5" height="12" rx="2.5" fill="{color}"/>'
+            f'<rect x="10" y="12" width="44" height="34" rx="11" fill="{color}"/>'
+            '<rect x="16" y="18" width="32" height="21" rx="7" fill="#17202B"/>'
+            f'<circle cx="25" cy="28" r="3.3" fill="{eye}"/><circle cx="39" cy="28" r="3.3" fill="{eye}"/>'
+            f'<rect x="28" y="33.5" width="8" height="2" rx="1" fill="{eye}"/>'
+            + face
+            + f'<rect x="18" y="47" width="28" height="16" rx="6" fill="{color}" opacity=".8"/>'
+            + star + '</svg>')
+
+
+def _plan_status(pk):
+    if pk in bet_mod.OPS_PLANS:
+        return "運用中"
+    if pk in bet_mod.SHADOW_PLANS:
+        return "立説中"
+    return "休止"
+
+
+ORG_KESSAI = dict(id="kessai", name="最終決裁者", color="#7A5AE0", acc="crown",
+                  role="レースごとに、どの部の提案を採るか(全部見送りも含めて)決める")
+ORG_INFO = [
+    dict(id="jisseki", name="実績予想くん", role="本予想(過去の成績から1着確率・展開・3連単確率)", color="#2A8C82", acc="glasses",
+         stat="インの勝率はほぼピッタリ"),
+    dict(id="gbm", name="実績予想くん2号", role="オッズを見ない1着確率(GBM)", color="#3D7FD0", acc="glasses",
+         stat="市場が軽く見る外の艇を見つける"),
+    dict(id="market", name="市場オッズ係", role="オッズから「みんなが思う確率」と券種の値段", color="#D9861A", acc="headset",
+         stat="全体では一番正確"),
+    dict(id="nige", name="逃げ判定係", role="イン逃げ型か外頭型か、本物のB級インか", color="#C2533A", acc="visor",
+         stat="1か外かの当たり66%"),
+    dict(id="chokuzen", name="直前情報係", role="展示タイム・展示ST・風・波・進入を集めて渡す", color="#5B6B80", acc="radar",
+         stat="単独では効かない・材料係"),
+]
+ORG_DEPTS = [
+    dict(id="inbu", name="イン逃げ部", color="#2F6BD8", head="pickbin",
+         desc="本物のB級インが逃げる2連単を買う部。部員は「このレースは特に自信あり」と絞る係。",
+         members=[dict(k="pickbinc", plan="pickbinc"), dict(k="pickbint", plan="pickbint"), dict(k="pickbinx", plan="pickbinx")],
+         former=[dict(k="pickin", plan="pickin", note="10/16に部長から外れて立説中")]),
+    dict(id="ura", name="裏の穴部", color="#B0457A", head="pickura",
+         desc="B級インのレースで、実績予想くん2号が市場の1.7倍以上と見る外の艇を頭に買う部。"
+              "2着ごとに2連単と3連単の高い方で買う。部員は★印(絞り込み候補)の係で、部長の買い目のうち自分の印が付いたレースだけの成績を持つ。",
+         members=[dict(k="ura_m", label="★モーター上位×10〜20倍", of="pickura", tag="モーター上位×10〜20倍"),
+                  dict(k="ura_q", label="★インの市場35%未満×比1.7〜2.0", of="pickura", tag="インの市場35%未満×比1.7〜2.0"),
+                  dict(k="ura_w", label="★4コース×風3m以上", of="pickura", tag="4コース×風3m以上"),
+                  dict(k="ura_none", label="印なし", of="pickura", notag=True)],
+         former=[]),
+    dict(id="soto", name="外頭部", color="#3C8C4E", head=None,
+         desc="インが負ける時の頭を当てる部。今は部長が空席で、全員立説中。"
+              "「外頭予想の上位2艇」は確定オッズで回収率75〜80%(インが弱いレースは市場の方が正確)で不採用(10/16)。",
+         members=[dict(k="pick2tan", plan="pick2tan"), dict(k="pick6a", plan="pick6a"), dict(k="pick2", plan="pick2")],
+         former=[]),
+    dict(id="sashi", name="2コース差し部", color="#8A6A2E", head=None,
+         desc="2コースが差して、インが2着に残る形を買う部。部長は空席で、2連単版と3連単版を並べて立説中。",
+         members=[dict(k="pick21", plan="pick21"), dict(k="pick21t", plan="pick21t")],
+         former=[]),
+]
+PLAN_DEPT = {m["plan"]: d for d in ORG_DEPTS for m in d["members"] + d["former"] if m.get("plan")}
+PLAN_DEPT.update({d["head"]: d for d in ORG_DEPTS if d["head"]})
+
+
+def _org_json():
+    """JSに渡す組織データ(部・部員・各プランの名前と集計開始日)"""
+    depts = []
+    for d in ORG_DEPTS:
+        mem = lambda lst: [dict(m, label=m.get("label") or ALL_PLAN_LABELS[m["plan"]],
+                               status=_plan_status(m["plan"]) if m.get("plan") else _plan_status(m["of"])) for m in lst]
+        depts.append(dict(id=d["id"], name=d["name"], color=d["color"], head=d["head"],
+                          headLabel=ALL_PLAN_LABELS.get(d["head"], ""), members=mem(d["members"]), former=mem(d["former"])))
+    return dict(since=PLAN_SINCE, ops=list(bet_mod.OPS_PLANS), labels=ALL_PLAN_LABELS, depts=depts)
+
+
+ORG_JS = r"""
+const ORG=__ORG__, VN=__VENUES__;
+let D=[];
+const $=id=>document.getElementById(id), yen=n=>n.toLocaleString();
+const sg=n=>(n>=0?'+':'')+yen(n)+'円';
+const pc=(r,s)=>{if(!s) return '-'; const v=r/s*100; return (v<100?Math.floor(v):Math.round(v))+'%';};
+// 部員1人分の条件: 自分のプランの記録 or 部長の記録のうち印が付いたレース
+function memberHit(m){
+  if(m.plan) return x=>Array.isArray(x.s[m.plan]);
+  if(m.notag) return x=>Array.isArray(x.s[m.of])&&!(x.pickura_tags||[]).length;
+  return x=>Array.isArray(x.s[m.of])&&(x.pickura_tags||[]).includes(m.tag);
+}
+function memberPlan(m){ return m.plan||m.of; }
+function agg(pks, f){
+  const by={}; let n=0, hit=0, st=0, ret=0;
+  for(const x of D){
+    let any=false, s0=0, r0=0, h0=0, n0=0;
+    for(const pk of pks){
+      if(x.d<ORG.since[pk]) continue;
+      const v=x.s[pk];
+      if(!Array.isArray(v)||(f&&!f(x))) continue;
+      any=true; s0+=v[0]; r0+=v[1]; n0++; h0+=v[1]>0?1:0;
+    }
+    if(!any) continue;
+    n+=n0; hit+=h0; st+=s0; ret+=r0;
+    const g=(by[x.d]=by[x.d]||{st:0,ret:0,n:0,hit:0}); g.st+=s0; g.ret+=r0; g.n+=n0; g.hit+=h0;
+  }
+  const days=Object.keys(by).sort().map(d=>({d,...by[d]}));
+  let cum=0; const pts=days.map(x=>{cum+=x.ret-x.st; return {d:x.d,pl:cum};});
+  return {n,hit,st,ret,days,pts};
+}
+function spark(pts,color){
+  if(pts.length<1) return '';
+  const w=220,h=40,v=pts.map(p=>p.pl),mn=Math.min(0,...v),mx=Math.max(0,...v),r=(mx-mn)||1,sx=pts.length>1?w/(pts.length-1):0;
+  const y=val=>(h-2-(val-mn)/r*(h-4)).toFixed(1);
+  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none"><line x1="0" x2="${w}" y1="${y(0)}" y2="${y(0)}" stroke="var(--bd)" stroke-dasharray="3,3" vector-effect="non-scaling-stroke"/>`+
+    `<polyline points="${pts.map((p,i)=>`${(i*sx).toFixed(1)},${y(p.pl)}`).join(' ')}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
+}
+function statLine(a){
+  if(!a.n) return '<span class="sub">まだ記録なし</span>';
+  return `<b style="color:${a.ret>=a.st?'var(--green)':'var(--red)'}">${pc(a.ret,a.st)}</b> <span class="sub">${a.n}R・的中${Math.round(a.hit/a.n*100)}%・${sg(a.ret-a.st)}</span>`;
+}
+function fill(){
+  document.querySelectorAll('[data-stat]').forEach(el=>{
+    const k=el.dataset.stat;
+    if(k==='ops'){ el.innerHTML=statLine(agg(ORG.ops)); return; }
+    if(k.startsWith('plan:')){ el.innerHTML=statLine(agg([k.slice(5)])); return; }
+    if(k.startsWith('mem:')){
+      const [_,did,mk]=k.split(':'), d=ORG.depts.find(x=>x.id===did), m=[...d.members,...d.former].find(x=>x.k===mk);
+      el.innerHTML=statLine(agg([memberPlan(m)],memberHit(m))); return;
+    }
+    if(k.startsWith('dept:')){
+      const d=ORG.depts.find(x=>x.id===k.slice(5));
+      el.innerHTML=d.head?statLine(agg([d.head])):'<span class="sub">部長は空席</span>';
+    }
+  });
+  document.querySelectorAll('[data-spark]').forEach(el=>{
+    const k=el.dataset.spark, a=k==='ops'?agg(ORG.ops):agg([k]);
+    el.innerHTML=spark(a.pts, a.ret>=a.st?'var(--gain)':'var(--loss)');
+  });
+  document.querySelectorAll('[data-pnl]').forEach(el=>{
+    const k=el.dataset.pnl, a=k==='ops'?agg(ORG.ops):agg(k.split(','));
+    pnlCharts(el, a.days);
+  });
+}
+fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;fill()});
+"""
+
+
+def _org_page(title, path, body, upcoming=None):
+    """組織図系のページ。upcoming: 「これから」に出すプラン(Noneなら出さない、[]なら全運用プラン)"""
+    js = (ORG_JS.replace("__ORG__", json.dumps(_org_json(), ensure_ascii=False))
+                .replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False)))
     js = UPCOMING_JS + CHART_JS + js
-    since_label = jp(bet_mod.PICKIN_LOGIC_SINCE)
-    body = ('<h1>運用</h1>' + own_tabs("ops")
-            + '<p class="sub">試験買い目のうち、実オッズで検証した専用プランの収支をまとめて見る画面です。'
-              'カードをタップすると各プランの詳細(日別実績・買い目・ロジック)に移動します。'
-              '現在稼働中は2プラン(B級イン・裏の穴＝2連単と3連単の高い方で買う、B級イン・2連単)。カードの下は、同じ買い目を条件で小分けにした成績です(★印あり=絞り込み候補の印が付いた頭)。外・2連単は10/15、イン逃げの逆張りは10/16に立説中へ下げました。'
-              f'{since_label}から集計しています。切り替えはその日の途中だったため、切り替え前のレースは締切前に記録したオッズで'
-              '今のロジックの買い目を後から作り直して含めています(1日単位で比べるため)。'
-              'グラフの日をタップすると、その日の損益・的中率が出ます。</p>'
+    if upcoming is not None:
+        only = upcoming or list(bet_mod.OPS_PLANS)
+        js += (f"fetch('/bets-upcoming.json').then(r=>r.json()).then(u=>renderUpcoming($('up'),u,ORG.labels,VN,"
+               f"{json.dumps(only)})).catch(()=>{{}});")
+    return page(title, body + f'<script>{js}</script>', "", path, noindex=True)
+
+
+def _room_head(color, acc, name, role, badge=False, back="/ops.html", back_label="組織図に戻る"):
+    return (f'<a class="back-lk" href="{back}">← {back_label}</a>'
+            f'<div class="room-head">{robot_svg(color, acc, 76, badge)}<div><h1 style="margin:0">{name}</h1>'
+            f'<span class="sub">{role}</span></div></div>')
+
+
+def org_home():
+    """トップ(/ops.html): 組織図。ロボットをタップするとその子の部屋へ"""
+    k = ORG_KESSAI
+    info = "".join(
+        f'<a class="org-tile" href="/org/{x["id"]}.html">{robot_svg(x["color"], x["acc"], 48)}'
+        f'<div><b>{x["name"]}</b><span class="sub">{x["role"]}</span><span class="org-stat">{x["stat"]}</span></div></a>'
+        for x in ORG_INFO)
+    depts = "".join(
+        f'<a class="org-tile" href="/org/{d["id"]}.html">{robot_svg(d["color"], "antenna", 48, badge=bool(d["head"]), dim=not d["head"])}'
+        f'<div><b>{d["name"]}</b><span class="sub">部長: {ALL_PLAN_LABELS[d["head"]] + "(" + _plan_status(d["head"]) + ")" if d["head"] else "空席"}'
+        f'・部員{len(d["members"])}</span><span class="org-stat" data-stat="dept:{d["id"]}"></span></div></a>'
+        for d in ORG_DEPTS)
+    body = ('<h1>予想組織図</h1>'
+            + '<p class="sub">試験用買い目(お金は賭けていません)を、予想する子たちの組織として並べています。'
+              '情報部は見立てを出すだけで買わない係、買い目予想部は部長が買い目の型、部員がその中の絞り込みです。'
+              '一番上の最終決裁者が、レースごとにどの部の提案を採るか決めます。ロボットをタップするとその子の部屋(役割・ロジック・成績)に入れます。</p>'
+            + f'<a class="org-tile org-boss" href="/org/kessai.html">{robot_svg(k["color"], k["acc"], 64)}'
+              f'<div><b>{k["name"]}</b><span class="sub">{k["role"]}</span>'
+              '<span class="org-stat">総合収支(運用中の部長の提案): <span data-stat="ops"></span></span></div></a>'
+            + '<div class="org-line"></div>'
+            + '<h2>情報部 <span class="sub">見立てを出す係(買わない)</span></h2><div class="org-grid">' + info + '</div>'
+            + '<h2>買い目予想部 <span class="sub">★=部長がいる部</span></h2><div class="org-grid">' + depts + '</div>'
             + '<div id="up"></div>'
-            + '<div id="total" class="card total-card"><p class="sub">読み込み中…</p></div>'
-            + '<div id="cards" class="plan-grid"></div>'
-            + '<h2>立説中</h2><p class="sub">説を確かめるために記録している運用です。総合収支には含めていません。上から優先度が高い順(有望なもの)に並べています。</p>'
-            + '<div id="shadow" class="plan-grid"></div>'
-            + f'<script>{js}</script>')
-    return page("運用", body, "", "/ops.html", noindex=True)
+            + '<h2>資料室</h2><a class="org-tile" href="/org/archive.html"><div><b>旧プランの記録</b>'
+              '<span class="sub">組織図にする前の試験プラン(バランス・イン的中重視など)も含めた全記録を、期間・条件・場で絞って見る</span></div></a>')
+    return _org_page("予想組織図", "/ops.html", body, upcoming=[])
+
+
+def kessai_room():
+    k = ORG_KESSAI
+    rows = "".join(
+        f'<a class="boat" href="/org/{d["id"]}.html"><div style="flex:1"><b>{d["name"]}</b> <span class="sub">部長 {ALL_PLAN_LABELS[d["head"]]}</span><br>'
+        f'<span data-stat="plan:{d["head"]}"></span></div></a>'
+        for d in ORG_DEPTS if d["head"] in bet_mod.OPS_PLANS)
+    body = (_room_head(k["color"], k["acc"], k["name"], k["role"])
+            + '<div class="card"><b>今の決め方(v0)</b><p class="sub" style="margin:4px 0 0">運用中の部長(イン逃げ部・裏の穴部)の提案を、'
+              'そのまま全部採用しています。自信度はまだ使っていません。</p></div>'
+            + '<div class="card"><b>次の決め方(v1・準備中)</b><p class="sub" style="margin:4px 0 0">'
+              '① 各部・各部員の提案に「自信度＝推定回収率」を付ける。予想÷市場の比のような生の数字ではなく、その条件が<b>選び出した時とは別の期間で</b>実際に何%回収したかを使う。<br>'
+              '② 記録が少ない部員は、控除率並みの75%の方へ割り引く(レースがたまるほど自分の数字になる)。<br>'
+              '③ 一番自信度が高い提案を採用。100%を超えなければそのレースは見送り。ぶつからなければ複数採用もあり。<br>'
+              '④ 最初は決裁者も立説中として「決裁者が選んでいたら」の成績を、全部採用(v0)と並べて記録し、勝ち越したら本番の決め手にする。<br>'
+              '※ 予想÷市場の比が一番大きい頭をレースごとに選ぶ方法は、確定オッズで89%・102%と、裏の穴部をそのまま全部買う97%・105%に負けた(10/16)。</p></div>'
+            + '<div id="up"></div>'
+            + '<div class="card total-card"><div class="sub">総合収支(運用中の部長の提案の合計)</div><div data-stat="ops"></div>'
+              '<div data-pnl="ops" style="margin-top:6px"></div></div>'
+            + '<h2>部ごとの内訳</h2><div class="card list">' + rows + '</div>')
+    return _org_page("最終決裁者", "/org/kessai.html", body, upcoming=[])
+
+
+def dept_room(d):
+    def card(m, former=False):
+        href = f'/ops/{m["plan"]}.html' if m.get("plan") else f'/ops/{m["of"]}.html'
+        lab = m.get("label") or ALL_PLAN_LABELS[m["plan"]]
+        st = _plan_status(m["plan"]) if m.get("plan") else "部長の記録から集計"
+        note = f'・{m["note"]}' if m.get("note") else ""
+        return (f'<a class="org-tile" href="{href}">{robot_svg(d["color"], "antenna", 40, dim=former or st == "休止")}'
+                f'<div><b>{lab}</b><span class="sub">{st}{note}</span><span class="org-stat" data-stat="mem:{d["id"]}:{m["k"]}"></span></div></a>')
+    head = ""
+    if d["head"]:
+        hk = d["head"]
+        head = (f'<h2>部長</h2><a class="plan-card" href="/ops/{hk}.html"><div class="pc-head"><b>{ALL_PLAN_LABELS[hk]}</b>'
+                f'<span class="sub">{_plan_status(hk)}</span></div><div data-stat="plan:{hk}"></div>'
+                f'<div class="pc-chart" data-spark="{hk}"></div><span class="sub">タップで部長の部屋(買い目・ロジック・日別)へ</span></a>')
+    plans = [x for x in [d["head"]] + [m.get("plan") for m in d["members"] + d["former"]] if x]
+    body = (_room_head(d["color"], "antenna", d["name"], d["desc"], badge=bool(d["head"]))
+            + '<div id="up"></div>' + head
+            + '<h2>部員</h2><div class="org-grid">' + "".join(card(m) for m in d["members"]) + '</div>'
+            + ('<h2>元部員</h2><div class="org-grid">' + "".join(card(m, True) for m in d["former"]) + '</div>' if d["former"] else "")
+            + (f'<div class="card"><b>部の合計(部長＋自分の記録を持つ部員)</b><div data-pnl="{",".join(plans)}" style="margin-top:6px"></div></div>'))
+    return _org_page(d["name"], f'/org/{d["id"]}.html', body, upcoming=plans)
+
+
+def _kv(rows):
+    return "".join(f'<div class="boat"><div style="flex:1">{a}</div><b>{b}</b></div>' for a, b in rows)
+
+
+def info_room(x, pick_hi=(), pick_lo=()):
+    i = x["id"]
+    if i == "jisseki":
+        main = ('<div class="card"><b>仕事</b><p class="sub" style="margin:4px 0 0">過去の成績(選手・コース・モーター・展示など)から、各艇の1着確率、'
+                '1マークの展開、3連単の確率を出す。サイトのレース予想ページはこの子の予想。</p></div>'
+                '<div class="card"><b>インの1着確率: 予想と実際</b><span class="sub">(6/1〜10/13・約1.8万R)</span>'
+                + _kv([("予想 21%", "実際 23%"), ("予想 35%", "実際 36%"), ("予想 45%", "実際 44%"), ("予想 55%", "実際 56%"),
+                       ("予想 65%", "実際 66%"), ("予想 75%", "実際 75%"), ("予想 84%", "実際 82%")]) + '</div>'
+                '<div class="card"><b>市場とのくらべ</b>' + _kv([("当たりの良さ(log loss・小さいほど良い)", "1.1924"), ("市場オッズ係", "1.1525")])
+                + '<p class="sub" style="margin:4px 0 0">確率はよく合っているが、全体では市場の方がわずかに上手。だから買い目予想部は「市場とズレた所」だけを狙う。</p></div>')
+    elif i == "gbm":
+        main = ('<div class="card"><b>仕事</b><p class="sub" style="margin:4px 0 0">オッズを一切見ずに、選手のコース別成績・勝率・級・年齢・体重・モーター・ボート・'
+                '平均ST・F・展示タイム・風・波から、勾配ブースティングで1着確率を出す。選手の成績は「その月より前」の累積だけを使う。</p></div>'
+                '<div class="card"><b>確定オッズでの実力(6/1〜10/13)</b>'
+                + _kv([("当たりの良さ(log loss)", "1.1808"), ("市場オッズ係", "1.1525"), ("実績予想くん(本予想)", "1.1924"),
+                       ("B級インのレースで、市場の1.7倍以上と見た外の艇の1着", "市場の1.26〜1.28倍")])
+                + '<p class="sub" style="margin:4px 0 0">全体では市場に負けるが、「B級インのレースで市場が軽く見る外の艇」は6〜7月・8〜10月の両方で市場より正しかった。'
+                  'これが裏の穴部の元ネタ。市場と混ぜても良くならない。</p></div>')
+    elif i == "market":
+        main = ('<div class="card"><b>仕事</b><p class="sub" style="margin:4px 0 0">3連単・2連単のオッズから「みんなが思っている確率」を出す。'
+                '同じ結果を2連単と3連単どちらで買うと高いかも出す。</p></div>'
+                '<div class="card"><b>確定オッズでわかったこと</b>'
+                + _kv([("全体の当たりの良さ(log loss)", "1.1525(一番)"), ("穴(人気薄)の実際の来る率", "市場の0.73〜0.85倍"),
+                       ("本命の実際の来る率", "市場の1.03〜1.05倍"), ("インが弱いレース(実績予想18%)", "市場21%・実際20%"),
+                       ("2連単と3連単の高い方で買う", "回収率+5〜10pt")])
+                + '<p class="sub" style="margin:4px 0 0">締切直前にお金がインの頭に流れ込むので、締切前のオッズで見た妙味は確定オッズでは縮む。'
+                  'だから買い目は締切1分前まで決め直す。</p></div>')
+    elif i == "nige":
+        main = ('<div class="card"><b>仕事</b><p class="sub" style="margin:4px 0 0">実績予想くんの確率から、このレースがイン逃げ型か外頭型かを判定し、'
+                '本物のB級イン(B級・F持ちでない・1着確率20%以上)かを見て、どの部にレースを回すか決める。</p></div>'
+                '<h2>判定の成績</h2>' + nige_body() + '<h2>今日の極端なレース</h2>' + pick_body(list(pick_hi), list(pick_lo)))
+    else:
+        main = ('<div class="card"><b>仕事</b><p class="sub" style="margin:4px 0 0">展示タイム・展示ST・風・波・進入(展示の並び)を集めて、'
+                '実績予想くん・2号・逃げ判定係に渡す。締切の約10分前から5分おきに取り込む。</p></div>'
+                '<div class="card"><b>わかったこと</b>'
+                + _kv([("展示STだけで決まり手を予想", "市場に勝てない"), ("決まり手が分かれば2着が当たる(1.4〜1.8倍)", "レース後にしか分からない"),
+                       ("凪・展示1位などで絞る(イン逃げ部の部員)", "立説中")])
+                + '<p class="sub" style="margin:4px 0 0">単独で使うより、他の係の材料として効く。</p></div>')
+    body = _room_head(x["color"], x["acc"], x["name"], x["role"]) + main
+    return _org_page(x["name"], f"/org/{i}.html", body)
+
+
+def archive_room():
+    body = (_room_head("#6B7079", "antenna", "資料室", "組織図にする前の試験プランも含めた、試験用買い目の全記録")
+            + archive_body())
+    return page("資料室", body, "", "/org/archive.html", noindex=True)
+
+
+def redirect_page(to):
+    return (f'<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="robots" content="noindex">'
+            f'<meta http-equiv="refresh" content="0;url={to}"><title>移動しました</title></head>'
+            f'<body><a href="{to}">移動しました</a></body></html>')
 
 
 DETAIL_JS = r"""
@@ -1154,13 +1328,17 @@ def ops_detail_page(plan_key, logic_card_html):
                    .replace("__PLAN__", json.dumps(plan_key)))
     js = UPCOMING_JS + CHART_JS + js
     label = ALL_PLAN_LABELS[plan_key]
-    body = (f'<h1>{label}</h1><a class="back-lk" href="/ops.html">← 運用ダッシュボードに戻る</a><div id="up"></div>'
+    d = PLAN_DEPT.get(plan_key)
+    back = (f'/org/{d["id"]}.html', f'{d["name"]}に戻る') if d else ("/ops.html", "組織図に戻る")
+    role = ("部長" if d and d["head"] == plan_key else "部員") + "・" + _plan_status(plan_key)
+    body = (_room_head(d["color"] if d else "#6B7079", "antenna", label, role, badge=bool(d and d["head"] == plan_key), back=back[0], back_label=back[1])
+            + '<div id="up"></div>'
             + '<div class="card" style="display:grid;grid-template-columns:1fr;gap:8px">'
             + f'<label class="sub">期間<select id="per4" {sel}>{opt([("d30", "直近30日"), ("d90", "直近90日"), ("all", "全期間")])}</select></label>'
             + '</div><p class="sub" id="n4"></p><div id="out4"><p class="sub">読み込み中…</p></div>'
             + logic_card_html
             + f'<script>{js}</script>')
-    return page(f"運用｜{label}", body, "", f"/ops/{plan_key}.html", noindex=True)
+    return page(label, body, "", f"/ops/{plan_key}.html", noindex=True)
 
 
 def _pick2_logic_card():
@@ -1612,13 +1790,20 @@ def main():
                                                     _with_live_payouts(stats.big_payouts(top), top)))
     else:
         (OUT / "index.html").write_text(page("準備中", "<h1>準備中です</h1>", "", "/"))
-    (OUT / "bets.html").write_text(bets_summary_page())   # 自分用なのでサイトマップには入れない
     (OUT / "bets-data.json").write_text(json.dumps(bets_records(), ensure_ascii=False, separators=(",", ":")))
     (OUT / "bets-upcoming.json").write_text(json.dumps(bets_upcoming(), ensure_ascii=False, separators=(",", ":")))
-    (OUT / "nige.html").write_text(nige_page())
     (OUT / "nige-data.json").write_text(json.dumps(nige_records(), ensure_ascii=False, separators=(",", ":")))
-    (OUT / "pick.html").write_text(pick_page(pick_hi, pick_lo))
-    (OUT / "ops.html").write_text(ops_page())
+    # 自分用(試験用買い目)のページは予想組織図にまとめた。サイトマップには入れない
+    (OUT / "ops.html").write_text(org_home())
+    (OUT / "org").mkdir(exist_ok=True)
+    (OUT / "org" / "kessai.html").write_text(kessai_room())
+    for x in ORG_INFO:
+        (OUT / "org" / f'{x["id"]}.html').write_text(info_room(x, pick_hi, pick_lo))
+    for d in ORG_DEPTS:
+        (OUT / "org" / f'{d["id"]}.html').write_text(dept_room(d))
+    (OUT / "org" / "archive.html").write_text(archive_room())
+    for old, to in (("bets.html", "/ops.html"), ("nige.html", "/org/nige.html"), ("pick.html", "/org/nige.html")):
+        (OUT / old).write_text(redirect_page(to))   # 前のURLをブックマークしていても迷わないように
     (OUT / "ops").mkdir(exist_ok=True)
     for pk, logic_html in (("pick2", _pick2_logic_card()), ("pick2tan", _pick2tan_logic_card()), ("pickin", _escape_logic_card()),
                             ("pickbin", _pickbin_logic_card()), ("pick6a", _pick6a_logic_card()),
