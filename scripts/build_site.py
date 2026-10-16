@@ -564,7 +564,7 @@ def _org_race_html(date, pred, result, bet):
             ps = sorted([pr for pr in props if pr["leaf"].startswith(side + ".")], key=lambda pr: -pr["conf"])
             if ps:
                 body += f'<div class="card"><b>{org_tree.NODES[side]}</b>' + "".join(row(pr) for pr in ps) + '</div>'
-    return body + '<p class="sub">同じ頭(同じ結果)を取り合う提案は自信度が一番高いものだけが上がり、自信度100%以上は全部採用します。<a href="/ops.html" style="color:var(--ac)">予想組織図</a></p>'
+    return body + f'<p class="sub">同じ頭(同じ結果)を取り合う提案は自信度が一番高いものだけが上がり、自信度{org_tree.ADOPT:.0%}以上は全部採用します。<a href="/ops.html" style="color:var(--ac)">予想組織図</a></p>'
 
 
 def bet_page(date, info, pred, races, result, bet):
@@ -1299,8 +1299,8 @@ def org_home():
             + '<p class="sub" style="margin:0">①決裁 → ②イン逃げ/負け → ③誰が勝つか → ④説 → ⑤絞り。タップでその子の部屋へ(③は開閉)。</p>'
             + '<details class="sub" style="margin:4px 0 8px"><summary>見方</summary>'
               '試験用買い目(お金は賭けていません)を、シナリオの木で並べています。各プランの買い目は頭の艇ごとに「提案」に分けて、頭のコースの箱に入れます。'
-              '同じ頭(同じ結果)を取り合う提案は自信度(推定回収率)が一番高いものだけが上に上がり、決裁者は上がってきた提案のうち自信度100%以上を全部採用します(複数OK、無ければ見送り)。'
-              f'自信度＝その箱の提案を確定オッズの過去データ({per})で精算した回収率を、件数が少ないほど一つ上の箱の自信度へ寄せた値({org_tree.SHRINK}件で半々)。100%以上が緑。'
+              f'同じ頭(同じ結果)を取り合う提案は自信度(推定回収率)が一番高いものだけが上に上がり、決裁者は上がってきた提案のうち自信度{org_tree.ADOPT:.0%}以上を全部採用します(複数OK、無ければ見送り)。'
+              f'自信度＝その箱の提案を確定オッズの過去データ({per})で精算した回収率を、件数が少ないほど一つ上の箱の自信度へ寄せた値({org_tree.SHRINK}件で半々)。決裁者の採用線({org_tree.ADOPT:.0%})以上が緑。'
               f'各箱の「提案・採用・的中・回収(全提案/採用分)」は{jp(ORG_SINCE)}からの実戦の記録です。</details>'
             + '<div class="lv">① 最終決裁</div>'
             + f'<a class="org-tile org-boss" href="/org/kessai.html">{robot_svg(k["color"], k["acc"], 40)}'
