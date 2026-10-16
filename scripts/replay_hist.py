@@ -175,6 +175,8 @@ def main():
         tmp = pathlib.Path(t)
         (tmp / "programs").symlink_to(DATA / "programs")
         for d in daterange(s, e):
+            if KEEP and (KEEP / f"{d:%Y%m%d}.json").exists() and not a.out:
+                continue   # 予想を残すだけの時は、残し済みの日を飛ばす(途中から再開できる)
             r = run_day(f"{d:%Y%m%d}", res, a.odds, tmp)
             rows += r
             print(f"{d:%Y%m%d}: {len(r)}レース", file=sys.stderr, flush=True)
