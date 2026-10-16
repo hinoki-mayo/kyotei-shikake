@@ -71,7 +71,11 @@ main{max-width:760px;margin:0 auto;padding:10px}h1{font-size:19px;margin:10px 0}
 .org-tile{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin:0}
 .org-tile>div{min-width:0}.org-tile b{display:block;font-size:14.5px}.org-tile .sub{display:block;font-size:12px;line-height:1.45}
 .org-stat{display:block;font-size:12.5px;margin-top:2px}.org-stat b,.org-stat .sub{display:inline!important;font-size:inherit!important}
-.lvn{display:inline-block;color:var(--sub);font-weight:700;margin-right:4px}.org-boss{border:2px solid #7A5AE0;margin-top:6px}
+.lvn{display:inline-block;color:var(--sub);font-weight:700;margin-right:4px}
+.org-grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}.org-grid2 .org-mini .sub{font-size:11px}
+.org-fold>summary{list-style:none;cursor:pointer;position:relative}.org-fold>summary::-webkit-details-marker{display:none}
+.fold-n{position:absolute;right:10px;top:6px;font-size:11px}.org-fold[open] .fold-n{opacity:.4}
+.tree .org-mini{padding:5px 8px}.tree li{padding-top:6px}.org-boss{border:2px solid #7A5AE0;margin-top:6px}
 .lv{font-weight:800;font-size:14px;margin:4px 0}.lv .sub{font-weight:500;font-size:12px}
 .tree,.tree ul{list-style:none;margin:0;padding:0 0 0 16px;position:relative}.tree{margin-left:22px}
 .tree li{position:relative;padding:8px 0 0 16px}
@@ -1136,8 +1140,7 @@ function aggNode(node){
 function board(a){
   if(!a.n) return '<span class="sub">まだ提案なし</span>';
   const roi=(r,s)=>s?`<b style="color:${r>=s?'var(--green)':'var(--red)'}">${pc(r,s)}</b>`:'-';
-  return `<span class="sub">提案</span> ${a.n} <span class="sub">・採用</span> ${a.an} <span class="sub">・的中</span> ${a.hit}`+
-    `<br><span class="sub">回収率 全提案</span> ${roi(a.ret,a.st)} <span class="sub">・採用分</span> ${roi(a.aret,a.ast)}`;
+  return `<span class="sub">提案${a.n}・採用${a.an}・的中${a.hit}｜回収 全</span>${roi(a.ret,a.st)}<span class="sub">・採用</span>${roi(a.aret,a.ast)}`;
 }
 function boardTable(a){
   if(!a.n) return '<p class="sub">まだ提案なし</p>';
@@ -1156,7 +1159,7 @@ function fill(){
     if(k==='ops') el.innerHTML=statLine(aggPlans(ORG.ops),'R');
     else if(k==='kessai') el.innerHTML=statLine(aggPlans(['kessai']),'R');
     else if(k.startsWith('plan:')) el.innerHTML=statLine(aggPlans([k.slice(5)]),'R');
-    else if(k.startsWith('node:')) el.innerHTML='<span class="sub">実戦 </span>'+board(aggNode(k.slice(5)));
+    else if(k.startsWith('node:')) el.innerHTML=board(aggNode(k.slice(5)));
     else if(k.startsWith('table:')) el.innerHTML=boardTable(aggNode(k.slice(6)));
   });
   document.querySelectorAll('[data-pnl]').forEach(el=>{
@@ -1170,28 +1173,31 @@ fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;fill()});
 
 def _conf_html(x):
     if x.get("conf") is None:
-        return '<span class="org-stat sub">自信度 まだなし(過去の記録なし)</span>'
+        return '<span class="org-stat sub">自信度 まだなし</span>'
     c = x["conf"]
     col = "var(--green)" if c >= org_tree.ADOPT else "var(--sub)"
     return (f'<span class="org-stat">自信度 <b style="color:{col}">{c:.0%}</b> '
-            f'<span class="sub">(過去{x["n"]:,}件・素の回収率{x["roi"]:.0%})</span></span>')
+            f'<span class="sub">(過去{x["n"]:,}件・素{x["roi"]:.0%})</span></span>')
 
 
 def _node_tile(nd, x, size=40, cls="org-mini"):
     dim = x["status"] == "休止" or (x.get("conf") is not None and x["conf"] < org_tree.ADOPT)
     acc = "visor" if x["level"] == 5 else "antenna"
-    st = f'<span class="sub">{x["status"]}</span>' if x["status"] and x["level"] == 4 else ""
+    st = f' <span class="sub">{x["status"]}</span>' if x["status"] and x["level"] == 4 else ""
     return (f'<a class="{cls}" href="/org/n/{nd}.html">{robot_svg(x["color"], acc, size, dim=dim)}'
-            f'<div><b><span class="lvn">{"①②③④⑤"[x["level"] - 1]}</span>{x["label"]}</b>{st}{_conf_html(x)}'
+            f'<div><b><span class="lvn">{"①②③④⑤"[x["level"] - 1]}</span>{x["label"]}{st}</b>{_conf_html(x)}'
             f'<span class="org-stat" data-stat="node:{nd}"></span></div></a>')
 
 
 def _tree_html(nodes, root):
-    """root の子から下を木(ul)で描く"""
+    """root の子から下を木(ul)で描く。③の箱は開閉式(中の④⑤は閉じておく)"""
     def rec(nd):
         x = nodes[nd]
         kids = "".join(f"<li>{rec(k)}</li>" for k in x["children"])
-        tile = _node_tile(nd, x, 46 if x["level"] <= 3 else 36, "org-tile" if x["level"] <= 3 else "org-mini")
+        tile = _node_tile(nd, x, 34 if x["level"] <= 3 else 28)
+        if x["level"] == 3 and kids:
+            return (f'<details class="org-fold"><summary>{tile}<span class="fold-n sub">{len(x["children"])}つの説 ▼</span></summary>'
+                    f'<ul>{kids}</ul></details>')
         return tile + (f"<ul>{kids}</ul>" if kids else "")
     return '<ul class="tree">' + "".join(f"<li>{rec(k)}</li>" for k in nodes[root]["children"]) + "</ul>"
 
@@ -1202,25 +1208,25 @@ def org_home():
     nodes = _tree_nodes()
     nodes["_root"] = dict(children=["in", "out"])
     info = "".join(
-        f'<a class="org-mini" href="/org/{x["id"]}.html">{robot_svg(x["color"], x["acc"], 34)}'
+        f'<a class="org-mini" href="/org/{x["id"]}.html">{robot_svg(x["color"], x["acc"], 28)}'
         f'<div><b>{x["name"]}</b><span class="sub">{x["stat"]}</span></div></a>' for x in ORG_INFO)
     meta = _org_json()["confMeta"]
     per = f'{jp(meta["period"][0])}〜{jp(meta["period"][1])}' if meta.get("period") else "未作成"
     body = ('<h1>予想組織図</h1>'
-            + '<p class="sub">試験用買い目(お金は賭けていません)を、シナリオの木で並べています。上から '
-              '<b>①最終決裁</b> → <b>②イン逃げかイン負けか</b> → <b>③誰が勝つか</b> → <b>④説(買い方)</b> → <b>⑤絞り(印)</b>。'
-              '各プランの買い目は頭の艇ごとに「提案」に分けて、頭のコースの箱に入れます。'
-              '同じ段の箱は同じ細かさで比べ、同じ頭(同じ結果)を取り合う提案は自信度(推定回収率)が一番高いものだけが上に上がります。決裁者は上がってきた提案のうち自信度100%以上を全部採用し(複数OK)、無ければ見送ります。</p>'
-            + f'<p class="sub">自信度＝その箱の提案を、確定オッズの過去データ({per})で精算した回収率。件数が少ない箱は一つ上の箱の自信度へ寄せています'
-              f'({org_tree.SHRINK}件で半々)。100%以上が緑。「実戦」は{jp(ORG_SINCE)}からの記録です。</p>'
+            + '<p class="sub" style="margin:0">①決裁 → ②イン逃げ/負け → ③誰が勝つか → ④説 → ⑤絞り。タップでその子の部屋へ(③は開閉)。</p>'
+            + '<details class="sub" style="margin:4px 0 8px"><summary>見方</summary>'
+              '試験用買い目(お金は賭けていません)を、シナリオの木で並べています。各プランの買い目は頭の艇ごとに「提案」に分けて、頭のコースの箱に入れます。'
+              '同じ頭(同じ結果)を取り合う提案は自信度(推定回収率)が一番高いものだけが上に上がり、決裁者は上がってきた提案のうち自信度100%以上を全部採用します(複数OK、無ければ見送り)。'
+              f'自信度＝その箱の提案を確定オッズの過去データ({per})で精算した回収率を、件数が少ないほど一つ上の箱の自信度へ寄せた値({org_tree.SHRINK}件で半々)。100%以上が緑。'
+              f'各箱の「提案・採用・的中・回収(全提案/採用分)」は{jp(ORG_SINCE)}からの実戦の記録です。</details>'
             + '<div class="lv">① 最終決裁</div>'
-            + f'<a class="org-tile org-boss" href="/org/kessai.html">{robot_svg(k["color"], k["acc"], 52)}'
-              f'<div><b>{k["name"]}</b><span class="sub">{k["role"]}</span>'
-              '<span class="org-stat">v1(自信度で選ぶ・立説中): <span data-stat="kessai"></span></span>'
-              '<span class="org-stat">v0(運用中を全部採用): <span data-stat="ops"></span></span></div></a>'
+            + f'<a class="org-tile org-boss" href="/org/kessai.html">{robot_svg(k["color"], k["acc"], 40)}'
+              f'<div><b>{k["name"]}</b>'
+              '<span class="org-stat">v1(立説中) <span data-stat="kessai"></span></span>'
+              '<span class="org-stat">v0(全部採用) <span data-stat="ops"></span></span></div></a>'
             + _tree_html(nodes, "_root")
             + '<div id="up"></div>'
-            + '<h2>情報部 <span class="sub">木の外で、全部の箱に材料を渡す係(買わない)</span></h2><div class="org-grid">' + info + '</div>'
+            + '<h2>情報部 <span class="sub">全部の箱に材料を渡す係(買わない)</span></h2><div class="org-grid2">' + info + '</div>'
             + '<h2>資料室</h2><a class="org-tile" href="/org/archive.html"><div><b>旧プランの記録</b>'
               '<span class="sub">組織図にする前の試験プラン(バランス・イン的中重視など)も含めた全記録を、期間・条件・場で絞って見る</span></div></a>')
     return _org_page("予想組織図", "/ops.html", body, upcoming=[])
