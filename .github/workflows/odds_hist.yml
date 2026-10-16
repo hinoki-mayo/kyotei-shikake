@@ -11,6 +11,14 @@ on:
         description: "終了日 (例 2026-09-30)"
         required: true
         default: "2026-09-30"
+      round:
+        description: "続き実行の回数(自動で増える)"
+        required: false
+        default: "1"
+      left:
+        description: "前の回の取り残し日数(自動。減らなくなったら止める)"
+        required: false
+        default: "99999"
 
 permissions:
   contents: write
@@ -47,3 +55,30 @@ jobs:
             git pull --rebase && git push && break
             sleep $((RANDOM % 20 + 5))
           done
+
+  # 時間切れで取り残しがあれば、同じ期間でもう一度自分を起動する(取り済みの日は飛ばす)。減らなくなったら止める
+  next:
+    needs: odds-hist
+    if: always()
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: 取り残しがあれば続きを起動
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          n=$(cd scripts && python hist_todo.py odds_hist ${{ inputs.start }} ${{ inputs.end }})
+          echo "取り残し $n 日(前の回 ${{ inputs.left }} 日・${{ inputs.round }}回目)"
+          if [ "$n" -gt 0 ] && [ "$n" -lt "${{ inputs.left }}" ] && [ "${{ inputs.round }}" -lt 60 ]; then
+            gh workflow run odds_hist.yml --ref main -f start=${{ inputs.start }} -f end=${{ inputs.end }} \
+              -f round=$(( ${{ inputs.round }} + 1 )) -f left=$n
+          fi
