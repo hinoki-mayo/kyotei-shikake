@@ -706,7 +706,7 @@ def bets_records():
             p6a = plans.get("pick6a")
             if p6a and not p6a.get("skip") and "pick6a" in st:
                 rec["pick6a_tk"] = [[t["combo"], t["units"], t.get("role")] for t in p6a["tickets"]]
-            for pk in ("pickbinx", "pickbinc", "pickbint", "pickura"):
+            for pk in ("pickbinx", "pickbinc", "pickbint", "pickura") + bet_mod.SANKA_PLANS:
                 pl = plans.get(pk)
                 if pl and not pl.get("skip") and pk in st:
                     rec[pk + "_tk"] = [[t["combo"], t["units"], t.get("role")] for t in pl["tickets"]]
@@ -1057,8 +1057,10 @@ PLAN_SINCE = {"pick2": bet_mod.PICK2_LOGIC_SINCE, "pick2tan": bet_mod.PICK2TAN_L
               "pick6a": bet_mod.PICK6A_LOGIC_SINCE, "pick21": bet_mod.PICK21_LOGIC_SINCE,
               "pick21t": bet_mod.PICK21_LOGIC_SINCE, "pickbinx": bet_mod.PICKBINX_LOGIC_SINCE,
               "pickbinc": bet_mod.PICKBINC_LOGIC_SINCE, "pickbint": bet_mod.PICKBINT_LOGIC_SINCE,
-              "pickura": bet_mod.PICKURA_LOGIC_SINCE}
-ALL_PLAN_LABELS = {"pick2": "外・3連単", **DASH_PLANS, **SHADOW_LABELS}   # 詳細ページ用。pick2はダッシュボード非表示だがページ自体は残す
+              "pickura": bet_mod.PICKURA_LOGIC_SINCE,
+              "sankabin": bet_mod.SANKA_LOGIC_SINCE, "sankagap": bet_mod.SANKA_LOGIC_SINCE}
+SANKA_LABELS = {"sankabin": "参加枠・自信のB級イン", "sankagap": "参加枠・市場より強いイン"}
+ALL_PLAN_LABELS = {"pick2": "外・3連単", **DASH_PLANS, **SHADOW_LABELS, **SANKA_LABELS}   # 詳細ページ用。pick2はダッシュボード非表示だがページ自体は残す
 
 
 
@@ -1096,6 +1098,8 @@ def robot_svg(color, acc="antenna", size=56, badge=False, dim=False):
 def _plan_status(pk):
     if pk in bet_mod.OPS_PLANS:
         return "運用中"
+    if pk in bet_mod.SANKA_PLANS:
+        return "参加枠"
     if pk in bet_mod.SHADOW_PLANS:
         return "立説中"
     return "休止"
@@ -1138,8 +1142,8 @@ GROUP_COLOR = {"in": "#2F6BD8", "in.B": "#2F6BD8", "in.A": "#5B8DEF",
                "out": "#B0457A", "out.c2": "#3C8C4E", "out.c34": "#B0457A", "out.c56": "#8A6A2E"}
 # ③の箱ごとに、どの説(プラン)が入りうるか。ここに無くても自信度の表や記録に出てきた箱は足す
 TREE_SKELETON = {
-    "in.B": ["pickbin", "pickbinc", "pickbint", "pickbinx", "pickin", "pick6a"],
-    "in.A": ["pickin", "pick6a"],
+    "in.B": ["pickbin", "pickbinc", "pickbint", "pickbinx", "pickin", "pick6a", "sankabin", "sankagap"],
+    "in.A": ["pickin", "pick6a", "sankagap"],
     "out.c2": ["pickura", "pick21", "pick21t", "pick2tan", "pick2"],
     "out.c34": ["pickura", "pick2tan", "pick2"],
     "out.c56": ["pickura", "pick2tan", "pick2"],
@@ -1174,7 +1178,7 @@ def _tree_nodes():
     return nodes
 
 
-ORG_PLANS_ORDER = ["pickbin", "pickbinc", "pickbint", "pickbinx", "pickin", "pick6a",
+ORG_PLANS_ORDER = ["pickbin", "pickbinc", "pickbint", "pickbinx", "pickin", "pick6a", "sankabin", "sankagap",
                    "pickura", "pick21", "pick21t", "pick2tan", "pick2"]
 
 
@@ -1478,7 +1482,7 @@ def ops_detail_page(plan_key, logic_card_html):
                    .replace("__PLAN__", json.dumps(plan_key)))
     js = UPCOMING_JS + CHART_JS + js
     label = ALL_PLAN_LABELS[plan_key]
-    side = "in" if plan_key in ("pickbin", "pickbinc", "pickbint", "pickbinx", "pickin", "pick6a") else "out"
+    side = "in" if plan_key in ("pickbin", "pickbinc", "pickbint", "pickbinx", "pickin", "pick6a") + bet_mod.SANKA_PLANS else "out"
     body = (_room_head(GROUP_COLOR[side], "antenna", label, "④説(買い方)・" + _plan_status(plan_key) + "・全コースの頭をまとめた記録")
             + '<div id="up"></div>'
             + '<div class="card" style="display:grid;grid-template-columns:1fr;gap:8px">'
@@ -1584,6 +1588,20 @@ def _pickura_logic_card():
             'B級インのレースは市場がインも外の艇も級で見すぎる。6〜7月395点・回収率90%、8〜10月502点・95%で、'
             '頭の1着は両方の期間とも市場の見立ての1.26倍・1.28倍。条件をいろいろ試して選んだものではなく、最初に決めた形のまま'
             '両方の期間でそろったので、立説中の優先度1。凪のB級イン系3つは6〜7月で100%を割った(84%・74%・78%)。</p></div>')
+
+
+def _sanka_logic_card(pk):
+    b = bet_mod
+    cond = (f"本予想のインの1着確率{b.SANKA_BIN_P:.0%}以上で、インがB級(B1・B2)" if pk == "sankabin"
+            else f"本予想のインの1着確率{b.SANKA_GAP_P:.0%}以上で、市場(3連単オッズから出した1着確率)より{b.SANKA_GAP * 100:.0f}ポイント以上高い")
+    ev = ("確定オッズで6/1〜8/9は186R・的中72%・回収率92%、8/10〜10/13は180R・的中70%・回収率91%" if pk == "sankabin"
+          else "確定オッズで6/1〜8/9は1,432R・的中64%・回収率89%、8/10〜10/13は1,424R・的中65%・回収率88%")
+    steps = [("① 対象レース", cond),
+             ("② 買い目と配分", f"インの頭で、2着5艇をオッズの逆数に比例して{b.SANKA_UNITS * 100:,}円(単勝と同じ形)。2着ごとに2連単と3連単の高い方で買う"),
+             ("③ 位置づけ", "参加枠。本番の決裁者・総合収支とは別に集計する。過去は2期間とも回収率9割前後で、平均すると1割前後負ける前提の、楽しむ用の買い目"),
+             ("④ 過去の成績", ev)]
+    rows = "".join(f'<div class="boat"><div><b>{t}</b><br><span class="sub">{x}</span></div></div>' for t, x in steps)
+    return f'<div class="card"><b>{SANKA_LABELS[pk]}({pk})のロジック</b>{rows}</div>'
 
 
 def _calm_logic_card(key, name, cond, evidence):
@@ -1959,7 +1977,8 @@ def main():
                             ("pickbin", _pickbin_logic_card()), ("pick6a", _pick6a_logic_card()),
                             ("pick21", _pick21_logic_card()), ("pick21t", _pick21t_logic_card()),
                             ("pickbinx", _pickbinx_logic_card()), ("pickbinc", _pickbinc_logic_card()),
-                            ("pickbint", _pickbint_logic_card()), ("pickura", _pickura_logic_card())):
+                            ("pickbint", _pickbint_logic_card()), ("pickura", _pickura_logic_card()),
+                            ("sankabin", _sanka_logic_card("sankabin")), ("sankagap", _sanka_logic_card("sankagap"))):
         (OUT / "ops" / f"{pk}.html").write_text(ops_detail_page(pk, logic_html))
     key = os.environ.get("SHARE_KEY")
     if key:   # 投稿用の隠しページ(今日と前日の仕掛け成功)。サイトマップには入れない
