@@ -95,6 +95,7 @@ def main(argv=None):
     deadline = time.time() + a.max_minutes * 60
     days = list(daterange(dt.date.fromisoformat(a.start), dt.date.fromisoformat(a.end)))
     days = [d for i, d in enumerate(days) if i % a.shards == a.shard]
+    days = days[::-1]   # 新しい日から取る(長い期間を渡しても、使いたい直近のデータから先にそろう)
     pool = ThreadPoolExecutor(2)
     n_new = n_empty = streak = n_noest = 0
     stopped = False
