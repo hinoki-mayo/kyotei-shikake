@@ -496,6 +496,66 @@ def _plan_card(name, pl, result):
     return out
 
 
+def _org_race_html(date, pred, result, bet):
+    """レースごとの組織の判断: 決裁者が採用した提案・上がってきた提案(箱・自信度・採用)・結果"""
+    plans = {n: pl for n, pl in plans_of(bet).items()
+             if not (n in bet_mod.OPS_PLANS + bet_mod.SHADOW_PLANS and pl.get("logic") != bet_mod.OPS_LOGIC)}
+    props = org_tree.proposals(plans, pred)
+    for pr in props:
+        pr["conf"] = org_tree.conf_of(pr, ORG_CONF)
+        sp = settle(dict(tickets=pr["tickets"], stake=pr["stake"], bet=pr["bet"]), result) if result else None
+        pr["ret"] = sp[1] if sp else None
+    picked = {(c["leaf"], c["head"]) for c in org_tree.decide(props, ORG_CONF)}
+    w2c = {b["waku"]: i + 1 for i, b in enumerate(pred["boats"])}
+
+    def path(pr):
+        g = ".".join(pr["leaf"].split(".")[:2])
+        tags = "・".join(org_tree.TAG_LABEL[t.split(".")[-1]] for t in pr["tags"])
+        return (f'{org_tree.NODES[g]} ＞ {ALL_PLAN_LABELS.get(pr["plan"], pr["plan"])}' + (f' ＞ {tags}' if tags else ""))
+
+    def hit_combo(kind):
+        return (result or {}).get(f"combo{kind}")
+
+    def row(pr, big=False):
+        hc = hit_combo(pr["bet"])
+        tk = " ".join(f'<span style="white-space:nowrap{";color:var(--green);font-weight:700" if t["combo"] == hc else ""}">{t["combo"]}×{t["units"]}</span>'
+                      for t in pr["tickets"])
+        ad = (pr["leaf"], pr["head"]) in picked
+        badge = (f'<span class="lab" style="background:{"#7A5AE0" if ad else "#9aa0a8"}">{"採用" if ad else "不採用"}</span>')
+        res = ""
+        if pr["ret"] is not None:
+            col = "var(--green)" if pr["ret"] >= pr["stake"] else "var(--red)"
+            res = f'<b style="color:{col}">{"的中" if pr["ret"] else "外れ"} {pr["ret"] - pr["stake"]:+,}円</b>'
+        cc = "var(--green)" if pr["conf"] >= org_tree.ADOPT else "var(--sub)"
+        return (f'<div class="boat">{chip(pr["head"])}<div style="flex:1;min-width:0">'
+                f'<div style="display:flex;justify-content:space-between;gap:6px"><span>{badge}<b>{pr["head"]}号艇頭</b> '
+                f'<span class="sub">{w2c.get(pr["head"])}コース</span></span>{res}</div>'
+                f'<span class="sub">{path(pr)}</span><br>'
+                f'<span class="sub">自信度 <b style="color:{cc}">{pr["conf"]:.0%}</b>・{pr["stake"]:,}円・{"2連単" if pr["bet"] == "2t" else "3連単"}</span>'
+                + (f'<details><summary class="sub">買い目{len(pr["tickets"])}点</summary><span class="sub">{tk}</span></details>' if not big else f'<div class="sub">{tk}</div>')
+                + '</div></div>')
+    chosen = [pr for pr in props if (pr["leaf"], pr["head"]) in picked]
+    if chosen:
+        st = sum(c["stake"] for c in chosen)
+        tot = ""
+        if all(c["ret"] is not None for c in chosen):
+            ret = sum(c["ret"] for c in chosen)
+            tot = f'<p style="margin:6px 0 0"><b style="color:{"var(--green)" if ret >= st else "var(--red)"}">採用分 払戻 {ret:,}円 / 投資 {st:,}円（{ret - st:+,}円）</b></p>'
+        head = (f'<div class="card" style="border:2px solid #7A5AE0"><b>最終決裁者の判断: {len(chosen)}件採用</b>'
+                + "".join(row(c, True) for c in sorted(chosen, key=lambda c: -c["conf"])) + tot + '</div>')
+    else:
+        why = "提案がありません" if not props else f"自信度{org_tree.ADOPT:.0%}以上の提案がありません"
+        head = f'<div class="card" style="border:2px solid #7A5AE0"><b>最終決裁者の判断: 見送り</b><br><span class="sub">{why}</span></div>'
+    body = head
+    if props:
+        body += '<h2>上がってきた提案 <span class="sub">頭ごと・自信度の高い順</span></h2>'
+        for side in ("in", "out"):
+            ps = sorted([pr for pr in props if pr["leaf"].startswith(side + ".")], key=lambda pr: -pr["conf"])
+            if ps:
+                body += f'<div class="card"><b>{org_tree.NODES[side]}</b>' + "".join(row(pr) for pr in ps) + '</div>'
+    return body + '<p class="sub">同じ頭(同じ結果)を取り合う提案は自信度が一番高いものだけが上がり、自信度100%以上は全部採用します。<a href="/ops.html" style="color:var(--ac)">予想組織図</a></p>'
+
+
 def bet_page(date, info, pred, races, result, bet):
     v = VENUES[info["jcd"]]
     base = f'{info["race"]:02d}'
@@ -503,13 +563,18 @@ def bet_page(date, info, pred, races, result, bet):
         content = ('<div class="card lock"><b>買い目はまだ決まっていません</b><br>'
                    '<span class="sub">締切の約2〜9分前にオッズを見て、1レース1回だけ決めます</span></div>')
     else:
-        content = f'<p class="sub">{bet.get("odds_at", "")}時点のオッズで決めた買い目です（買い方ごとに1,000〜4,000円）</p>'
+        content = f'<p class="sub">{bet.get("odds_at", "")}時点のオッズで決めた買い目です</p>'
         if result and result.get("combo3t"):
             pay = "" if pd.isna(result.get("payout3t")) else f'（{int(result["payout3t"]):,}円）'
             e2 = (f'<br><span class="sub">2連単 {html.escape(result["combo2t"])}（{int(result["payout2t"]):,}円）</span>'
                   if result.get("combo2t") and result.get("payout2t") else "")
             content += f'<div class="card"><b>結果 {html.escape(result["combo3t"])}</b>{pay}{e2}</div>'
-        content += "".join(_plan_card(n, pl, result) for n, pl in plans_of(bet).items())
+        cards = "".join(_plan_card(n, pl, result) for n, pl in plans_of(bet).items())
+        if pred and date >= ORG_SINCE:
+            content += _org_race_html(date, pred, result, bet)
+            content += f'<details class="card"><summary class="sub">資料室: 各プランの買い目カード(旧プランも含む)</summary>{cards}</details>'
+        else:
+            content += cards
     content = TRIAL_NOTE + content
     content += ('<p class="sub">展開予想とは別に、モデルの確率とオッズから読んだ市場の確率を混ぜて機械的に組んでいます。'
                 'オッズは締切までに動くため、表示の期待回収率は目安です。<a href="/ops.html" style="color:var(--ac)">予想組織図</a></p>')
