@@ -45,11 +45,15 @@ def run(pred_dirs, gbm_path):
             live = {x: r[x] for x in ("order", "tenji", "wind_dir", "wind", "wave", "rain")}
             plans = bet.make_bet(pred, o3, o2, date, live)["plans"]
             for p in org_tree.proposals(plans, pred):
-                kind = p["bet"]
-                combo, pay = rh._hit(kind, r, o2, o3)
-                if combo is None:
+                ret, ok = 0, True
+                for kind in {t.get("bet", p["bet"]) for t in p["tickets"]}:   # 2連単と3連単が混ざる提案もある
+                    combo, pay = rh._hit(kind, r, o2, o3)
+                    if combo is None:
+                        ok = False
+                        break
+                    ret += sum(t["units"] * int(pay) for t in p["tickets"] if t.get("bet", p["bet"]) == kind and t["combo"] == combo)
+                if not ok:
                     continue
-                ret = sum(t["units"] * int(pay) for t in p["tickets"] if t["combo"] == combo)
                 rows.append(dict(date=date, key=key, leaf=p["leaf"], tags=p["tags"], plan=p["plan"], head=p["head"],
                                  course=p["course"], stake=p["stake"], ret=ret))
         print(f"{date}: 提案 {len(rows) - n0}", file=sys.stderr, flush=True)
