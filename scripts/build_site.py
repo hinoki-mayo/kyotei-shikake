@@ -15,6 +15,7 @@ import shutil
 import pandas as pd
 
 import bet as bet_mod
+import org_tree
 import live_result
 import share
 from common import DATA, ROOT, now_jst
@@ -69,7 +70,12 @@ main{max-width:760px;margin:0 auto;padding:10px}h1{font-size:19px;margin:10px 0}
 .org-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
 .org-tile{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin:0}
 .org-tile>div{min-width:0}.org-tile b{display:block;font-size:14.5px}.org-tile .sub{display:block;font-size:12px;line-height:1.45}
-.org-stat{display:block;font-size:12.5px;margin-top:2px}.org-boss{border:2px solid #7A5AE0;margin-top:6px}
+.org-stat{display:block;font-size:12.5px;margin-top:2px}.org-stat b,.org-stat .sub{display:inline!important;font-size:inherit!important}
+.lvn{display:inline-block;color:var(--sub);font-weight:700;margin-right:4px}
+.org-grid2{display:grid;grid-template-columns:1fr 1fr;gap:6px}.org-grid2 .org-mini .sub{font-size:11px}
+.org-fold>summary{list-style:none;cursor:pointer;position:relative}.org-fold>summary::-webkit-details-marker{display:none}
+.fold-n{position:absolute;right:10px;top:6px;font-size:11px}.org-fold[open] .fold-n{opacity:.4}
+.tree .org-mini{padding:5px 8px}.tree li{padding-top:6px}.org-boss{border:2px solid #7A5AE0;margin-top:6px}
 .lv{font-weight:800;font-size:14px;margin:4px 0}.lv .sub{font-weight:500;font-size:12px}
 .tree,.tree ul{list-style:none;margin:0;padding:0 0 0 16px;position:relative}.tree{margin-left:22px}
 .tree li{position:relative;padding:8px 0 0 16px}
@@ -490,6 +496,66 @@ def _plan_card(name, pl, result):
     return out
 
 
+def _org_race_html(date, pred, result, bet):
+    """レースごとの組織の判断: 決裁者が採用した提案・上がってきた提案(箱・自信度・採用)・結果"""
+    plans = {n: pl for n, pl in plans_of(bet).items()
+             if not (n in bet_mod.OPS_PLANS + bet_mod.SHADOW_PLANS and pl.get("logic") != bet_mod.OPS_LOGIC)}
+    props = org_tree.proposals(plans, pred)
+    for pr in props:
+        pr["conf"] = org_tree.conf_of(pr, ORG_CONF)
+        sp = settle(dict(tickets=pr["tickets"], stake=pr["stake"], bet=pr["bet"]), result) if result else None
+        pr["ret"] = sp[1] if sp else None
+    picked = {(c["leaf"], c["head"]) for c in org_tree.decide(props, ORG_CONF)}
+    w2c = {b["waku"]: i + 1 for i, b in enumerate(pred["boats"])}
+
+    def path(pr):
+        g = ".".join(pr["leaf"].split(".")[:2])
+        tags = "・".join(org_tree.TAG_LABEL[t.split(".")[-1]] for t in pr["tags"])
+        return (f'{org_tree.NODES[g]} ＞ {ALL_PLAN_LABELS.get(pr["plan"], pr["plan"])}' + (f' ＞ {tags}' if tags else ""))
+
+    def hit_combo(kind):
+        return (result or {}).get(f"combo{kind}")
+
+    def row(pr, big=False):
+        hc = hit_combo(pr["bet"])
+        tk = " ".join(f'<span style="white-space:nowrap{";color:var(--green);font-weight:700" if t["combo"] == hc else ""}">{t["combo"]}×{t["units"]}</span>'
+                      for t in pr["tickets"])
+        ad = (pr["leaf"], pr["head"]) in picked
+        badge = (f'<span class="lab" style="background:{"#7A5AE0" if ad else "#9aa0a8"}">{"採用" if ad else "不採用"}</span>')
+        res = ""
+        if pr["ret"] is not None:
+            col = "var(--green)" if pr["ret"] >= pr["stake"] else "var(--red)"
+            res = f'<b style="color:{col}">{"的中" if pr["ret"] else "外れ"} {pr["ret"] - pr["stake"]:+,}円</b>'
+        cc = "var(--green)" if pr["conf"] >= org_tree.ADOPT else "var(--sub)"
+        return (f'<div class="boat">{chip(pr["head"])}<div style="flex:1;min-width:0">'
+                f'<div style="display:flex;justify-content:space-between;gap:6px"><span>{badge}<b>{pr["head"]}号艇頭</b> '
+                f'<span class="sub">{w2c.get(pr["head"])}コース</span></span>{res}</div>'
+                f'<span class="sub">{path(pr)}</span><br>'
+                f'<span class="sub">自信度 <b style="color:{cc}">{pr["conf"]:.0%}</b>・{pr["stake"]:,}円・{"2連単" if pr["bet"] == "2t" else "3連単"}</span>'
+                + (f'<details><summary class="sub">買い目{len(pr["tickets"])}点</summary><span class="sub">{tk}</span></details>' if not big else f'<div class="sub">{tk}</div>')
+                + '</div></div>')
+    chosen = [pr for pr in props if (pr["leaf"], pr["head"]) in picked]
+    if chosen:
+        st = sum(c["stake"] for c in chosen)
+        tot = ""
+        if all(c["ret"] is not None for c in chosen):
+            ret = sum(c["ret"] for c in chosen)
+            tot = f'<p style="margin:6px 0 0"><b style="color:{"var(--green)" if ret >= st else "var(--red)"}">採用分 払戻 {ret:,}円 / 投資 {st:,}円（{ret - st:+,}円）</b></p>'
+        head = (f'<div class="card" style="border:2px solid #7A5AE0"><b>最終決裁者の判断: {len(chosen)}件採用</b>'
+                + "".join(row(c, True) for c in sorted(chosen, key=lambda c: -c["conf"])) + tot + '</div>')
+    else:
+        why = "提案がありません" if not props else f"自信度{org_tree.ADOPT:.0%}以上の提案がありません"
+        head = f'<div class="card" style="border:2px solid #7A5AE0"><b>最終決裁者の判断: 見送り</b><br><span class="sub">{why}</span></div>'
+    body = head
+    if props:
+        body += '<h2>上がってきた提案 <span class="sub">頭ごと・自信度の高い順</span></h2>'
+        for side in ("in", "out"):
+            ps = sorted([pr for pr in props if pr["leaf"].startswith(side + ".")], key=lambda pr: -pr["conf"])
+            if ps:
+                body += f'<div class="card"><b>{org_tree.NODES[side]}</b>' + "".join(row(pr) for pr in ps) + '</div>'
+    return body + '<p class="sub">同じ頭(同じ結果)を取り合う提案は自信度が一番高いものだけが上がり、自信度100%以上は全部採用します。<a href="/ops.html" style="color:var(--ac)">予想組織図</a></p>'
+
+
 def bet_page(date, info, pred, races, result, bet):
     v = VENUES[info["jcd"]]
     base = f'{info["race"]:02d}'
@@ -497,13 +563,18 @@ def bet_page(date, info, pred, races, result, bet):
         content = ('<div class="card lock"><b>買い目はまだ決まっていません</b><br>'
                    '<span class="sub">締切の約2〜9分前にオッズを見て、1レース1回だけ決めます</span></div>')
     else:
-        content = f'<p class="sub">{bet.get("odds_at", "")}時点のオッズで決めた買い目です（買い方ごとに1,000〜4,000円）</p>'
+        content = f'<p class="sub">{bet.get("odds_at", "")}時点のオッズで決めた買い目です</p>'
         if result and result.get("combo3t"):
             pay = "" if pd.isna(result.get("payout3t")) else f'（{int(result["payout3t"]):,}円）'
             e2 = (f'<br><span class="sub">2連単 {html.escape(result["combo2t"])}（{int(result["payout2t"]):,}円）</span>'
                   if result.get("combo2t") and result.get("payout2t") else "")
             content += f'<div class="card"><b>結果 {html.escape(result["combo3t"])}</b>{pay}{e2}</div>'
-        content += "".join(_plan_card(n, pl, result) for n, pl in plans_of(bet).items())
+        cards = "".join(_plan_card(n, pl, result) for n, pl in plans_of(bet).items())
+        if pred and date >= ORG_SINCE:
+            content += _org_race_html(date, pred, result, bet)
+            content += f'<details class="card"><summary class="sub">資料室: 各プランの買い目カード(旧プランも含む)</summary>{cards}</details>'
+        else:
+            content += cards
     content = TRIAL_NOTE + content
     content += ('<p class="sub">展開予想とは別に、モデルの確率とオッズから読んだ市場の確率を混ぜて機械的に組んでいます。'
                 'オッズは締切までに動くため、表示の期待回収率は目安です。<a href="/ops.html" style="color:var(--ac)">予想組織図</a></p>')
@@ -549,6 +620,9 @@ def bets_upcoming(now=None):
     return sorted(out, key=lambda x: (x["t"], x["v"]))
 
 
+ORG_CONF = org_tree.load_confidence()
+
+
 def bets_records():
     """集計画面用に、結果が出たレースごとの記録を作る(買い方ごとの投資・払戻と、絞り込み用の条件)"""
     files = sorted((DATA / "bets").glob("*.json"))
@@ -582,6 +656,22 @@ def bets_records():
                     continue   # 運用プランは今の版のロジックで作った買い目だけ集計する
                 st[n] = 0 if pl.get("skip") else list(settle(pl, result))
             pred = preds.get(key)
+            if pred and date >= ORG_SINCE:   # 予想組織: 頭ごとの提案の記録と、最終決裁者(v1)の判断
+                live_plans = {n: pl for n, pl in plans.items() if isinstance(st.get(n), list)}
+                props = org_tree.proposals(live_plans, pred)
+                pp = []
+                for pr in props:
+                    sp = settle(dict(tickets=pr["tickets"], stake=pr["stake"], bet=pr["bet"]), result)
+                    if sp:
+                        pr["ret"] = sp[1]
+                        pp.append([pr["leaf"], pr["tags"], sp[0], sp[1], round(org_tree.conf_of(pr, ORG_CONF), 3), pr["head"]])
+                if props:
+                    chosen = [pr for pr in org_tree.decide(props, ORG_CONF) if "ret" in pr]
+                    st["kessai"] = [sum(c["stake"] for c in chosen), sum(c["ret"] for c in chosen)] if chosen else 0
+                    picked = {(c["leaf"], c["head"]) for c in chosen}
+                    for x in pp:   # 6つ目: 決裁者に採用されたか
+                        x.append(int((x[0], x[5]) in picked))
+                        del x[5]
             rec = dict(d=date, v=jcd, r=int(race), res=result["combo3t"], pay=int(result["payout3t"]), s=st,
                        t=(preds.get(key) or {}).get("deadline", ""))   # 締切時刻(一覧を時刻順に並べる)
             p2 = plans.get("pick2")
@@ -623,6 +713,8 @@ def bets_records():
                 fl = _flow(pred, result)
                 if fl:
                     st["flow"] = list(fl)
+            if pred and date >= ORG_SINCE:
+                rec["pp"] = pp
             out.append(rec)
     return out
 
@@ -1009,113 +1101,6 @@ ORG_INFO = [
     dict(id="chokuzen", name="直前情報係", role="展示タイム・展示ST・風・波・進入を集めて渡す", color="#5B6B80", acc="radar",
          stat="単独では効かない・材料係"),
 ]
-ORG_DEPTS = [
-    dict(id="inbu", name="イン逃げ部", color="#2F6BD8", head="pickbin",
-         desc="本物のB級インが逃げる2連単を買う部。部員は「このレースは特に自信あり」と絞る係。",
-         members=[dict(k="pickbinc", plan="pickbinc"), dict(k="pickbint", plan="pickbint"), dict(k="pickbinx", plan="pickbinx")],
-         former=[dict(k="pickin", plan="pickin", note="10/16に部長から外れて立説中")]),
-    dict(id="ura", name="裏の穴部", color="#B0457A", head="pickura",
-         desc="B級インのレースで、実績予想くん2号が市場の1.7倍以上と見る外の艇を頭に買う部。"
-              "2着ごとに2連単と3連単の高い方で買う。部員は★印(絞り込み候補)の係で、部長の買い目のうち自分の印が付いたレースだけの成績を持つ。",
-         members=[dict(k="ura_m", label="★モーター上位×10〜20倍", of="pickura", tag="モーター上位×10〜20倍"),
-                  dict(k="ura_q", label="★インの市場35%未満×比1.7〜2.0", of="pickura", tag="インの市場35%未満×比1.7〜2.0"),
-                  dict(k="ura_w", label="★4コース×風3m以上", of="pickura", tag="4コース×風3m以上"),
-                  dict(k="ura_none", label="印なし", of="pickura", notag=True)],
-         former=[]),
-    dict(id="soto", name="外頭部", color="#3C8C4E", head=None,
-         desc="インが負ける時の頭を当てる部。今は部長が空席で、全員立説中。"
-              "「外頭予想の上位2艇」は確定オッズで回収率75〜80%(インが弱いレースは市場の方が正確)で不採用(10/16)。",
-         members=[dict(k="pick2tan", plan="pick2tan"), dict(k="pick6a", plan="pick6a"), dict(k="pick2", plan="pick2")],
-         former=[]),
-    dict(id="sashi", name="2コース差し部", color="#8A6A2E", head=None,
-         desc="2コースが差して、インが2着に残る形を買う部。部長は空席で、2連単版と3連単版を並べて立説中。",
-         members=[dict(k="pick21", plan="pick21"), dict(k="pick21t", plan="pick21t")],
-         former=[]),
-]
-PLAN_DEPT = {m["plan"]: d for d in ORG_DEPTS for m in d["members"] + d["former"] if m.get("plan")}
-PLAN_DEPT.update({d["head"]: d for d in ORG_DEPTS if d["head"]})
-
-
-def _org_json():
-    """JSに渡す組織データ(部・部員・各プランの名前と集計開始日)"""
-    depts = []
-    for d in ORG_DEPTS:
-        mem = lambda lst: [dict(m, label=m.get("label") or ALL_PLAN_LABELS[m["plan"]],
-                               status=_plan_status(m["plan"]) if m.get("plan") else _plan_status(m["of"])) for m in lst]
-        depts.append(dict(id=d["id"], name=d["name"], color=d["color"], head=d["head"],
-                          headLabel=ALL_PLAN_LABELS.get(d["head"], ""), members=mem(d["members"]), former=mem(d["former"])))
-    return dict(since=PLAN_SINCE, ops=list(bet_mod.OPS_PLANS), labels=ALL_PLAN_LABELS, depts=depts)
-
-
-ORG_JS = r"""
-const ORG=__ORG__, VN=__VENUES__;
-let D=[];
-const $=id=>document.getElementById(id), yen=n=>n.toLocaleString();
-const sg=n=>(n>=0?'+':'')+yen(n)+'円';
-const pc=(r,s)=>{if(!s) return '-'; const v=r/s*100; return (v<100?Math.floor(v):Math.round(v))+'%';};
-// 部員1人分の条件: 自分のプランの記録 or 部長の記録のうち印が付いたレース
-function memberHit(m){
-  if(m.plan) return x=>Array.isArray(x.s[m.plan]);
-  if(m.notag) return x=>Array.isArray(x.s[m.of])&&!(x.pickura_tags||[]).length;
-  return x=>Array.isArray(x.s[m.of])&&(x.pickura_tags||[]).includes(m.tag);
-}
-function memberPlan(m){ return m.plan||m.of; }
-function agg(pks, f){
-  const by={}; let n=0, hit=0, st=0, ret=0;
-  for(const x of D){
-    let any=false, s0=0, r0=0, h0=0, n0=0;
-    for(const pk of pks){
-      if(x.d<ORG.since[pk]) continue;
-      const v=x.s[pk];
-      if(!Array.isArray(v)||(f&&!f(x))) continue;
-      any=true; s0+=v[0]; r0+=v[1]; n0++; h0+=v[1]>0?1:0;
-    }
-    if(!any) continue;
-    n+=n0; hit+=h0; st+=s0; ret+=r0;
-    const g=(by[x.d]=by[x.d]||{st:0,ret:0,n:0,hit:0}); g.st+=s0; g.ret+=r0; g.n+=n0; g.hit+=h0;
-  }
-  const days=Object.keys(by).sort().map(d=>({d,...by[d]}));
-  let cum=0; const pts=days.map(x=>{cum+=x.ret-x.st; return {d:x.d,pl:cum};});
-  return {n,hit,st,ret,days,pts};
-}
-function spark(pts,color){
-  if(pts.length<1) return '';
-  const w=220,h=40,v=pts.map(p=>p.pl),mn=Math.min(0,...v),mx=Math.max(0,...v),r=(mx-mn)||1,sx=pts.length>1?w/(pts.length-1):0;
-  const y=val=>(h-2-(val-mn)/r*(h-4)).toFixed(1);
-  return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none"><line x1="0" x2="${w}" y1="${y(0)}" y2="${y(0)}" stroke="var(--bd)" stroke-dasharray="3,3" vector-effect="non-scaling-stroke"/>`+
-    `<polyline points="${pts.map((p,i)=>`${(i*sx).toFixed(1)},${y(p.pl)}`).join(' ')}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`;
-}
-function statLine(a){
-  if(!a.n) return '<span class="sub">まだ記録なし</span>';
-  return `<b style="color:${a.ret>=a.st?'var(--green)':'var(--red)'}">${pc(a.ret,a.st)}</b> <span class="sub">${a.n}R・的中${Math.round(a.hit/a.n*100)}%・${sg(a.ret-a.st)}</span>`;
-}
-function fill(){
-  document.querySelectorAll('[data-stat]').forEach(el=>{
-    const k=el.dataset.stat;
-    if(k==='ops'){ el.innerHTML=statLine(agg(ORG.ops)); return; }
-    if(k.startsWith('plan:')){ el.innerHTML=statLine(agg([k.slice(5)])); return; }
-    if(k.startsWith('mem:')){
-      const [_,did,mk]=k.split(':'), d=ORG.depts.find(x=>x.id===did), m=[...d.members,...d.former].find(x=>x.k===mk);
-      el.innerHTML=statLine(agg([memberPlan(m)],memberHit(m))); return;
-    }
-    if(k.startsWith('dept:')){
-      const d=ORG.depts.find(x=>x.id===k.slice(5));
-      el.innerHTML=d.head?statLine(agg([d.head])):'<span class="sub">部長は空席</span>';
-    }
-  });
-  document.querySelectorAll('[data-spark]').forEach(el=>{
-    const k=el.dataset.spark, a=k==='ops'?agg(ORG.ops):agg([k]);
-    el.innerHTML=spark(a.pts, a.ret>=a.st?'var(--gain)':'var(--loss)');
-  });
-  document.querySelectorAll('[data-pnl]').forEach(el=>{
-    const k=el.dataset.pnl, a=k==='ops'?agg(ORG.ops):agg(k.split(','));
-    pnlCharts(el, a.days);
-  });
-}
-fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;fill()});
-"""
-
-
 def _org_page(title, path, body, upcoming=None):
     """組織図系のページ。upcoming: 「これから」に出すプラン(Noneなら出さない、[]なら全運用プラン)"""
     js = (ORG_JS.replace("__ORG__", json.dumps(_org_json(), ensure_ascii=False))
@@ -1134,37 +1119,179 @@ def _room_head(color, acc, name, role, badge=False, back="/ops.html", back_label
             f'<span class="sub">{role}</span></div></div>')
 
 
+ORG_SINCE = bet_mod.PICKURA_LOGIC_SINCE   # 組織(提案ごとの記録・決裁者)の集計開始日
+GROUP_COLOR = {"in": "#2F6BD8", "in.B": "#2F6BD8", "in.A": "#5B8DEF",
+               "out": "#B0457A", "out.c2": "#3C8C4E", "out.c34": "#B0457A", "out.c56": "#8A6A2E"}
+# ③の箱ごとに、どの説(プラン)が入りうるか。ここに無くても自信度の表や記録に出てきた箱は足す
+TREE_SKELETON = {
+    "in.B": ["pickbin", "pickbinc", "pickbint", "pickbinx", "pickin", "pick6a"],
+    "in.A": ["pickin", "pick6a"],
+    "out.c2": ["pickura", "pick21", "pick21t", "pick2tan", "pick2"],
+    "out.c34": ["pickura", "pick2tan", "pick2"],
+    "out.c56": ["pickura", "pick2tan", "pick2"],
+}
+URA_TAGS = {"out.c2": ["tagM", "tagQ"], "out.c34": ["tagM", "tagQ", "tagW"], "out.c56": ["tagM", "tagQ"]}
+
+
+def _tree_nodes():
+    """木の箱の一覧 {id: dict(parent, label, level, color, plan, conf...)}。自信度は data/org/confidence.json"""
+    conf = org_tree.load_confidence()
+    ids = {"in", "out"} | set(TREE_SKELETON)
+    for g, plans in TREE_SKELETON.items():
+        ids |= {f"{g}.{pk}" for pk in plans}
+    for g, tags in URA_TAGS.items():
+        ids |= {f"{g}.pickura.{t}" for t in tags}
+    ids |= set(conf)
+    nodes = {}
+    for nd in ids:
+        p = nd.split(".")
+        plan = p[2] if len(p) >= 3 else None
+        label = (org_tree.NODES.get(nd) or (org_tree.TAG_LABEL.get(p[-1]) if len(p) == 4 else None)
+                 or ALL_PLAN_LABELS.get(plan, plan))
+        c = conf.get(nd, {})
+        nodes[nd] = dict(parent=".".join(p[:-1]) or None, label=label, level=len(p) + 1, plan=plan,
+                         color=GROUP_COLOR.get(".".join(p[:2]), "#6B7079"),
+                         status=_plan_status(plan) if plan else "",
+                         conf=c.get("conf"), n=c.get("n", 0), roi=c.get("roi"))
+    order = {pk: i for i, pk in enumerate(ORG_PLANS_ORDER)}
+    for nd, x in nodes.items():
+        x["children"] = sorted([k for k, y in nodes.items() if y["parent"] == nd],
+                               key=lambda k: (order.get(k.split(".")[2], 99) if k.count(".") == 2 else 0, k))
+    return nodes
+
+
+ORG_PLANS_ORDER = ["pickbin", "pickbinc", "pickbint", "pickbinx", "pickin", "pick6a",
+                   "pickura", "pick21", "pick21t", "pick2tan", "pick2"]
+
+
+def _org_json():
+    """JSに渡す組織データ(木の箱・各プランの名前と集計開始日)"""
+    meta = {}
+    try:
+        meta = {k: v for k, v in json.loads(org_tree.CONF_P.read_text()).items() if k != "nodes"}
+    except Exception:
+        pass
+    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
+                labels=ALL_PLAN_LABELS, nodes=_tree_nodes(), confMeta=meta)
+
+
+ORG_JS = r"""
+const ORG=__ORG__, VN=__VENUES__;
+let D=[];
+const $=id=>document.getElementById(id), yen=n=>n.toLocaleString();
+const sg=n=>(n>=0?'+':'')+yen(n)+'円';
+const pc=(r,s)=>{if(!s) return '-'; const v=r/s*100; return (v<100?Math.floor(v):Math.round(v))+'%';};
+const anc=n=>{const p=n.split('.'), o=[]; for(let i=p.length;i>0;i--) o.push(p.slice(0,i).join('.')); return o;};
+// プランの記録(運用・立説の買い目そのもの)
+function aggPlans(pks){
+  const by={}; let n=0,hit=0,st=0,ret=0;
+  for(const x of D){ for(const pk of pks){
+    if(x.d<ORG.since[pk]) continue; const v=x.s[pk]; if(!Array.isArray(v)) continue;
+    n++; hit+=v[1]>0?1:0; st+=v[0]; ret+=v[1];
+    const g=(by[x.d]=by[x.d]||{st:0,ret:0,n:0,hit:0}); g.st+=v[0]; g.ret+=v[1]; g.n++; g.hit+=v[1]>0?1:0; } }
+  return {n,hit,st,ret,days:Object.keys(by).sort().map(d=>({d,...by[d]}))};
+}
+// 箱の記録: その箱より下の提案(頭ごとに分けた買い目)の合計。a=決裁者に採用された分
+function aggNode(node){
+  const by={}; let n=0,hit=0,st=0,ret=0,an=0,ahit=0,ast=0,aret=0;
+  for(const x of D){ if(x.d<ORG.orgSince||!x.pp) continue;
+    for(const [leaf,tags,s,r,c,ad] of x.pp){
+      const ns=new Set([leaf,...tags].flatMap(anc)); if(!ns.has(node)) continue;
+      n++; hit+=r>0?1:0; st+=s; ret+=r;
+      if(ad){an++; ahit+=r>0?1:0; ast+=s; aret+=r;}
+      const g=(by[x.d]=by[x.d]||{st:0,ret:0,n:0,hit:0}); g.st+=s; g.ret+=r; g.n++; g.hit+=r>0?1:0; } }
+  return {n,hit,st,ret,an,ahit,ast,aret,days:Object.keys(by).sort().map(d=>({d,...by[d]}))};
+}
+function board(a){
+  if(!a.n) return '<span class="sub">まだ提案なし</span>';
+  const roi=(r,s)=>s?`<b style="color:${r>=s?'var(--green)':'var(--red)'}">${pc(r,s)}</b>`:'-';
+  return `<span class="sub">提案${a.n}・採用${a.an}・的中${a.hit}｜回収 全</span>${roi(a.ret,a.st)}<span class="sub">・採用</span>${roi(a.aret,a.ast)}`;
+}
+function boardTable(a){
+  if(!a.n) return '<p class="sub">まだ提案なし</p>';
+  const row=(lab,n,h,s,r)=>`<tr><td style="text-align:left">${lab}</td><td>${n}</td><td>${h}</td><td>${n?Math.round(h/n*100):0}%</td><td>${yen(s)}</td><td>${yen(r)}</td><td style="font-weight:700;color:${r>=s?'var(--green)':'var(--red)'}">${s?pc(r,s):'-'}</td></tr>`;
+  return `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:right;white-space:nowrap">`+
+    `<tr class="sub"><th style="text-align:left"></th><th>件数</th><th>的中</th><th>的中率</th><th>投資</th><th>払戻</th><th>回収率</th></tr>`+
+    row('全提案',a.n,a.hit,a.st,a.ret)+row('うち採用',a.an,a.ahit,a.ast,a.aret)+row('うち不採用',a.n-a.an,a.hit-a.ahit,a.st-a.ast,a.ret-a.aret)+`</table></div>`;
+}
+function statLine(a, unit){
+  if(!a.n) return '<span class="sub">まだ記録なし</span>';
+  return `<b style="color:${a.ret>=a.st?'var(--green)':'var(--red)'}">${pc(a.ret,a.st)}</b> <span class="sub">${a.n}${unit||'件'}・的中${Math.round(a.hit/a.n*100)}%・${sg(a.ret-a.st)}</span>`;
+}
+function fill(){
+  document.querySelectorAll('[data-stat]').forEach(el=>{
+    const k=el.dataset.stat;
+    if(k==='ops') el.innerHTML=statLine(aggPlans(ORG.ops),'R');
+    else if(k==='kessai') el.innerHTML=statLine(aggPlans(['kessai']),'R');
+    else if(k.startsWith('plan:')) el.innerHTML=statLine(aggPlans([k.slice(5)]),'R');
+    else if(k.startsWith('node:')) el.innerHTML=board(aggNode(k.slice(5)));
+    else if(k.startsWith('table:')) el.innerHTML=boardTable(aggNode(k.slice(6)));
+  });
+  document.querySelectorAll('[data-pnl]').forEach(el=>{
+    const k=el.dataset.pnl;
+    pnlCharts(el, (k.startsWith('node:')?aggNode(k.slice(5)):aggPlans(k.split(','))).days);
+  });
+}
+fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;fill()});
+"""
+
+
+def _conf_html(x):
+    if x.get("conf") is None:
+        return '<span class="org-stat sub">自信度 まだなし</span>'
+    c = x["conf"]
+    col = "var(--green)" if c >= org_tree.ADOPT else "var(--sub)"
+    return (f'<span class="org-stat">自信度 <b style="color:{col}">{c:.0%}</b> '
+            f'<span class="sub">(過去{x["n"]:,}件・素{x["roi"]:.0%})</span></span>')
+
+
+def _node_tile(nd, x, size=40, cls="org-mini"):
+    dim = x["status"] == "休止" or (x.get("conf") is not None and x["conf"] < org_tree.ADOPT)
+    acc = "visor" if x["level"] == 5 else "antenna"
+    st = f' <span class="sub">{x["status"]}</span>' if x["status"] and x["level"] == 4 else ""
+    return (f'<a class="{cls}" href="/org/n/{nd}.html">{robot_svg(x["color"], acc, size, dim=dim)}'
+            f'<div><b><span class="lvn">{"①②③④⑤"[x["level"] - 1]}</span>{x["label"]}{st}</b>{_conf_html(x)}'
+            f'<span class="org-stat" data-stat="node:{nd}"></span></div></a>')
+
+
+def _tree_html(nodes, root):
+    """root の子から下を木(ul)で描く。③の箱は開閉式(中の④⑤は閉じておく)"""
+    def rec(nd):
+        x = nodes[nd]
+        kids = "".join(f"<li>{rec(k)}</li>" for k in x["children"])
+        tile = _node_tile(nd, x, 34 if x["level"] <= 3 else 28)
+        if x["level"] == 3 and kids:
+            return (f'<details class="org-fold"><summary>{tile}<span class="fold-n sub">{len(x["children"])}つの説 ▼</span></summary>'
+                    f'<ul>{kids}</ul></details>')
+        return tile + (f"<ul>{kids}</ul>" if kids else "")
+    return '<ul class="tree">' + "".join(f"<li>{rec(k)}</li>" for k in nodes[root]["children"]) + "</ul>"
+
+
 def org_home():
-    """トップ(/ops.html): 組織図。上から 最終決裁者 → 部(情報部・買い目予想部の各部) → 部員 の木の形。タップでその子の部屋へ"""
+    """トップ(/ops.html): シナリオの木。①最終決裁 → ②イン逃げ/イン負け → ③誰が勝つか → ④説(プラン) → ⑤絞り(印)"""
     k = ORG_KESSAI
-    def mini(href, color, acc, name, sub, stat=None, dim=False, badge=False):
-        st = f'<span class="org-stat" data-stat="{stat}"></span>' if stat else ""
-        return (f'<a class="org-mini" href="{href}">{robot_svg(color, acc, 34, badge, dim)}'
-                f'<div><b>{name}</b><span class="sub">{sub}</span>{st}</div></a>')
-    def node(href, color, acc, name, sub, stat=None, dim=False, badge=False):
-        st = f'<span class="org-stat" data-stat="{stat}"></span>' if stat else ""
-        return (f'<a class="org-tile" href="{href}">{robot_svg(color, acc, 46, badge, dim)}'
-                f'<div><b>{name}</b><span class="sub">{sub}</span>{st}</div></a>')
-    info = "".join(f'<li>{mini(f"/org/{x[chr(105)+chr(100)]}.html", x["color"], x["acc"], x["name"], x["stat"])}</li>' for x in ORG_INFO)
-    def dept(d):
-        mem = "".join(
-            f'<li>{mini("/ops/" + (m.get("plan") or m["of"]) + ".html", d["color"], "antenna", m.get("label") or ALL_PLAN_LABELS[m["plan"]], _plan_status(m["plan"]) if m.get("plan") else "部長の記録から", "mem:" + d["id"] + ":" + m["k"], dim=bool(m.get("plan")) and _plan_status(m["plan"]) == "休止")}</li>'
-            for m in d["members"])
-        head = (f'部長 {ALL_PLAN_LABELS[d["head"]]}({_plan_status(d["head"])})' if d["head"] else "部長は空席(全員立説中)")
-        return (f'<li>{node(f"/org/{d[chr(105)+chr(100)]}.html", d["color"], "antenna", d["name"], head, "dept:" + d["id"] if d["head"] else None, dim=not d["head"], badge=bool(d["head"]))}'
-                f'<ul>{mem}</ul></li>')
+    nodes = _tree_nodes()
+    nodes["_root"] = dict(children=["in", "out"])
+    info = "".join(
+        f'<a class="org-mini" href="/org/{x["id"]}.html">{robot_svg(x["color"], x["acc"], 28)}'
+        f'<div><b>{x["name"]}</b><span class="sub">{x["stat"]}</span></div></a>' for x in ORG_INFO)
+    meta = _org_json()["confMeta"]
+    per = f'{jp(meta["period"][0])}〜{jp(meta["period"][1])}' if meta.get("period") else "未作成"
     body = ('<h1>予想組織図</h1>'
-            + '<p class="sub">試験用買い目(お金は賭けていません)を、予想する子たちの組織として並べています。'
-              '上から順に <b>①最終決裁者</b> → <b>②部</b> → <b>③部員</b>。情報部は見立てを出すだけで買わない係で、買い目予想部の各部に材料を渡します。'
-              'ロボットをタップするとその子の部屋(役割・ロジック・成績)に入れます。</p>'
+            + '<p class="sub" style="margin:0">①決裁 → ②イン逃げ/負け → ③誰が勝つか → ④説 → ⑤絞り。タップでその子の部屋へ(③は開閉)。</p>'
+            + '<details class="sub" style="margin:4px 0 8px"><summary>見方</summary>'
+              '試験用買い目(お金は賭けていません)を、シナリオの木で並べています。各プランの買い目は頭の艇ごとに「提案」に分けて、頭のコースの箱に入れます。'
+              '同じ頭(同じ結果)を取り合う提案は自信度(推定回収率)が一番高いものだけが上に上がり、決裁者は上がってきた提案のうち自信度100%以上を全部採用します(複数OK、無ければ見送り)。'
+              f'自信度＝その箱の提案を確定オッズの過去データ({per})で精算した回収率を、件数が少ないほど一つ上の箱の自信度へ寄せた値({org_tree.SHRINK}件で半々)。100%以上が緑。'
+              f'各箱の「提案・採用・的中・回収(全提案/採用分)」は{jp(ORG_SINCE)}からの実戦の記録です。</details>'
             + '<div class="lv">① 最終決裁</div>'
-            + node("/org/kessai.html", k["color"], k["acc"], k["name"], k["role"], "ops").replace('class="org-tile"', 'class="org-tile org-boss"', 1)
-            + '<ul class="tree">'
-            + '<li><div class="lv">② 情報部 <span class="sub">見立てを作って下の部に渡す(買わない)</span></div><ul>' + info + '</ul></li>'
-            + '<li><div class="lv">② 買い目予想部 <span class="sub">部長＝買い目の型 ／ ③部員＝その中の絞り込み</span></div><ul>'
-            + "".join(dept(d) for d in ORG_DEPTS) + '</ul></li>'
-            + '</ul>'
+            + f'<a class="org-tile org-boss" href="/org/kessai.html">{robot_svg(k["color"], k["acc"], 40)}'
+              f'<div><b>{k["name"]}</b>'
+              '<span class="org-stat">v1(立説中) <span data-stat="kessai"></span></span>'
+              '<span class="org-stat">v0(全部採用) <span data-stat="ops"></span></span></div></a>'
+            + _tree_html(nodes, "_root")
             + '<div id="up"></div>'
+            + '<h2>情報部 <span class="sub">全部の箱に材料を渡す係(買わない)</span></h2><div class="org-grid2">' + info + '</div>'
             + '<h2>資料室</h2><a class="org-tile" href="/org/archive.html"><div><b>旧プランの記録</b>'
               '<span class="sub">組織図にする前の試験プラン(バランス・イン的中重視など)も含めた全記録を、期間・条件・場で絞って見る</span></div></a>')
     return _org_page("予想組織図", "/ops.html", body, upcoming=[])
@@ -1172,47 +1299,40 @@ def org_home():
 
 def kessai_room():
     k = ORG_KESSAI
-    rows = "".join(
-        f'<a class="boat" href="/org/{d["id"]}.html"><div style="flex:1"><b>{d["name"]}</b> <span class="sub">部長 {ALL_PLAN_LABELS[d["head"]]}</span><br>'
-        f'<span data-stat="plan:{d["head"]}"></span></div></a>'
-        for d in ORG_DEPTS if d["head"] in bet_mod.OPS_PLANS)
     body = (_room_head(k["color"], k["acc"], k["name"], k["role"])
-            + '<div class="card"><b>今の決め方(v0)</b><p class="sub" style="margin:4px 0 0">運用中の部長(イン逃げ部・裏の穴部)の提案を、'
-              'そのまま全部採用しています。自信度はまだ使っていません。</p></div>'
-            + '<div class="card"><b>次の決め方(v1・準備中)</b><p class="sub" style="margin:4px 0 0">'
-              '① 各部・各部員の提案に「自信度＝推定回収率」を付ける。予想÷市場の比のような生の数字ではなく、その条件が<b>選び出した時とは別の期間で</b>実際に何%回収したかを使う。<br>'
-              '② 記録が少ない部員は、控除率並みの75%の方へ割り引く(レースがたまるほど自分の数字になる)。<br>'
-              '③ 一番自信度が高い提案を採用。100%を超えなければそのレースは見送り。ぶつからなければ複数採用もあり。<br>'
-              '④ 最初は決裁者も立説中として「決裁者が選んでいたら」の成績を、全部採用(v0)と並べて記録し、勝ち越したら本番の決め手にする。<br>'
-              '※ 予想÷市場の比が一番大きい頭をレースごとに選ぶ方法は、確定オッズで89%・102%と、裏の穴部をそのまま全部買う97%・105%に負けた(10/16)。</p></div>'
-            + '<div id="up"></div>'
-            + '<div class="card total-card"><div class="sub">総合収支(運用中の部長の提案の合計)</div><div data-stat="ops"></div>'
-              '<div data-pnl="ops" style="margin-top:6px"></div></div>'
-            + '<h2>部ごとの内訳</h2><div class="card list">' + rows + '</div>')
+            + '<div class="card"><b>決め方 v1(自信度で選ぶ・立説中)</b><p class="sub" style="margin:4px 0 0">'
+              '① 各プランの買い目を頭の艇ごとの「提案」に分け、入った箱の自信度(確定オッズの過去データでの推定回収率)を付ける。印があれば一番細かい印の箱の自信度。<br>'
+              f'② 記録が少ない箱は一つ上の箱の自信度へ寄せる({org_tree.SHRINK}件で半々、一番上は控除率並みの{org_tree.PRIOR:.0%})。<br>'
+              '③ 同じ結果を取り合う提案(同じ頭の艇の買い目)同士だけを比べ、自信度が一番高い提案を1つ上げる。<br>'
+              f'④ 上がってきた提案のうち、自信度{org_tree.ADOPT:.0%}以上は全部採用(違う頭なら複数残る)。1つも無ければ見送り。<br>'
+              '⑤ 今は立説中。v0(運用中の部長の提案を全部採用)と成績を並べて記録し、勝ち越したら本番の決め手にする。</p></div>'
+            + '<div class="card"><b>v1 の成績(立説中)</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
+            + '<div class="card"><b>v0 の成績(運用中の部長の提案を全部採用)</b><div data-stat="ops"></div><div data-pnl="ops" style="margin-top:6px"></div></div>'
+            + '<div id="up"></div>')
     return _org_page("最終決裁者", "/org/kessai.html", body, upcoming=[])
 
 
-def dept_room(d):
-    def card(m, former=False):
-        href = f'/ops/{m["plan"]}.html' if m.get("plan") else f'/ops/{m["of"]}.html'
-        lab = m.get("label") or ALL_PLAN_LABELS[m["plan"]]
-        st = _plan_status(m["plan"]) if m.get("plan") else "部長の記録から集計"
-        note = f'・{m["note"]}' if m.get("note") else ""
-        return (f'<a class="org-tile" href="{href}">{robot_svg(d["color"], "antenna", 40, dim=former or st == "休止")}'
-                f'<div><b>{lab}</b><span class="sub">{st}{note}</span><span class="org-stat" data-stat="mem:{d["id"]}:{m["k"]}"></span></div></a>')
-    head = ""
-    if d["head"]:
-        hk = d["head"]
-        head = (f'<h2>部長</h2><a class="plan-card" href="/ops/{hk}.html"><div class="pc-head"><b>{ALL_PLAN_LABELS[hk]}</b>'
-                f'<span class="sub">{_plan_status(hk)}</span></div><div data-stat="plan:{hk}"></div>'
-                f'<div class="pc-chart" data-spark="{hk}"></div><span class="sub">タップで部長の部屋(買い目・ロジック・日別)へ</span></a>')
-    plans = [x for x in [d["head"]] + [m.get("plan") for m in d["members"] + d["former"]] if x]
-    body = (_room_head(d["color"], "antenna", d["name"], d["desc"], badge=bool(d["head"]))
-            + '<div id="up"></div>' + head
-            + '<h2>部員</h2><div class="org-grid">' + "".join(card(m) for m in d["members"]) + '</div>'
-            + ('<h2>元部員</h2><div class="org-grid">' + "".join(card(m, True) for m in d["former"]) + '</div>' if d["former"] else "")
-            + (f'<div class="card"><b>部の合計(部長＋自分の記録を持つ部員)</b><div data-pnl="{",".join(plans)}" style="margin-top:6px"></div></div>'))
-    return _org_page(d["name"], f'/org/{d["id"]}.html', body, upcoming=plans)
+def node_room(nd, nodes):
+    x = nodes[nd]
+    lv = {2: "②シナリオ", 3: "③誰が勝つか", 4: "④説(買い方)", 5: "⑤絞り(印)"}[x["level"]]
+    par = x["parent"]
+    back = (f"/org/n/{par}.html", f'{nodes[par]["label"]}に戻る') if par else ("/ops.html", "組織図に戻る")
+    pconf = nodes[par]["conf"] if par and nodes[par].get("conf") is not None else org_tree.PRIOR
+    conf = ('<div class="card"><b>自信度</b>' + _conf_html(x)
+            + (f'<p class="sub" style="margin:4px 0 0">素の回収率{x["roi"]:.0%}を、{x["n"]:,}件の重みで、上の箱の自信度{pconf:.0%}へ寄せた値'
+               f'(上の箱の重み{org_tree.SHRINK}件)。</p>' if x.get("conf") is not None else "") + '</div>')
+    kids = ('<h2>下の箱</h2><div class="org-grid">' + "".join(_node_tile(k, nodes[k]) for k in x["children"]) + '</div>'
+            if x["children"] else "")
+    plan = (f'<a class="org-tile" href="/ops/{x["plan"]}.html"><div><b>この説の買い目・ロジック・日別の記録</b>'
+            f'<span class="sub">{ALL_PLAN_LABELS.get(x["plan"], x["plan"])}(全コースの頭をまとめた記録)</span></div></a>'
+            if x["level"] == 4 else "")
+    body = (_room_head(x["color"], "visor" if x["level"] == 5 else "antenna", x["label"], f'{lv}・{x["status"]}'.rstrip("・"),
+                       back=back[0], back_label=back[1])
+            + conf + kids
+            + f'<div class="card"><b>成績ボード</b> <span class="sub">({jp(ORG_SINCE)}〜の実戦、頭ごとの提案。採用＝最終決裁者が選んだもの)</span>'
+              f'<div data-stat="table:{nd}" style="margin-top:6px"></div></div>'
+              f'<div class="card"><b>全提案の損益の推移</b><div data-pnl="node:{nd}" style="margin-top:6px"></div></div>' + plan)
+    return _org_page(x["label"], f"/org/n/{nd}.html", body)
 
 
 def _kv(rows):
@@ -1344,10 +1464,8 @@ def ops_detail_page(plan_key, logic_card_html):
                    .replace("__PLAN__", json.dumps(plan_key)))
     js = UPCOMING_JS + CHART_JS + js
     label = ALL_PLAN_LABELS[plan_key]
-    d = PLAN_DEPT.get(plan_key)
-    back = (f'/org/{d["id"]}.html', f'{d["name"]}に戻る') if d else ("/ops.html", "組織図に戻る")
-    role = ("部長" if d and d["head"] == plan_key else "部員") + "・" + _plan_status(plan_key)
-    body = (_room_head(d["color"] if d else "#6B7079", "antenna", label, role, badge=bool(d and d["head"] == plan_key), back=back[0], back_label=back[1])
+    side = "in" if plan_key in ("pickbin", "pickbinc", "pickbint", "pickbinx", "pickin", "pick6a") else "out"
+    body = (_room_head(GROUP_COLOR[side], "antenna", label, "④説(買い方)・" + _plan_status(plan_key) + "・全コースの頭をまとめた記録")
             + '<div id="up"></div>'
             + '<div class="card" style="display:grid;grid-template-columns:1fr;gap:8px">'
             + f'<label class="sub">期間<select id="per4" {sel}>{opt([("d30", "直近30日"), ("d90", "直近90日"), ("all", "全期間")])}</select></label>'
@@ -1815,8 +1933,10 @@ def main():
     (OUT / "org" / "kessai.html").write_text(kessai_room())
     for x in ORG_INFO:
         (OUT / "org" / f'{x["id"]}.html').write_text(info_room(x, pick_hi, pick_lo))
-    for d in ORG_DEPTS:
-        (OUT / "org" / f'{d["id"]}.html').write_text(dept_room(d))
+    (OUT / "org" / "n").mkdir(exist_ok=True)
+    nodes = _tree_nodes()
+    for nd in nodes:
+        (OUT / "org" / "n" / f"{nd}.html").write_text(node_room(nd, nodes))
     (OUT / "org" / "archive.html").write_text(archive_room())
     for old, to in (("bets.html", "/ops.html"), ("nige.html", "/org/nige.html"), ("pick.html", "/org/nige.html")):
         (OUT / old).write_text(redirect_page(to))   # 前のURLをブックマークしていても迷わないように
