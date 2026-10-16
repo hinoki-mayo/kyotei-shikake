@@ -70,7 +70,15 @@ main{max-width:760px;margin:0 auto;padding:10px}h1{font-size:19px;margin:10px 0}
 .org-tile{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:10px 12px;margin:0}
 .org-tile>div{min-width:0}.org-tile b{display:block;font-size:14.5px}.org-tile .sub{display:block;font-size:12px;line-height:1.45}
 .org-stat{display:block;font-size:12.5px;margin-top:2px}.org-boss{border:2px solid #7A5AE0;margin-top:6px}
-.org-line{width:2px;height:16px;background:var(--bd);margin:0 auto}
+.lv{font-weight:800;font-size:14px;margin:4px 0}.lv .sub{font-weight:500;font-size:12px}
+.tree,.tree ul{list-style:none;margin:0;padding:0 0 0 16px;position:relative}.tree{margin-left:22px}
+.tree li{position:relative;padding:8px 0 0 16px}
+.tree li::before{content:'';position:absolute;left:0;top:0;bottom:0;border-left:2px solid var(--bd)}
+.tree li:last-child::before{bottom:auto;height:34px}
+.tree li::after{content:'';position:absolute;left:0;top:34px;width:14px;border-top:2px solid var(--bd)}
+.tree>li>.lv{margin-top:6px}
+.org-mini{display:flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:6px 10px}
+.org-mini>div{min-width:0}.org-mini b{display:block;font-size:13px}.org-mini .sub{display:block;font-size:11.5px;line-height:1.4}.org-mini .org-stat{font-size:12px;margin:0}
 .boat{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}.boat:last-child{border:0}
 .chip{width:30px;height:30px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;border:1px solid var(--bd)}
 .face{width:32px;height:44px;object-fit:cover;border-radius:4px;flex:none;background:var(--off)}
@@ -1127,27 +1135,35 @@ def _room_head(color, acc, name, role, badge=False, back="/ops.html", back_label
 
 
 def org_home():
-    """トップ(/ops.html): 組織図。ロボットをタップするとその子の部屋へ"""
+    """トップ(/ops.html): 組織図。上から 最終決裁者 → 部(情報部・買い目予想部の各部) → 部員 の木の形。タップでその子の部屋へ"""
     k = ORG_KESSAI
-    info = "".join(
-        f'<a class="org-tile" href="/org/{x["id"]}.html">{robot_svg(x["color"], x["acc"], 48)}'
-        f'<div><b>{x["name"]}</b><span class="sub">{x["role"]}</span><span class="org-stat">{x["stat"]}</span></div></a>'
-        for x in ORG_INFO)
-    depts = "".join(
-        f'<a class="org-tile" href="/org/{d["id"]}.html">{robot_svg(d["color"], "antenna", 48, badge=bool(d["head"]), dim=not d["head"])}'
-        f'<div><b>{d["name"]}</b><span class="sub">部長: {ALL_PLAN_LABELS[d["head"]] + "(" + _plan_status(d["head"]) + ")" if d["head"] else "空席"}'
-        f'・部員{len(d["members"])}</span><span class="org-stat" data-stat="dept:{d["id"]}"></span></div></a>'
-        for d in ORG_DEPTS)
+    def mini(href, color, acc, name, sub, stat=None, dim=False, badge=False):
+        st = f'<span class="org-stat" data-stat="{stat}"></span>' if stat else ""
+        return (f'<a class="org-mini" href="{href}">{robot_svg(color, acc, 34, badge, dim)}'
+                f'<div><b>{name}</b><span class="sub">{sub}</span>{st}</div></a>')
+    def node(href, color, acc, name, sub, stat=None, dim=False, badge=False):
+        st = f'<span class="org-stat" data-stat="{stat}"></span>' if stat else ""
+        return (f'<a class="org-tile" href="{href}">{robot_svg(color, acc, 46, badge, dim)}'
+                f'<div><b>{name}</b><span class="sub">{sub}</span>{st}</div></a>')
+    info = "".join(f'<li>{mini(f"/org/{x[chr(105)+chr(100)]}.html", x["color"], x["acc"], x["name"], x["stat"])}</li>' for x in ORG_INFO)
+    def dept(d):
+        mem = "".join(
+            f'<li>{mini("/ops/" + (m.get("plan") or m["of"]) + ".html", d["color"], "antenna", m.get("label") or ALL_PLAN_LABELS[m["plan"]], _plan_status(m["plan"]) if m.get("plan") else "部長の記録から", "mem:" + d["id"] + ":" + m["k"], dim=bool(m.get("plan")) and _plan_status(m["plan"]) == "休止")}</li>'
+            for m in d["members"])
+        head = (f'部長 {ALL_PLAN_LABELS[d["head"]]}({_plan_status(d["head"])})' if d["head"] else "部長は空席(全員立説中)")
+        return (f'<li>{node(f"/org/{d[chr(105)+chr(100)]}.html", d["color"], "antenna", d["name"], head, "dept:" + d["id"] if d["head"] else None, dim=not d["head"], badge=bool(d["head"]))}'
+                f'<ul>{mem}</ul></li>')
     body = ('<h1>予想組織図</h1>'
             + '<p class="sub">試験用買い目(お金は賭けていません)を、予想する子たちの組織として並べています。'
-              '情報部は見立てを出すだけで買わない係、買い目予想部は部長が買い目の型、部員がその中の絞り込みです。'
-              '一番上の最終決裁者が、レースごとにどの部の提案を採るか決めます。ロボットをタップするとその子の部屋(役割・ロジック・成績)に入れます。</p>'
-            + f'<a class="org-tile org-boss" href="/org/kessai.html">{robot_svg(k["color"], k["acc"], 64)}'
-              f'<div><b>{k["name"]}</b><span class="sub">{k["role"]}</span>'
-              '<span class="org-stat">総合収支(運用中の部長の提案): <span data-stat="ops"></span></span></div></a>'
-            + '<div class="org-line"></div>'
-            + '<h2>情報部 <span class="sub">見立てを出す係(買わない)</span></h2><div class="org-grid">' + info + '</div>'
-            + '<h2>買い目予想部 <span class="sub">★=部長がいる部</span></h2><div class="org-grid">' + depts + '</div>'
+              '上から順に <b>①最終決裁者</b> → <b>②部</b> → <b>③部員</b>。情報部は見立てを出すだけで買わない係で、買い目予想部の各部に材料を渡します。'
+              'ロボットをタップするとその子の部屋(役割・ロジック・成績)に入れます。</p>'
+            + '<div class="lv">① 最終決裁</div>'
+            + node("/org/kessai.html", k["color"], k["acc"], k["name"], k["role"], "ops").replace('class="org-tile"', 'class="org-tile org-boss"', 1)
+            + '<ul class="tree">'
+            + '<li><div class="lv">② 情報部 <span class="sub">見立てを作って下の部に渡す(買わない)</span></div><ul>' + info + '</ul></li>'
+            + '<li><div class="lv">② 買い目予想部 <span class="sub">部長＝買い目の型 ／ ③部員＝その中の絞り込み</span></div><ul>'
+            + "".join(dept(d) for d in ORG_DEPTS) + '</ul></li>'
+            + '</ul>'
             + '<div id="up"></div>'
             + '<h2>資料室</h2><a class="org-tile" href="/org/archive.html"><div><b>旧プランの記録</b>'
               '<span class="sub">組織図にする前の試験プラン(バランス・イン的中重視など)も含めた全記録を、期間・条件・場で絞って見る</span></div></a>')
