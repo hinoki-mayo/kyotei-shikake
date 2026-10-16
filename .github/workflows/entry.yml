@@ -25,9 +25,6 @@ jobs:
       - run: python scripts/entry.py
       - id: chk
         run: test -z "$(git status --porcelain data)" || echo "changed=1" >> $GITHUB_OUTPUT
-      - run: python scripts/build_site.py
-        env:
-          SHARE_KEY: ${{ secrets.SHARE_KEY }}
       - if: steps.chk.outputs.changed == '1'
         run: |
           git config user.name "github-actions"
@@ -36,6 +33,10 @@ jobs:
           git commit -m "展示反映 $(TZ=Asia/Tokyo date +%H:%M)"
           git pull --rebase
           git push
+      # サイト作りが失敗しても、取り込んだ展示・買い目のデータは先に保存しておく
+      - run: python scripts/build_site.py
+        env:
+          SHARE_KEY: ${{ secrets.SHARE_KEY }}
       - if: vars.CF_PROJECT != ''
         uses: cloudflare/wrangler-action@v3
         with:
