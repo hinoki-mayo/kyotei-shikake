@@ -465,6 +465,15 @@ SKIP_TEXT = {"balance": "的中確率30%以上で期待回収率100%を超える
                         f"1コース1着確率{bet_mod.PICKBIN_HP_MIN:.0%}以上のレースのみ対象"}
 
 
+def _safe_plan_card(name, pl, result):
+    """1プランのカードが作れなくても、サイト全体の更新は止めない"""
+    try:
+        return _plan_card(name, pl, result)
+    except Exception as e:
+        print(f"買い目カードを作れませんでした({name}): {e!r}")
+        return ""
+
+
 def _plan_card(name, pl, result):
     title = f'<h2>{bet_mod.PLANS[name]}</h2>'
     if pl.get("skip"):
@@ -479,12 +488,14 @@ def _plan_card(name, pl, result):
     else:
         form = f'<div class="tri-main" style="font-size:20px">{len(pl["tickets"])}点</div>'
     evt = f'・期待回収率 {pl["ev"]:.0%}' if pl.get("ev") is not None else ""
-    head = (f'<div class="card trifecta">{form}<p class="sub">投資 {pl["stake"]:,}円・的中確率 {pl["hit"]:.0%}{evt}</p></div>')
+    hitp = f'・的中確率 {pl["hit"]:.0%}' if pl.get("hit") is not None else ""
+    head = (f'<div class="card trifecta">{form}<p class="sub">投資 {pl["stake"]:,}円{hitp}{evt}</p></div>')
     scen = f'<p style="margin:6px 2px">{html.escape(pl["scenario"])}</p>' if pl.get("scenario") else ""
     rows = "".join(
         f'<div class="boat"><div style="flex:1"><b>{t["combo"]}</b>' + (f' <span class="sub">({t["role"]})</span>' if t.get("role") else "")
         + f' <span class="sub">× {t["units"]}口（{t["units"] * 100:,}円）</span><br>'
-        f'<span class="sub">' + (f'オッズ {t["odds"]:.1f}・確率 {t["prob"]:.1%}・期待値 {t["prob"] * t["odds"]:.2f}' if t.get("odds") else f'確率 {t["prob"]:.1%}') + '</span></div></div>'
+        f'<span class="sub">' + (f'オッズ {t["odds"]:.1f}・確率 {t["prob"]:.1%}・期待値 {t["prob"] * t["odds"]:.2f}' if t.get("odds") and t.get("prob") is not None
+                                 else (f'オッズ {t["odds"]:.1f}' if t.get("odds") else (f'確率 {t["prob"]:.1%}' if t.get("prob") is not None else ""))) + '</span></div></div>'
         for t in pl["tickets"])
     out = title + head + scen + f'<details class="card"><summary class="sub">買い目 {len(pl["tickets"])}点を見る</summary>{rows}</details>'
     st = settle(pl, result)
@@ -569,9 +580,12 @@ def bet_page(date, info, pred, races, result, bet):
             e2 = (f'<br><span class="sub">2連単 {html.escape(result["combo2t"])}（{int(result["payout2t"]):,}円）</span>'
                   if result.get("combo2t") and result.get("payout2t") else "")
             content += f'<div class="card"><b>結果 {html.escape(result["combo3t"])}</b>{pay}{e2}</div>'
-        cards = "".join(_plan_card(n, pl, result) for n, pl in plans_of(bet).items())
+        cards = "".join(_safe_plan_card(n, pl, result) for n, pl in plans_of(bet).items())
         if pred and date >= ORG_SINCE:
-            content += _org_race_html(date, pred, result, bet)
+            try:
+                content += _org_race_html(date, pred, result, bet)
+            except Exception as e:   # 組織の判断が作れなくても、サイト全体の更新は止めない
+                print(f"組織の判断を作れませんでした({date} {info['jcd']}-{info['race']}): {e!r}")
             content += f'<details class="card"><summary class="sub">資料室: 各プランの買い目カード(旧プランも含む)</summary>{cards}</details>'
         else:
             content += cards
