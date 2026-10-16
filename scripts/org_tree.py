@@ -15,7 +15,8 @@ CONF_P = DATA / "org" / "confidence.json"
 ORG_PLANS = tuple(bet.OPS_PLANS) + tuple(bet.SHADOW_PLANS) + ("pick2",)
 PRIOR = 0.75   # 一番上(何も分からない時)の回収率の見込み＝控除率並み
 SHRINK = 50    # 親へ寄せる強さ(レース数換算)。提案がこの数たまると自分の数字と親の数字が半々
-ADOPT = 0.95   # 決裁者が採用する自信度の下限(別期間の確かめで100%とほぼ同じ成績・件数が少し増える)
+ADOPT = 1.05   # 決裁者が採用する自信度の下限。別期間の確かめで 95%: 107%・92%、105%: 129%(168件)・103%(302件)
+               # (比の帯で細かくすると逆に悪化したので、今は比の帯は使っていない)
 
 NODES = {
     "in": "イン逃げ(1着＝1コース)",
@@ -28,6 +29,22 @@ NODES = {
 }
 TAGS = {"モーター上位×10〜20倍": "tagM", "インの市場35%未満×比1.7〜2.0": "tagQ", "4コース×風3m以上": "tagW"}
 TAG_LABEL = {v: "★" + k for k, v in TAGS.items()}
+# 予想÷市場の比(頭の艇の 予想の1着確率÷市場の1着確率)の帯。説・印の箱の下に、帯ごとの箱を作って自信度を細かくする
+RATIO_BANDS = [(0, 1.2, "r1"), (1.2, 1.7, "r2"), (1.7, 2.5, "r3"), (2.5, 1e9, "r4")]
+RATIO_LABEL = {"r1": "比1.2倍未満", "r2": "比1.2〜1.7倍", "r3": "比1.7〜2.5倍", "r4": "比2.5倍以上"}
+
+
+def band_of(ratio):
+    if ratio is None or ratio != ratio:
+        return None
+    return next(b for lo, hi, b in RATIO_BANDS if lo <= ratio < hi)
+
+
+def _bases(p):
+    """提案が入る一番細かい箱(説の箱と印の箱)。比があれば、その下の比の帯の箱"""
+    base = [p["leaf"]] + list(p["tags"])
+    b = band_of(p.get("ratio"))
+    return [f"{x}.{b}" for x in base] if b else base
 
 
 def group_of(course, in_grade):
@@ -72,7 +89,7 @@ def build_confidence(rows):
     agg = {}
     for r in rows:
         nodes = set()
-        for x in [r["leaf"]] + list(r["tags"]):
+        for x in _bases(r):
             nodes.update(ancestors(x))
         for nd in nodes:
             a = agg.setdefault(nd, dict(n=0, st=0, ret=0))
@@ -103,8 +120,9 @@ def conf_of(p, table):
             if a in table:
                 return table[a]["conf"]
         return PRIOR
-    tags = list(p["tags"])
-    return max(look(t) for t in tags) if tags else look(p["leaf"])
+    bs = _bases(p)
+    tags = bs[1:]
+    return max(look(t) for t in tags) if tags else look(bs[0])
 
 
 def decide(props, table, mode="head"):
@@ -113,16 +131,19 @@ def decide(props, table, mode="head"):
     best = {}
     for p in props:
         c = conf_of(p, table)
+        k = (c, p.get("ratio") or 0)   # 自信度が同じなら、予想÷市場の比が大きい方
         g = p["head"] if mode == "head" else p["leaf"].split(".")[0]
-        if c >= ADOPT and (g not in best or c > best[g][0]):
-            best[g] = (c, p)
-    return [dict(p, conf=c) for c, p in best.values()]
+        if c >= ADOPT and (g not in best or k > best[g][0]):
+            best[g] = (k, p)
+    return [dict(p, conf=k[0]) for k, p in best.values()]
 
 
 def node_label(node):
     if node in NODES:
         return NODES[node]
     last = node.split(".")[-1]
+    if last in RATIO_LABEL:
+        return RATIO_LABEL[last]
     if last in TAG_LABEL:
         return TAG_LABEL[last]
     return bet.PLANS.get(last, last)
