@@ -21,7 +21,8 @@ import replay_hist as rh
 from common import DATA
 
 
-def run(pred_dirs, gbm_path):
+def run(pred_dirs, gbm_path, day_dir=None):
+    """day_dir を渡すと1日ずつ保存し、保存済みの日は飛ばす(途中から再開できる)。最後に全日分をまとめて返す"""
     if gbm_path:
         gbm_win.MODEL_P = pathlib.Path(gbm_path)
         gbm_win._load.cache_clear()
@@ -29,7 +30,12 @@ def run(pred_dirs, gbm_path):
     years = sorted({f.stem[:4] for f in files})
     res = pd.concat([pd.read_parquet(DATA / "results" / f"{y}.parquet") for y in years])
     rows = []
+    if day_dir:
+        day_dir = pathlib.Path(day_dir)
+        day_dir.mkdir(parents=True, exist_ok=True)
     for f in files:
+        if day_dir and (day_dir / f"{f.stem}.parquet").exists():
+            continue
         date = f.stem
         preds = json.loads(f.read_text())
         results = rh.day_results(res, date)
@@ -57,6 +63,11 @@ def run(pred_dirs, gbm_path):
                 rows.append(dict(date=date, key=key, leaf=p["leaf"], tags=p["tags"], plan=p["plan"], head=p["head"],
                                  course=p["course"], stake=p["stake"], ret=ret))
         print(f"{date}: 提案 {len(rows) - n0}", file=sys.stderr, flush=True)
+        if day_dir:
+            pd.DataFrame(rows[n0:]).to_parquet(day_dir / f"{date}.parquet", index=False)
+    if day_dir:
+        fs = sorted(day_dir.glob("*.parquet"))
+        return pd.concat([pd.read_parquet(x) for x in fs]) if fs else pd.DataFrame()
     return pd.DataFrame(rows)
 
 
@@ -82,12 +93,13 @@ def main():
     ap.add_argument("--preds", nargs="*")
     ap.add_argument("--gbm")
     ap.add_argument("--out")
+    ap.add_argument("--days", help="1日ずつ保存するフォルダ(途中から再開できる)")
     ap.add_argument("--rows")
     ap.add_argument("--conf-from", nargs=2)
     ap.add_argument("--test", nargs=2)
     ap.add_argument("--save", action="store_true")
     a = ap.parse_args()
-    df = run(a.preds, a.gbm) if a.preds else pd.read_parquet(a.rows)
+    df = run(a.preds, a.gbm, a.days) if a.preds else pd.read_parquet(a.rows)
     if a.out:
         df.to_parquet(a.out, index=False)
     if a.conf_from:
