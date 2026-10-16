@@ -595,10 +595,14 @@ def bets_records():
                     sp = settle(dict(tickets=pr["tickets"], stake=pr["stake"], bet=pr["bet"]), result)
                     if sp:
                         pr["ret"] = sp[1]
-                        pp.append([pr["leaf"], pr["tags"], sp[0], sp[1], round(org_tree.conf_of(pr, ORG_CONF), 3)])
+                        pp.append([pr["leaf"], pr["tags"], sp[0], sp[1], round(org_tree.conf_of(pr, ORG_CONF), 3), pr["head"]])
                 if props:
                     chosen = [pr for pr in org_tree.decide(props, ORG_CONF) if "ret" in pr]
                     st["kessai"] = [sum(c["stake"] for c in chosen), sum(c["ret"] for c in chosen)] if chosen else 0
+                    picked = {(c["leaf"], c["head"]) for c in chosen}
+                    for x in pp:   # 6つ目: 決裁者に採用されたか
+                        x.append(int((x[0], x[5]) in picked))
+                        del x[5]
             rec = dict(d=date, v=jcd, r=int(race), res=result["combo3t"], pay=int(result["payout3t"]), s=st,
                        t=(preds.get(key) or {}).get("deadline", ""))   # 締切時刻(一覧を時刻順に並べる)
             p2 = plans.get("pick2")
@@ -1118,15 +1122,29 @@ function aggPlans(pks){
     const g=(by[x.d]=by[x.d]||{st:0,ret:0,n:0,hit:0}); g.st+=v[0]; g.ret+=v[1]; g.n++; g.hit+=v[1]>0?1:0; } }
   return {n,hit,st,ret,days:Object.keys(by).sort().map(d=>({d,...by[d]}))};
 }
-// 箱の記録: その箱より下の提案(頭ごとに分けた買い目)の合計
+// 箱の記録: その箱より下の提案(頭ごとに分けた買い目)の合計。a=決裁者に採用された分
 function aggNode(node){
-  const by={}; let n=0,hit=0,st=0,ret=0;
+  const by={}; let n=0,hit=0,st=0,ret=0,an=0,ahit=0,ast=0,aret=0;
   for(const x of D){ if(x.d<ORG.orgSince||!x.pp) continue;
-    for(const [leaf,tags,s,r] of x.pp){
+    for(const [leaf,tags,s,r,c,ad] of x.pp){
       const ns=new Set([leaf,...tags].flatMap(anc)); if(!ns.has(node)) continue;
       n++; hit+=r>0?1:0; st+=s; ret+=r;
+      if(ad){an++; ahit+=r>0?1:0; ast+=s; aret+=r;}
       const g=(by[x.d]=by[x.d]||{st:0,ret:0,n:0,hit:0}); g.st+=s; g.ret+=r; g.n++; g.hit+=r>0?1:0; } }
-  return {n,hit,st,ret,days:Object.keys(by).sort().map(d=>({d,...by[d]}))};
+  return {n,hit,st,ret,an,ahit,ast,aret,days:Object.keys(by).sort().map(d=>({d,...by[d]}))};
+}
+function board(a){
+  if(!a.n) return '<span class="sub">まだ提案なし</span>';
+  const roi=(r,s)=>s?`<b style="color:${r>=s?'var(--green)':'var(--red)'}">${pc(r,s)}</b>`:'-';
+  return `<span class="sub">提案</span> ${a.n} <span class="sub">・採用</span> ${a.an} <span class="sub">・的中</span> ${a.hit}`+
+    `<br><span class="sub">回収率 全提案</span> ${roi(a.ret,a.st)} <span class="sub">・採用分</span> ${roi(a.aret,a.ast)}`;
+}
+function boardTable(a){
+  if(!a.n) return '<p class="sub">まだ提案なし</p>';
+  const row=(lab,n,h,s,r)=>`<tr><td style="text-align:left">${lab}</td><td>${n}</td><td>${h}</td><td>${n?Math.round(h/n*100):0}%</td><td>${yen(s)}</td><td>${yen(r)}</td><td style="font-weight:700;color:${r>=s?'var(--green)':'var(--red)'}">${s?pc(r,s):'-'}</td></tr>`;
+  return `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:right;white-space:nowrap">`+
+    `<tr class="sub"><th style="text-align:left"></th><th>件数</th><th>的中</th><th>的中率</th><th>投資</th><th>払戻</th><th>回収率</th></tr>`+
+    row('全提案',a.n,a.hit,a.st,a.ret)+row('うち採用',a.an,a.ahit,a.ast,a.aret)+row('うち不採用',a.n-a.an,a.hit-a.ahit,a.st-a.ast,a.ret-a.aret)+`</table></div>`;
 }
 function statLine(a, unit){
   if(!a.n) return '<span class="sub">まだ記録なし</span>';
@@ -1138,7 +1156,8 @@ function fill(){
     if(k==='ops') el.innerHTML=statLine(aggPlans(ORG.ops),'R');
     else if(k==='kessai') el.innerHTML=statLine(aggPlans(['kessai']),'R');
     else if(k.startsWith('plan:')) el.innerHTML=statLine(aggPlans([k.slice(5)]),'R');
-    else if(k.startsWith('node:')) el.innerHTML='<span class="sub">実戦</span> '+statLine(aggNode(k.slice(5)));
+    else if(k.startsWith('node:')) el.innerHTML='<span class="sub">実戦 </span>'+board(aggNode(k.slice(5)));
+    else if(k.startsWith('table:')) el.innerHTML=boardTable(aggNode(k.slice(6)));
   });
   document.querySelectorAll('[data-pnl]').forEach(el=>{
     const k=el.dataset.pnl;
@@ -1239,8 +1258,9 @@ def node_room(nd, nodes):
     body = (_room_head(x["color"], "visor" if x["level"] == 5 else "antenna", x["label"], f'{lv}・{x["status"]}'.rstrip("・"),
                        back=back[0], back_label=back[1])
             + conf + kids
-            + f'<div class="card"><b>実戦の記録</b> <span class="sub">({jp(ORG_SINCE)}〜、頭ごとの提案)</span>'
-              f'<div data-stat="node:{nd}"></div><div data-pnl="node:{nd}" style="margin-top:6px"></div></div>' + plan)
+            + f'<div class="card"><b>成績ボード</b> <span class="sub">({jp(ORG_SINCE)}〜の実戦、頭ごとの提案。採用＝最終決裁者が選んだもの)</span>'
+              f'<div data-stat="table:{nd}" style="margin-top:6px"></div></div>'
+              f'<div class="card"><b>全提案の損益の推移</b><div data-pnl="node:{nd}" style="margin-top:6px"></div></div>' + plan)
     return _org_page(x["label"], f"/org/n/{nd}.html", body)
 
 
