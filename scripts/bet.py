@@ -81,7 +81,7 @@ PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": 
          "pick6a": "6コースだけA級・2連単(立説中)", "pick21": "2差し1残し・2連単2-1(立説中)",
          "pick21t": "2差し1残し・3連単2-1-□(立説中)", "pickbinx": "B級イン・絞り込み(立説中)",
          "pickura": "B級イン・裏の穴(立説中)", "pickbinc": "B級イン・凪で強敵なし(立説中)", "pickbint": "B級イン・凪で展示1位(立説中)",
-         "pickgen": "一般職・市場が軽く見る艇(立説中)",
+         "pickgen": "一般職・市場が軽く見る艇(立説中)", "pickfav": "イン頭・軽視された2着(立説中)",
          "sankabin": "参加枠・自信のB級イン", "sankagap": "参加枠・市場より強いイン"}
 PICK2_NIGE_MAX = 0.22   # pressedの中でもこれ未満だけ対象(実オッズ検証: 頻度と回収率のバランスで22%に)
 PICK2_MIN_ODDS = 2.25   # 5分前時点オッズなので、損益分岐の2倍より変動分の余裕を見て高め
@@ -114,7 +114,7 @@ PICKBIN_UNITS = (16, 24)   # 2着の確率1位・2位に何口ずつ(合計4,000
 PICKBIN_LOGIC_SINCE = "20261014"   # 運用タブの集計開始日(実際の区切りはOPS_LOGICの印)
 OPS_PLANS = ("pickura", "pickbin")   # 運用ダッシュボードに出すプラン(10/16: 逆張りを立説中へ下げ、裏の穴を上げた)
 SANKA_PLANS = ("sankabin", "sankagap")   # 参加枠(当たりやすく負けがゆるい買い目を楽しむ用。総合収支・決裁者とは別に集計)
-SHADOW_PLANS = ("pickbinc", "pickbint", "pickbinx", "pickin", "pick21", "pick21t", "pick6a", "pick2tan", "pickgen") + SANKA_PLANS   # 立説中(総合収支に含めない)。優先度の高い順
+SHADOW_PLANS = ("pickbinc", "pickbint", "pickbinx", "pickin", "pick21", "pick21t", "pick6a", "pick2tan", "pickgen", "pickfav") + SANKA_PLANS   # 立説中(総合収支に含めない)。優先度の高い順
                     # (外・2連単は6/1〜10/11の実オッズで232点・89%だったので10/15に運用から立説中へ下げた)
 PICK6A_UNITS = (24, 36)      # 6コースだけA級: 2着の確率1位・2位に何口ずつ(合計6,000円)
 PICK6A_LOGIC_SINCE = "20261014"
@@ -137,6 +137,11 @@ GEN_MIN_P = 0.05            # かつ実績だけの予想の1着確率がこれ�
 GEN_UNITS = 40              # 頭1艇につき4,000円(単勝と同じ形)
 GEN_BANDS = [(1.2, 1.5, "1.2〜1.5"), (1.5, 2.0, "1.5〜2"), (2.0, 3.0, "2〜3"), (3.0, 1e9, "3以上")]
 GEN_LOGIC_SINCE = "20261017"
+FAV_ODDS = (8, 12)          # イン頭・軽視された2着: 2連単オッズがこの範囲(8倍超〜12倍)
+FAV_RATIO_B = (1.3, 1.6)    # B級インの時: 本予想の目の確率÷市場の目の確率がこの範囲
+FAV_RATIO_A = (1.6, 1e9)    # A級インの時: 同じく1.6倍以上
+FAV_UNITS = 10              # 1目1,000円
+FAV_LOGIC_SINCE = "20261017"
 SANKA_BIN_P = 0.70          # 参加枠: インの1着確率(本予想)がこれ以上 × B級イン
 SANKA_GAP_P = 0.60          # 参加枠: インの1着確率がこれ以上 × 市場よりSANKA_GAP以上高い
 SANKA_GAP = 0.10
@@ -678,6 +683,34 @@ def _pickgen(pred, odds_c, odds2_w, waku, date, live):
                 tickets=tickets)
 
 
+def _pickfav(pred, odds2_w, waku):
+    """イン頭・軽視された2着(本命寄り): 1コースが頭の2連単のうち、オッズFAV_ODDS倍で、本予想の目の確率が
+    市場の目の確率(2連単オッズから)のFAV_RATIO倍以上の目を1目FAV_UNITS口。比の範囲はインの級で変える
+    (網の目で6〜10月に見つけ、2〜5月の確定オッズで確かめた: B級イン×比1.3〜1.6 112%→108%、A級イン×比1.6以上 108%→100%)"""
+    if not odds2_w:
+        return dict(skip=True, bet="2t")
+    tri = pred["tri"]
+    inv = sum(1 / o for o in odds2_w.values() if o)
+    if not inv:
+        return dict(skip=True, bet="2t")
+    lo, hi = FAV_RATIO_B if str(pred["boats"][0]["grade"]).startswith("B") else FAV_RATIO_A
+    tickets = []
+    for j in range(1, 6):
+        o = odds2_w.get((waku[0] - 1, waku[j] - 1))
+        if not o or not (FAV_ODDS[0] < o <= FAV_ODDS[1]):
+            continue
+        p = sum(tri[PI[(0, j, k)]] for k in range(6) if k not in (0, j))
+        r = p / ((1 / o) / inv)
+        if lo <= r < hi:
+            tickets.append(dict(combo=f"{waku[0]}-{waku[j]}", units=FAV_UNITS, odds=o, prob=round(p, 4),
+                                role=f"2着{waku[j]}号艇(予想{p:.1%}・比{r:.2f})", bet="2t"))
+    if not tickets:
+        return dict(skip=True, bet="2t")
+    return dict(skip=False, bet="2t", head=waku[0], himo=None, stake=sum(t["units"] for t in tickets) * 100,
+                scenario=f"インの{waku[0]}号艇が逃げて、市場が軽く見ている" + "・".join(t["combo"][-1] + "号艇" for t in tickets) + "が2着",
+                tickets=tickets)
+
+
 def _alloc(weights, total):
     """重みに比例してtotal口を配る(最大剰余法。0口の目は買わない)"""
     tw = sum(weights)
@@ -828,6 +861,7 @@ def make_bet(pred, odds_w, odds2_w=None, date=None, live=None):
     out["pickbinc"] = _pickbinc(pred, odds_c, odds2_w, waku, date, live)
     out["pickbint"] = _pickbint(pred, odds2_w, waku, date, live)
     out["pickgen"] = _pickgen(pred, odds_c, odds2_w, waku, date, live)
+    out["pickfav"] = _pickfav(pred, odds2_w, waku)
     out["sankabin"] = _sanka(pred, odds_c, odds2_w, waku, "sankabin")
     out["sankagap"] = _sanka(pred, odds_c, odds2_w, waku, "sankagap")
     for name in OPS_PLANS + SHADOW_PLANS:   # 運用プランには今のロジックの印を付ける(集計はこの印があるものだけ)
