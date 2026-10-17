@@ -98,18 +98,31 @@ def build_confidence(rows):
         for x in _bases(r):
             nodes.update(ancestors(x))
         for nd in nodes:
-            a = agg.setdefault(nd, dict(n=0, st=0, ret=0))
+            a = agg.setdefault(nd, dict(n=0, st=0, ret=0, hit=0))
             a["n"] += 1
             a["st"] += r["stake"]
             a["ret"] += r["ret"]
+            a["hit"] += int(r["ret"] > 0)
     conf = {}
     for nd in sorted(agg, key=lambda x: x.count(".")):
         a = agg[nd]
         par = ".".join(nd.split(".")[:-1])
         prior = conf[par]["conf"] if par in conf else PRIOR
         roi = a["ret"] / a["st"] if a["st"] else 0
-        conf[nd] = dict(a, roi=round(roi, 4), conf=round((a["n"] * roi + SHRINK * prior) / (a["n"] + SHRINK), 4))
+        hr = a["hit"] / a["n"] if a["n"] else 0
+        conf[nd] = dict(a, roi=round(roi, 4), conf=round((a["n"] * roi + SHRINK * prior) / (a["n"] + SHRINK), 4),
+                        hit_rate=round(hr, 4), avg_mult=round(a["ret"] / a["hit"] / (a["st"] / a["n"]), 1) if a["hit"] else None)
     return conf
+
+
+HIT_TYPES = ((0.25, "本命型", "🎯"), (0.08, "中穴型", "⚖️"), (0.0, "大穴型", "💣"))   # 過去の的中率で分ける
+
+
+def hit_type(hit_rate):
+    """当たり方のタイプ(本命型・中穴型・大穴型)。的中率が分からなければNone"""
+    if hit_rate is None:
+        return None
+    return next((name, icon) for lo, name, icon in HIT_TYPES if hit_rate >= lo)
 
 
 def load_confidence():
