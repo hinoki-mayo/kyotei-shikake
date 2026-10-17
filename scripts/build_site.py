@@ -671,7 +671,7 @@ def bets_records():
             result = {**live.get(key, {}), **(keyed.get((date, jcd, int(race))) or {})}   # 2連単は結果ページの記録から
             if not result.get("combo3t") or pd.isna(result.get("payout3t")):
                 continue
-            if b.get("stage") == "候補":
+            if b.get("stage") == "候補" and "確定" not in b.get("stages", {}):
                 continue   # 締切2分前の確定まで行かなかったレースは数えない
             plans = plans_of(b)
             fill = backfill.get(key, {})   # 切り替え前の買い目を今のロジックで作り直したもの(backfill_ops.py)

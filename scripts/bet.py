@@ -935,7 +935,8 @@ def decide_due(now=None, workers=4):
         if mins <= 0:
             continue
         done = bets.get(key, {}).get("stages", {})
-        todo = [st for st, m in STAGES if mins <= m and st not in done]
+        last = max([i for i, (st, _) in enumerate(STAGES) if st in done], default=-1)   # 済んだ一番先の段階
+        todo = [st for i, (st, m) in enumerate(STAGES) if i > last and mins <= m]       # それより先の段階だけ(後戻りしない)
         if todo:
             due.append((key, pred, todo[-1], mins))   # 間に合う一番先の段階
     if not due:
