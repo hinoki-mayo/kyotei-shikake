@@ -475,9 +475,9 @@ def _safe_plan_card(name, pl, result):
 
 
 def _plan_card(name, pl, result):
-    title = f'<h2>{bet_mod.PLANS[name]}</h2>'
+    title = f'<h2>{bet_mod.PLANS.get(name, name)}</h2>'
     if pl.get("skip"):
-        return title + f'<div class="card"><b>見送り</b><br><span class="sub">{SKIP_TEXT[name]}</span></div>'
+        return title + f'<div class="card"><b>見送り</b><br><span class="sub">{SKIP_TEXT.get(name, "条件に合う買い目がありませんでした")}</span></div>'
     if pl.get("bet") == "2t":
         chips = "".join(f'<span class="tri-chip">{html.escape(t["combo"])}</span>' for t in pl["tickets"])
         form = f'<div class="tri-main"><span class="sub" style="font-size:14px">2連単</span>{chips}</div>'
@@ -637,6 +637,33 @@ def bets_upcoming(now=None):
                 lab = f'{ALL_PLAN_LABELS.get(c["plan"], c["plan"])}・自信度{c["conf"]:.0%}'
                 out.append(dict(base, p="kessai", tk=[[t["combo"], t["units"], lab, t.get("odds")] for t in c["tickets"]]))
     return sorted(out, key=lambda x: (x["t"], x["v"]))
+
+
+def quick_bet_pages(now, keys):
+    """購入係用: 決めたレースの「試験買い目」ページだけ作り直す(サイト全体は作り直さない)"""
+    date = f"{now:%Y%m%d}"
+    p = DATA / "programs" / f"{date[:4]}.parquet"
+    if not keys or not p.exists():
+        return
+    prog = pd.read_parquet(p)
+    day = prog[prog.date == date]
+    preds = json.loads((DATA / "predictions" / f"{date}.json").read_text())["races"]
+    bp = DATA / "bets" / f"{date}.json"
+    bets = json.loads(bp.read_text()) if bp.exists() else {}
+    for key in keys:
+        jcd, race = key.split("-")
+        g = day[day.jcd == jcd]
+        x = g[g.race == int(race)]
+        if x.empty:
+            continue
+        info = dict(jcd=jcd, race=int(race), rtype=x.rtype.iloc[0], deadline=x.deadline.iloc[0], title=x.title.iloc[0],
+                    day=int(x.day.iloc[0]))
+        d = OUT / date / jcd
+        d.mkdir(parents=True, exist_ok=True)
+        try:
+            (d / f"{race}-bet.html").write_text(bet_page(date, info, preds.get(key), set(g.race.astype(int)), None, bets.get(key)))
+        except Exception as e:
+            print(f"試験買い目ページを作れませんでした({key}): {e!r}")
 
 
 def quick_upcoming(now=None):

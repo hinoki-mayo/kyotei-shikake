@@ -941,7 +941,7 @@ def _fetch_both(args):
     return fetch_odds(date, jcd, race), fetch_odds2(date, jcd, race)
 
 
-def decide_due(now=None, workers=4):
+def decide_due(now=None, workers=8):
     """購入係: 締切がSTAGESの時刻に来たレースを、その段階で1回だけ処理する。
     候補・確定は、その時のオッズ(3連単・2連単)で買い目を決める。直前はオッズだけ残す。
     遅れて見回った時は、間に合う一番先の段階だけやる(候補を飛ばして確定、など)。処理したレースのキーを返す"""
@@ -972,8 +972,10 @@ def decide_due(now=None, workers=4):
             due.append((key, pred, todo[-1], mins))   # 間に合う一番先の段階
     if not due:
         return []
-    with ThreadPoolExecutor(workers) as ex:   # 公式サイトの応答が遅いので、レースをまとめて同時に取る
-        got = list(ex.map(_fetch_both, [(date, p["jcd"], p["race"]) for _, p, _, _ in due]))
+    with ThreadPoolExecutor(workers) as ex:   # 公式サイトの応答が遅い(1ページ約9秒)ので、全レースの3連単・2連単を同時に取る
+        f3 = [ex.submit(fetch_odds, date, p["jcd"], p["race"]) for _, p, _, _ in due]
+        f2 = [ex.submit(fetch_odds2, date, p["jcd"], p["race"]) for _, p, _, _ in due]
+        got = [(a.result(), b.result()) for a, b in zip(f3, f2)]
     out = []
     for (key, pred, stage, mins), (odds, odds2) in zip(due, got):
         if not odds:
