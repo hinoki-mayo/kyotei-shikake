@@ -102,6 +102,12 @@ def rebuild():
     return swapped
 
 
+def code_version():
+    """scripts の中身の版(git のツリー)。変わったら購入係を起動し直す"""
+    r = subprocess.run(["git", "rev-parse", "HEAD:scripts"], cwd=ROOT, capture_output=True, text=True)
+    return r.stdout.strip()
+
+
 def last_deadline(now):
     p = DATA / "predictions" / f"{now:%Y%m%d}.json"
     if not p.exists():
@@ -116,6 +122,7 @@ def main():
     a = ap.parse_args()
     end = time.time() + a.max_minutes * 60
     sync()
+    ver = code_version()
     build_site.main()   # 最初にサイト全体を作っておく。その後は裏で4分おきに作り直して差し替え、決めた時は「これから」だけ差し替えて出す
     _rebuild["at"] = time.time()
     pending, last_push = [], time.time()
@@ -142,6 +149,10 @@ def main():
         if time.time() - last_push >= PUSH_EVERY:
             sync(f"購入係 {now:%H:%M} {len(pending)}件" if pending else None)
             pending, last_push = [], time.time()
+            if code_version() != ver:   # 新しいコードが来たら、残り時間で自分を起動し直す(決めた段階は記録に残っているので続きから)
+                left = (end - time.time()) / 60
+                print(f"新しいコードが来たので起動し直します(残り{left:.0f}分)", flush=True)
+                os.execv(sys.executable, [sys.executable, __file__, "--max-minutes", f"{left:.1f}"])
         time.sleep(max(1, TICK - (time.time() % TICK)))
     if pending:
         sync(f"購入係 {now_jst():%H:%M} {len(pending)}件")
