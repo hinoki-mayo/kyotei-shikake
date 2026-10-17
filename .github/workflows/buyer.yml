@@ -1,0 +1,43 @@
+name: 購入係(買い目の決定)
+
+# レースの時間帯だけ常駐して、締切5分前に候補・2分前に確定の買い目を決める(お金は使わない試験運用)。
+# 朝・昼・夜の3本に分けて起動する(1本の上限は6時間)。前の回が動いている間は次の回は待つ
+on:
+  schedule:
+    - cron: "50 22 * * *"   # 7:50 JST
+    - cron: "0 4 * * *"     # 13:00 JST
+    - cron: "30 8 * * *"    # 17:30 JST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: buyer
+  cancel-in-progress: false
+
+jobs:
+  buyer:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - run: pip install -r requirements.txt
+      - run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+      - run: python scripts/buyer.py --max-minutes 315
+        env:
+          OMP_NUM_THREADS: "1"
+          SHARE_KEY: ${{ secrets.SHARE_KEY }}
+          CF_PROJECT: ${{ vars.CF_PROJECT }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

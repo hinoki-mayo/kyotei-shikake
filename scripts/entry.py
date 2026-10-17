@@ -107,7 +107,7 @@ def main():
         ep.write_text(json.dumps(entries))
         predict.run(date, only=set(todo))
     print(f"展示反映: {len(todo)}レース {todo}")
-    bet.run(now)   # 締切直前のレースは、オッズを見て試験用の買い目を決める
+    # 買い目は購入係(buyer.py・常駐)が締切5分前に候補、2分前に確定で決める。ここでは決めない
 
     # 締切後のレースは、公式サイトのレース結果ページから結果を取り込む。
     # (以前は当日の成績ファイルを取り直していたが、成績ファイルは全レース終了後に
