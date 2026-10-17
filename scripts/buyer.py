@@ -11,6 +11,7 @@ import argparse
 import datetime as dt
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -20,6 +21,7 @@ import build_site
 from common import DATA, JST, ROOT, now_jst
 
 TICK = 15        # 見回りの間隔(秒)
+REBUILD_EVERY = 240   # サイト全体を裏で作り直す間隔(秒)。成績(v1など)を新しく保つ
 PUSH_EVERY = 60  # 買い目のコミットをまとめる間隔(秒)
 
 
@@ -71,6 +73,35 @@ def deploy_pending():
         deploy()
 
 
+_rebuild = {"proc": None, "at": 0.0}
+
+
+def rebuild():
+    """サイト全体を裏で site_new に作り、出来たら site と差し替える(見回りは止めない)。差し替えたらTrue"""
+    p = _rebuild["proc"]
+    if p is not None and p.poll() is None:
+        return False
+    swapped = False
+    if p is not None:
+        new, cur, old = ROOT / "site_new", ROOT / "site", ROOT / "site_old"
+        if p.returncode == 0 and new.exists():
+            shutil.rmtree(old, ignore_errors=True)
+            if cur.exists():
+                cur.rename(old)
+            new.rename(cur)
+            shutil.rmtree(old, ignore_errors=True)
+            swapped = True
+        else:
+            print("サイト全体の作り直しに失敗", file=sys.stderr)
+        _rebuild["proc"] = None
+    if time.time() - _rebuild["at"] >= REBUILD_EVERY:
+        _rebuild["at"] = time.time()
+        _rebuild["proc"] = subprocess.Popen([sys.executable, str(ROOT / "scripts" / "build_site.py")], cwd=ROOT,
+                                            env={**os.environ, "SITE_OUT": str(ROOT / "site_new")},
+                                            stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    return swapped
+
+
 def last_deadline(now):
     p = DATA / "predictions" / f"{now:%Y%m%d}.json"
     if not p.exists():
@@ -85,7 +116,8 @@ def main():
     a = ap.parse_args()
     end = time.time() + a.max_minutes * 60
     sync()
-    build_site.main()   # 最初にサイト全体を作っておき、あとは「これから」だけ差し替えて出す
+    build_site.main()   # 最初にサイト全体を作っておく。その後は裏で4分おきに作り直して差し替え、決めた時は「これから」だけ差し替えて出す
+    _rebuild["at"] = time.time()
     pending, last_push = [], time.time()
     while time.time() < end:
         now = now_jst()
@@ -98,6 +130,9 @@ def main():
         except Exception as e:   # 1回の見回りで失敗しても常駐は続ける
             print("見回りで失敗:", repr(e), file=sys.stderr)
             done = []
+        if rebuild():   # 裏で作り直したサイト全体に差し替えた(成績が新しくなる)
+            build_site.quick_upcoming(now)
+            deploy()
         if done:
             pending += done
             build_site.quick_upcoming(now)
