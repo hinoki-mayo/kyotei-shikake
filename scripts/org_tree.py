@@ -15,6 +15,7 @@ CONF_P = DATA / "org" / "confidence.json"
 ORG_PLANS = tuple(bet.OPS_PLANS) + tuple(bet.SHADOW_PLANS) + ("pick2",)
 PRIOR = 0.75   # 一番上(何も分からない時)の回収率の見込み＝控除率並み
 SHRINK = 50    # 親へ寄せる強さ(レース数換算)。提案がこの数たまると自分の数字と親の数字が半々
+STAKE = 4000   # 提案1回の金額。社員ごとの買い方の割合はそのままで、口数を同じ倍率で伸び縮みさせて1回4,000円にそろえる
 ADOPT = 1.05   # 決裁者が採用する自信度の下限。別期間の確かめで 95%: 107%・92%、105%: 129%(168件)・103%(302件)
                # (比の帯で細かくすると逆に悪化したので、今は比の帯は使っていない)
 
@@ -75,9 +76,10 @@ def proposals(plans, pred):
             if not c:
                 continue
             leaf = f"{group_of(c, gin)}.{pk}"
+            k = STAKE / (sum(t["units"] for t in tks) * 100)
+            tks = [dict(t, units=round(t["units"] * k, 3)) for t in tks]
             out.append(dict(leaf=leaf, tags=[f"{leaf}.{TAGS[x]}" for x in htags.get(h, []) if x in TAGS],
-                            plan=pk, head=h, course=c, bet=pl.get("bet", "3t"), tickets=tks,
-                            stake=sum(t["units"] for t in tks) * 100))
+                            plan=pk, head=h, course=c, bet=pl.get("bet", "3t"), tickets=tks, stake=STAKE))
     return out
 
 

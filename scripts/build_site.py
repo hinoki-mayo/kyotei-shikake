@@ -529,14 +529,14 @@ def _org_race_html(date, pred, result, bet):
 
     def row(pr, big=False):
         hc = hit_combo(pr["bet"])
-        tk = " ".join(f'<span style="white-space:nowrap{";color:var(--green);font-weight:700" if t["combo"] == hc else ""}">{t["combo"]}×{t["units"]}</span>'
+        tk = " ".join(f'<span style="white-space:nowrap{";color:var(--green);font-weight:700" if t["combo"] == hc else ""}">{t["combo"]} {round(t["units"] * 100):,}円</span>'
                       for t in pr["tickets"])
         ad = (pr["leaf"], pr["head"]) in picked
         badge = (f'<span class="lab" style="background:{"#7A5AE0" if ad else "#9aa0a8"}">{"採用" if ad else "不採用"}</span>')
         res = ""
         if pr["ret"] is not None:
             col = "var(--green)" if pr["ret"] >= pr["stake"] else "var(--red)"
-            res = f'<b style="color:{col}">{"的中" if pr["ret"] else "外れ"} {pr["ret"] - pr["stake"]:+,}円</b>'
+            res = f'<b style="color:{col}">{"的中" if pr["ret"] else "外れ"} {round(pr["ret"] - pr["stake"]):+,}円</b>'
         cc = "var(--green)" if pr["conf"] >= org_tree.ADOPT else "var(--sub)"
         return (f'<div class="boat">{chip(pr["head"])}<div style="flex:1;min-width:0">'
                 f'<div style="display:flex;justify-content:space-between;gap:6px"><span>{badge}<b>{pr["head"]}号艇頭</b> '
@@ -550,7 +550,7 @@ def _org_race_html(date, pred, result, bet):
         st = sum(c["stake"] for c in chosen)
         tot = ""
         if all(c["ret"] is not None for c in chosen):
-            ret = sum(c["ret"] for c in chosen)
+            ret = round(sum(c["ret"] for c in chosen))
             tot = f'<p style="margin:6px 0 0"><b style="color:{"var(--green)" if ret >= st else "var(--red)"}">採用分 払戻 {ret:,}円 / 投資 {st:,}円（{ret - st:+,}円）</b></p>'
         head = (f'<div class="card" style="border:2px solid #7A5AE0"><b>最終決裁者の判断: {len(chosen)}件採用</b>'
                 + "".join(row(c, True) for c in sorted(chosen, key=lambda c: -c["conf"])) + tot + '</div>')
@@ -678,10 +678,10 @@ def bets_records():
                     sp = settle(dict(tickets=pr["tickets"], stake=pr["stake"], bet=pr["bet"]), result)
                     if sp:
                         pr["ret"] = sp[1]
-                        pp.append([pr["leaf"], pr["tags"], sp[0], sp[1], round(org_tree.conf_of(pr, ORG_CONF), 3), pr["head"]])
+                        pp.append([pr["leaf"], pr["tags"], sp[0], round(sp[1]), round(org_tree.conf_of(pr, ORG_CONF), 3), pr["head"]])
                 if props:
                     chosen = [pr for pr in org_tree.decide(props, ORG_CONF) if "ret" in pr]
-                    st["kessai"] = [sum(c["stake"] for c in chosen), sum(c["ret"] for c in chosen)] if chosen else 0
+                    st["kessai"] = [sum(c["stake"] for c in chosen), round(sum(c["ret"] for c in chosen))] if chosen else 0
                     picked = {(c["leaf"], c["head"]) for c in chosen}
                     for x in pp:   # 6つ目: 決裁者に採用されたか
                         x.append(int((x[0], x[5]) in picked))
@@ -1323,7 +1323,7 @@ def kessai_room():
             + '<div class="card"><b>決め方 v1(自信度で選ぶ・立説中)</b><p class="sub" style="margin:4px 0 0">'
               '① 各プランの買い目を頭の艇ごとの「提案」に分け、入った箱の自信度(確定オッズの過去データでの推定回収率)を付ける。印があれば一番細かい印の箱の自信度。<br>'
               f'② 記録が少ない箱は一つ上の箱の自信度へ寄せる({org_tree.SHRINK}件で半々、一番上は控除率並みの{org_tree.PRIOR:.0%})。<br>'
-              '③ 同じ結果を取り合う提案(同じ頭の艇の買い目)同士だけを比べ、自信度が一番高い提案を1つ上げる。<br>'
+              f'③ 同じ結果を取り合う提案(同じ頭の艇の買い目)同士だけを比べ、自信度が一番高い提案を1つ上げる。提案はどれも1回{org_tree.STAKE:,}円にそろえる(社員の買い方の割合はそのまま)。<br>'
               f'④ 上がってきた提案のうち、自信度{org_tree.ADOPT:.0%}以上は全部採用(違う頭なら複数残る)。1つも無ければ見送り。<br>'
               '⑤ 今は立説中。v0(運用中の部長の提案を全部採用)と成績を並べて記録し、勝ち越したら本番の決め手にする。</p></div>'
             + '<div class="card"><b>v1 の成績(立説中)</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
