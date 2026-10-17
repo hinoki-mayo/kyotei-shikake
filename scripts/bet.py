@@ -71,7 +71,10 @@ from place import PERMS
 URL = "https://www.boatrace.jp/owpc/pc/race/odds3t?rno={race}&jcd={jcd}&hd={date}"
 ODDS_RE = re.compile(r'class="oddsPoint[^"]*">([^<]*)<')
 BLEND = (0.13, 0.99)    # 確率の混ぜ方(モデル, 市場)の重み。2025-26年のランダム1,500レースの締切時オッズで推定(モデル0.13±0.05)
-WINDOW = (1, 9)         # 締切の何分前のレースを対象にするか(この間は毎回作り直す)
+WINDOW = (1, 9)         # (旧)締切の何分前のレースを対象にするか。今は STAGES で決める(購入係 buyer.py)
+# 購入係の段階: 締切の何分前に何をするか。候補=サイトに出す予定の買い目、確定=記録・将来の購入に使う買い目、
+# 直前=オッズだけ記録(締切前に買うと確定オッズよりどれだけ変わるかを測る)
+STAGES = (("候補", 5.0), ("確定", 2.0), ("直前", 0.75))
 ANA_ODDS = 60           # 穴狙いの対象にするオッズの下限
 ANA_MAX = 10            # 穴狙いの最大点数
 PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": "イン・期待値重視",
@@ -900,6 +903,66 @@ def _conditions(pred, waku):
                 wingap=round(bs[0]["nat_win"] - max(b["nat_win"] for b in bs[1:]), 2),
                 p1=round(sum(pred["prob"][0]), 3), head=[waku[k] for k in sc["head"]],
                 pressed=sc["pressed"], stgap=round(min(pred["st"][1:]) - pred["st"][0], 3))
+
+
+def _fetch_both(args):
+    date, jcd, race = args
+    return fetch_odds(date, jcd, race), fetch_odds2(date, jcd, race)
+
+
+def decide_due(now=None, workers=4):
+    """購入係: 締切がSTAGESの時刻に来たレースを、その段階で1回だけ処理する。
+    候補・確定は、その時のオッズ(3連単・2連単)で買い目を決める。直前はオッズだけ残す。
+    遅れて見回った時は、間に合う一番先の段階だけやる(候補を飛ばして確定、など)。処理したレースのキーを返す"""
+    from concurrent.futures import ThreadPoolExecutor
+    now = now or now_jst()
+    date = f"{now:%Y%m%d}"
+    pp = DATA / "predictions" / f"{date}.json"
+    if not pp.exists():
+        return []
+    preds = json.loads(pp.read_text())["races"]
+    bp = DATA / "bets" / f"{date}.json"
+    bp.parent.mkdir(parents=True, exist_ok=True)
+    bets = json.loads(bp.read_text()) if bp.exists() else {}
+    ep = DATA / "entries" / f"{date}.json"
+    entries = json.loads(ep.read_text()) if ep.exists() else {}
+    due = []
+    for key, pred in preds.items():
+        if not pred.get("tri"):
+            continue
+        t = dt.datetime.strptime(date + pred["deadline"], "%Y%m%d%H:%M").replace(tzinfo=JST)
+        mins = (t - now).total_seconds() / 60
+        if mins <= 0:
+            continue
+        done = bets.get(key, {}).get("stages", {})
+        todo = [st for st, m in STAGES if mins <= m and st not in done]
+        if todo:
+            due.append((key, pred, todo[-1], mins))   # 間に合う一番先の段階
+    if not due:
+        return []
+    with ThreadPoolExecutor(workers) as ex:   # 公式サイトの応答が遅いので、レースをまとめて同時に取る
+        got = list(ex.map(_fetch_both, [(date, p["jcd"], p["race"]) for _, p, _, _ in due]))
+    out = []
+    for (key, pred, stage, mins), (odds, odds2) in zip(due, got):
+        if not odds:
+            continue
+        rec = bets.get(key, {})
+        snap = dict(t=now.strftime("%H:%M:%S"), mins=round(mins, 2),
+                    o3=[odds.get(c) for c in ODDS_ORDER], o2=[(odds2 or {}).get(c) for c in ODDS2_ORDER])
+        stages = {**rec.get("stages", {}), stage: snap}
+        if stage == "直前" and rec.get("plans"):
+            rec["stages"] = stages
+            bets[key] = rec
+        else:
+            live = entries.get(key) if isinstance(entries.get(key), dict) else None
+            bets[key] = dict(make_bet(pred, odds, odds2, date, live), odds_at=now.strftime("%H:%M"),
+                             stage="確定" if stage in ("確定", "直前") else "候補", stages=stages,
+                             pred_version=pred.get("version"))
+        out.append(f"{key}:{stage}")
+    if out:
+        bp.write_text(json.dumps(bets, ensure_ascii=False, indent=0))
+    print(f"購入係 {now:%H:%M:%S}: {out}", flush=True)
+    return out
 
 
 def run(now=None):

@@ -626,12 +626,22 @@ def bets_upcoming(now=None):
         if (live.get(key) or {}).get("combo2t"):
             continue   # 結果が出たものは実績の方に出る
         jcd, race = key.split("-")
-        for n, pl in plans_of(b).items():
-            if n not in bet_mod.OPS_PLANS + bet_mod.SHADOW_PLANS or pl.get("logic") != bet_mod.OPS_LOGIC or pl.get("skip"):
-                continue
-            out.append(dict(p=n, v=jcd, r=int(race), t=(preds.get(key) or {}).get("deadline", ""), at=b.get("odds_at", ""),
-                            tk=[[t["combo"], t["units"], t.get("role"), t.get("odds")] for t in pl["tickets"]]))
+        base = dict(v=jcd, r=int(race), t=(preds.get(key) or {}).get("deadline", ""), at=b.get("odds_at", ""), st=b.get("stage", ""))
+        plans = {n: pl for n, pl in plans_of(b).items()
+                 if n in bet_mod.OPS_PLANS + bet_mod.SHADOW_PLANS and pl.get("logic") == bet_mod.OPS_LOGIC and not pl.get("skip")}
+        for n, pl in plans.items():
+            out.append(dict(base, p=n, tk=[[t["combo"], t["units"], t.get("role"), t.get("odds")] for t in pl["tickets"]]))
+        pred = preds.get(key)
+        if pred and plans:   # 最終決裁者が採用した提案(1提案4,000円にそろえたもの)
+            for c in org_tree.decide(org_tree.proposals(plans, pred), ORG_CONF):
+                lab = f'{ALL_PLAN_LABELS.get(c["plan"], c["plan"])}・自信度{c["conf"]:.0%}'
+                out.append(dict(base, p="kessai", tk=[[t["combo"], t["units"], lab, t.get("odds")] for t in c["tickets"]]))
     return sorted(out, key=lambda x: (x["t"], x["v"]))
+
+
+def quick_upcoming(now=None):
+    """購入係用: 「これから」のデータだけ作り直す(サイト全体は作り直さない)"""
+    (OUT / "bets-upcoming.json").write_text(json.dumps(bets_upcoming(now), ensure_ascii=False, separators=(",", ":")))
 
 
 ORG_CONF = org_tree.load_confidence()
@@ -661,6 +671,8 @@ def bets_records():
             result = {**live.get(key, {}), **(keyed.get((date, jcd, int(race))) or {})}   # 2連単は結果ページの記録から
             if not result.get("combo3t") or pd.isna(result.get("payout3t")):
                 continue
+            if b.get("stage") == "候補":
+                continue   # 締切2分前の確定まで行かなかったレースは数えない
             plans = plans_of(b)
             fill = backfill.get(key, {})   # 切り替え前の買い目を今のロジックで作り直したもの(backfill_ops.py)
             plans = {**plans, **{n: pl for n, pl in fill.items() if plans.get(n, {}).get("logic") != bet_mod.OPS_LOGIC}}
@@ -989,13 +1001,14 @@ SHADOW_LABELS = {"pickfav": "イン頭・軽視された2着", "pickgen": "一�
 UPCOMING_JS = r"""
 function renderUpcoming(el, U, PL, VN, only){
   const rows=U.filter(x=>!only||(Array.isArray(only)?only.includes(x.p):x.p===only));
-  if(!rows.length){ el.innerHTML='<div class="card"><b>これから</b><p class="sub" style="margin:4px 0 0">締切前に決めた買い目はまだありません(締切の9分前から締切1分前まで、5分おきに決め直します)。</p></div>'; return; }
+  if(!rows.length){ el.innerHTML='<div class="card"><b>これから</b><p class="sub" style="margin:4px 0 0">締切前に決めた買い目はまだありません(締切5分前に候補、2分前に確定します)。</p></div>'; return; }
   el.innerHTML='<div class="card"><b>これから</b> <span class="sub">締切前に決めた買い目・結果待ち</span>'+rows.map(x=>
     `<div class="boat" style="flex-direction:column;align-items:flex-start;gap:2px"><div><b>${x.t} ${VN[x.v]} ${x.r}R</b>`+
+    (x.st?` <span class="lab" style="background:${x.st==='確定'?'#7A5AE0':'#9aa0a8'}">${x.st}</span>`:'')+
     ((only&&!Array.isArray(only))?'':` <span class="sub">${PL[x.p]||x.p}</span>`)+`</div><div>`+
     x.tk.map(([c,u,role,o])=>{const mk=(role||'').includes('【');   // 絞り込み候補の印がある頭は目立たせる
       return `<span style="${mk?'background:var(--mark);border-radius:6px;padding:1px 4px':''}"><span class="tri-chip" style="font-size:15px">${c}</span> <span class="sub">${mk?'★':''}${role?role+' ':''}${(u*100).toLocaleString()}円${o?'・'+o+'倍':''}</span></span>`;}).join('　')+
-    `</div></div>`).join('')+'<p class="sub" style="margin:6px 0 0">オッズは買い目を決めた時点のもの。締切までに動きます。</p></div>';
+    `</div></div>`).join('')+'<p class="sub" style="margin:6px 0 0">締切5分前に「候補」、2分前にその時のオッズで「確定」。オッズは決めた時点のもの。</p></div>';
 }
 """
 
@@ -1192,7 +1205,7 @@ def _org_json():
     except Exception:
         pass
     return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
-                labels=ALL_PLAN_LABELS, nodes=_tree_nodes(), confMeta=meta)
+                labels={**ALL_PLAN_LABELS, "kessai": "最終決裁者の採用"}, nodes=_tree_nodes(), confMeta=meta)
 
 
 ORG_JS = r"""
@@ -1314,7 +1327,7 @@ def org_home():
             + '<h2>情報部 <span class="sub">全部の箱に材料を渡す係(買わない)</span></h2><div class="org-grid2">' + info + '</div>'
             + '<h2>資料室</h2><a class="org-tile" href="/org/archive.html"><div><b>旧プランの記録</b>'
               '<span class="sub">組織図にする前の試験プラン(バランス・イン的中重視など)も含めた全記録を、期間・条件・場で絞って見る</span></div></a>')
-    return _org_page("予想組織図", "/ops.html", body, upcoming=[])
+    return _org_page("予想組織図", "/ops.html", body, upcoming=["kessai"])
 
 
 def kessai_room():
@@ -1329,7 +1342,7 @@ def kessai_room():
             + '<div class="card"><b>v1 の成績(立説中)</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>v0 の成績(運用中の部長の提案を全部採用)</b><div data-stat="ops"></div><div data-pnl="ops" style="margin-top:6px"></div></div>'
             + '<div id="up"></div>')
-    return _org_page("最終決裁者", "/org/kessai.html", body, upcoming=[])
+    return _org_page("最終決裁者", "/org/kessai.html", body, upcoming=["kessai"])
 
 
 def node_room(nd, nodes):
