@@ -691,9 +691,13 @@ def bets_records():
         preds = json.loads(pp.read_text())["races"] if pp.exists() else {}
         bf = DATA / "bets_backfill" / f"{date}.json"
         backfill = json.loads(bf.read_text()) if bf.exists() else {}
+        rpf = DATA / "bets_replay" / f"{date}.json"
+        replay = json.loads(rpf.read_text()) if rpf.exists() else {}   # 今の方法・確定オッズで作り直したもの(replay_live.py)
         day = json.loads(f.read_text())
         for key in backfill.keys() - day.keys():   # 取り逃がして後から作り直したレース
             day[key] = {"plans": backfill[key]}
+        for key in replay.keys() - day.keys():     # 実戦で決められなかったレースも、再生の方には数える
+            day[key] = {"plans": {}, "replay_only": True}
         for key, b in day.items():
             jcd, race = key.split("-")
             result = {**live.get(key, {}), **(keyed.get((date, jcd, int(race))) or {})}   # 2連単は結果ページの記録から
@@ -710,6 +714,18 @@ def bets_records():
                     continue   # 運用プランは今の版のロジックで作った買い目だけ集計する
                 st[n] = 0 if pl.get("skip") else list(settle(pl, result))
             pred = preds.get(key)
+            rp = replay.get(key)
+            if rp and pred and date >= ORG_SINCE:   # 今の方法で再生(確定オッズ)した時の、最終決裁者の採用
+                ch = []
+                for pr in org_tree.decide(org_tree.proposals({n: pl for n, pl in rp.items() if not pl.get("skip")}, pred), ORG_CONF):
+                    sp = settle(dict(tickets=pr["tickets"], stake=pr["stake"], bet=pr["bet"]), result)
+                    if sp:
+                        ch.append(sp)
+                st["kessai_r"] = [sum(a for a, _ in ch), round(sum(b for _, b in ch))] if ch else 0
+            if b.get("replay_only"):
+                out.append(dict(d=date, v=jcd, r=int(race), res=result["combo3t"], pay=int(result["payout3t"]), s=st,
+                                t=(pred or {}).get("deadline", "")))
+                continue
             if pred and date >= ORG_SINCE:   # 予想組織: 頭ごとの提案の記録と、最終決裁者(v1)の判断
                 live_plans = {n: pl for n, pl in plans.items() if isinstance(st.get(n), list)}
                 props = org_tree.proposals(live_plans, pred)
@@ -1234,7 +1250,7 @@ def _org_json():
         meta = {k: v for k, v in json.loads(org_tree.CONF_P.read_text()).items() if k != "nodes"}
     except Exception:
         pass
-    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
+    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
                 labels={**ALL_PLAN_LABELS, "kessai": "最終決裁者の採用"}, nodes=_tree_nodes(), confMeta=meta)
 
 
@@ -1303,6 +1319,7 @@ function fill(){
     const k=el.dataset.stat;
     if(k==='ops') el.innerHTML=statLine(aggPlans(ORG.ops),'R');
     else if(k==='kessai') el.innerHTML=statLine(aggPlans(['kessai']),'R');
+    else if(k==='kessai_r') el.innerHTML=statLine(aggPlans(['kessai_r']),'R');
     else if(k.startsWith('plan:')) el.innerHTML=statLine(aggPlans([k.slice(5)]),'R');
     else if(k.startsWith('node:')) el.innerHTML=board(aggNode(k.slice(5)));
     else if(k.startsWith('table:')) el.innerHTML=boardTable(aggNode(k.slice(6)));
@@ -1377,6 +1394,7 @@ def org_home():
             + f'<a class="org-tile org-boss" href="/org/kessai.html">{robot_svg(k["color"], k["acc"], 40)}'
               f'<div><b>{k["name"]}</b>'
               '<span class="org-stat">v1(立説中) <span data-stat="kessai"></span></span>'
+              '<span class="org-stat">再生(確定オッズ) <span data-stat="kessai_r"></span></span>'
               '<span class="org-stat">v0(全部採用) <span data-stat="ops"></span></span></div></a>'
             + _tree_html(nodes, "_root")
             + '<div id="up"></div>'
