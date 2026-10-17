@@ -10,6 +10,7 @@ import datetime as dt
 import html
 import json
 import os
+import pathlib
 import shutil
 
 import pandas as pd
@@ -28,7 +29,7 @@ for _key, _file in (("ad_head", "head.html"), ("ad_slot", "slot.html"), ("ads_tx
     if _p.exists() and _p.read_text().strip():
         CFG[_key] = _p.read_text().strip()
 
-OUT = ROOT / "site"
+OUT = pathlib.Path(os.environ.get("SITE_OUT") or ROOT / "site")   # 購入係は裏で別の場所に作ってから差し替える
 BC = ["#FFFFFF", "#222222", "#D9453F", "#3A7FD5", "#E8A83A", "#4E9A3E"]
 TC = ["#222", "#fff", "#fff", "#fff", "#222", "#fff"]
 WD = "月火水木金土日"

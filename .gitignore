@@ -6,3 +6,5 @@ __pycache__/
 .wrangler/
 .claude/
 deploy.log
+site_new/
+site_old/
