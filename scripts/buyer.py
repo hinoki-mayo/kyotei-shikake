@@ -2,7 +2,8 @@
 例: python scripts/buyer.py --max-minutes 300
 
 ・15秒おきに見回り、締切5分前に「候補」、2分前に「確定」、45秒前にオッズだけ記録する(bet.STAGES)
-・決めたら「これから」のデータだけ作り直してサイトに出す(サイト全体は展示反映の5分おきの更新で作り直す)
+・決めたら「これから」とそのレースの試験買い目ページだけ作り直してサイトに出す(公開は裏で動かし、見回りは止めない。
+  サイト全体は展示反映の5分おきの更新で作り直す)
 ・買い目は data/bets に書き、こまめにコミットする。展示反映の更新が作る予想を取り込むため、毎回 git pull する
 ・今日の最後のレースの締切を過ぎたか、max-minutes を過ぎたら終わる
 """
@@ -43,14 +44,31 @@ def sync(commit_msg=None):
             git("pull", "-q", "--rebase", "--autostash")
 
 
+_deploy = {"proc": None, "again": False}
+
+
 def deploy():
+    """サイトを出す。時間がかかるので裏で動かし、見回りは止めない。出している最中に呼ばれたら、終わってからもう一度出す"""
     project = os.environ.get("CF_PROJECT")
     if not project:
         return
-    r = subprocess.run(["npx", "--yes", "wrangler@3", "pages", "deploy", "site", f"--project-name={project}", "--branch=main"],
-                       cwd=ROOT, capture_output=True, text=True)
-    if r.returncode:
-        print("サイトの公開に失敗:", r.stderr[-500:], file=sys.stderr)
+    p = _deploy["proc"]
+    if p is not None and p.poll() is None:
+        _deploy["again"] = True
+        return
+    log = ROOT / "deploy.log"
+    if p is not None and p.returncode:
+        print("サイトの公開に失敗:", log.read_text()[-500:] if log.exists() else "", file=sys.stderr)
+    _deploy["again"] = False
+    with open(log, "w") as f:   # 出力はファイルへ(パイプだと溜まって止まることがある)
+        _deploy["proc"] = subprocess.Popen(["wrangler", "pages", "deploy", "site", f"--project-name={project}", "--branch=main"],
+                                           cwd=ROOT, stdout=f, stderr=subprocess.STDOUT)
+
+
+def deploy_pending():
+    p = _deploy["proc"]
+    if _deploy["again"] and (p is None or p.poll() is not None):
+        deploy()
 
 
 def last_deadline(now):
@@ -83,7 +101,9 @@ def main():
         if done:
             pending += done
             build_site.quick_upcoming(now)
+            build_site.quick_bet_pages(now, sorted({x.split(":")[0] for x in done}))
             deploy()
+        deploy_pending()
         if time.time() - last_push >= PUSH_EVERY:
             sync(f"購入係 {now:%H:%M} {len(pending)}件" if pending else None)
             pending, last_push = [], time.time()
