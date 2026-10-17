@@ -706,7 +706,7 @@ def bets_records():
             p6a = plans.get("pick6a")
             if p6a and not p6a.get("skip") and "pick6a" in st:
                 rec["pick6a_tk"] = [[t["combo"], t["units"], t.get("role")] for t in p6a["tickets"]]
-            for pk in ("pickbinx", "pickbinc", "pickbint", "pickura", "pickgen") + bet_mod.SANKA_PLANS:
+            for pk in ("pickbinx", "pickbinc", "pickbint", "pickura", "pickgen", "pickfav") + bet_mod.SANKA_PLANS:
                 pl = plans.get(pk)
                 if pl and not pl.get("skip") and pk in st:
                     rec[pk + "_tk"] = [[t["combo"], t["units"], t.get("role")] for t in pl["tickets"]]
@@ -979,7 +979,7 @@ def pick_body(hi_list, lo_list):
 
 
 DASH_PLANS = {"pickura": "B級イン・裏の穴", "pickbin": "B級イン・2連単"}
-SHADOW_LABELS = {"pickgen": "一般職・市場が軽く見る艇", "pickbinc": "B級イン・凪で強敵なし", "pickbint": "B級イン・凪で展示1位",
+SHADOW_LABELS = {"pickfav": "イン頭・軽視された2着", "pickgen": "一般職・市場が軽く見る艇", "pickbinc": "B級イン・凪で強敵なし", "pickbint": "B級イン・凪で展示1位",
                  "pickbinx": "B級イン・絞り込み", "pickin": "内・2連単・逆張り", "pick21": "2差し1残し・2連単2-1",
                  "pick21t": "2差し1残し・3連単2-1-□", "pick6a": "6コースだけA級・2連単",
                  "pick2tan": "外・2連単"}   # 立説中(総合収支に含めない)。並びが優先度(上ほど有望)
@@ -1059,7 +1059,8 @@ PLAN_SINCE = {"pick2": bet_mod.PICK2_LOGIC_SINCE, "pick2tan": bet_mod.PICK2TAN_L
               "pickbinc": bet_mod.PICKBINC_LOGIC_SINCE, "pickbint": bet_mod.PICKBINT_LOGIC_SINCE,
               "pickura": bet_mod.PICKURA_LOGIC_SINCE,
               "sankabin": bet_mod.SANKA_LOGIC_SINCE, "sankagap": bet_mod.SANKA_LOGIC_SINCE,
-              "pickgen": bet_mod.GEN_LOGIC_SINCE}
+              "pickgen": bet_mod.GEN_LOGIC_SINCE,
+              "pickfav": bet_mod.FAV_LOGIC_SINCE}
 SANKA_LABELS = {"sankabin": "参加枠・自信のB級イン", "sankagap": "参加枠・市場より強いイン"}
 ALL_PLAN_LABELS = {"pick2": "外・3連単", **DASH_PLANS, **SHADOW_LABELS, **SANKA_LABELS}   # 詳細ページ用。pick2はダッシュボード非表示だがページ自体は残す
 
@@ -1143,8 +1144,8 @@ GROUP_COLOR = {"in": "#2F6BD8", "in.B": "#2F6BD8", "in.A": "#5B8DEF",
                "out": "#B0457A", "out.c2": "#3C8C4E", "out.c34": "#B0457A", "out.c56": "#8A6A2E"}
 # ③の箱ごとに、どの説(プラン)が入りうるか。ここに無くても自信度の表や記録に出てきた箱は足す
 TREE_SKELETON = {
-    "in.B": ["pickbin", "pickbinc", "pickbint", "pickbinx", "pickin", "pick6a", "pickgen", "sankabin", "sankagap"],
-    "in.A": ["pickin", "pick6a", "pickgen", "sankagap"],
+    "in.B": ["pickbin", "pickbinc", "pickbint", "pickbinx", "pickin", "pick6a", "pickfav", "pickgen", "sankabin", "sankagap"],
+    "in.A": ["pickin", "pick6a", "pickfav", "pickgen", "sankagap"],
     "out.c2": ["pickura", "pick21", "pick21t", "pick2tan", "pick2", "pickgen"],
     "out.c34": ["pickura", "pick2tan", "pick2", "pickgen"],
     "out.c56": ["pickura", "pick2tan", "pick2", "pickgen"],
@@ -1179,7 +1180,7 @@ def _tree_nodes():
     return nodes
 
 
-ORG_PLANS_ORDER = ["pickbin", "pickbinc", "pickbint", "pickbinx", "pickin", "pick6a", "pickgen", "sankabin", "sankagap",
+ORG_PLANS_ORDER = ["pickbin", "pickbinc", "pickbint", "pickbinx", "pickin", "pick6a", "pickfav", "pickgen", "sankabin", "sankagap",
                    "pickura", "pick21", "pick21t", "pick2tan", "pick2"]
 
 
@@ -1591,6 +1592,20 @@ def _pickura_logic_card():
             '両方の期間でそろったので、立説中の優先度1。凪のB級イン系3つは6〜7月で100%を割った(84%・74%・78%)。</p></div>')
 
 
+def _pickfav_logic_card():
+    b = bet_mod
+    steps = [("① 対象", "全レース(インの級で条件を変える)"),
+             ("② 買い目", f"1コースが頭の2連単のうち、オッズ{b.FAV_ODDS[0]}倍超〜{b.FAV_ODDS[1]}倍で、本予想の目の確率が市場の目の確率"
+                         f"(2連単オッズから出した確率)の、B級インなら{b.FAV_RATIO_B[0]}〜{b.FAV_RATIO_B[1]}倍、A級インなら{b.FAV_RATIO_A[0]}倍以上の目"),
+             ("③ 配分", f"1目{b.FAV_UNITS * 100:,}円"),
+             ("④ 見つけ方と確かめ", "本命寄り(オッズ20倍まで)の目を、頭のコース×インの級×オッズの帯×比の帯の網の目にして、6〜10月の確定オッズで"
+                                   "105%以上・300件以上のマスを選び、まっさらな2〜5月で何も変えずに確かめた。"
+                                   "B級イン: 934件・的中12%・112% → 650件・108%、A級イン: 1,617件・的中11%・108% → 1,136件・100%。"
+                                   "1着は市場もよく分かっているが、2着の組み合わせの値段にはズレが残っている")]
+    rows = "".join(f'<div class="boat"><div><b>{t}</b><br><span class="sub">{x}</span></div></div>' for t, x in steps)
+    return f'<div class="card"><b>イン頭・軽視された2着(pickfav)のロジック</b>{rows}</div>'
+
+
 def _pickgen_logic_card():
     b = bet_mod
     bands = "・".join(lab for _, _, lab in b.GEN_BANDS)
@@ -1991,7 +2006,7 @@ def main():
                             ("pick21", _pick21_logic_card()), ("pick21t", _pick21t_logic_card()),
                             ("pickbinx", _pickbinx_logic_card()), ("pickbinc", _pickbinc_logic_card()),
                             ("pickbint", _pickbint_logic_card()), ("pickura", _pickura_logic_card()),
-                            ("pickgen", _pickgen_logic_card()), ("sankabin", _sanka_logic_card("sankabin")), ("sankagap", _sanka_logic_card("sankagap"))):
+                            ("pickgen", _pickgen_logic_card()), ("pickfav", _pickfav_logic_card()), ("sankabin", _sanka_logic_card("sankabin")), ("sankagap", _sanka_logic_card("sankagap"))):
         (OUT / "ops" / f"{pk}.html").write_text(ops_detail_page(pk, logic_html))
     key = os.environ.get("SHARE_KEY")
     if key:   # 投稿用の隠しページ(今日と前日の仕掛け成功)。サイトマップには入れない
