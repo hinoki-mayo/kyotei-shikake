@@ -683,10 +683,11 @@ def _pickgen(pred, odds_c, odds2_w, waku, date, live):
                 tickets=tickets)
 
 
-def _pickfav(pred, odds2_w, waku):
+def _pickfav(pred, odds2_w, waku, odds_c=None):
     """イン頭・軽視された2着(本命寄り): 1コースが頭の2連単のうち、オッズFAV_ODDS倍で、本予想の目の確率が
     市場の目の確率(2連単オッズから)のFAV_RATIO倍以上の目を1目FAV_UNITS口。比の範囲はインの級で変える
-    (網の目で6〜10月に見つけ、2〜5月の確定オッズで確かめた: B級イン×比1.3〜1.6 112%→108%、A級イン×比1.6以上 108%→100%)"""
+    (網の目で6〜10月に見つけ、2〜5月の確定オッズで確かめた: B級イン×比1.3〜1.6 112%→108%、A級イン×比1.6以上 108%→100%)。
+    目ごとに2連単と3連単(3着4点の合成)の高い方で買う(同じ確かめで B級 115%→110%、A級 110%→102%)"""
     if not odds2_w:
         return dict(skip=True, bet="2t")
     tri = pred["tri"]
@@ -701,13 +702,21 @@ def _pickfav(pred, odds2_w, waku):
             continue
         p = sum(tri[PI[(0, j, k)]] for k in range(6) if k not in (0, j))
         r = p / ((1 / o) / inv)
-        if lo <= r < hi:
-            tickets.append(dict(combo=f"{waku[0]}-{waku[j]}", units=FAV_UNITS, odds=o, prob=round(p, 4),
-                                role=f"2着{waku[j]}号艇(予想{p:.1%}・比{r:.2f})", bet="2t"))
+        if not lo <= r < hi:
+            continue
+        role = f"2着{waku[j]}号艇(予想{p:.1%}・比{r:.2f})"
+        c3 = [(k, odds_c[PI[(0, j, k)]]) for k in range(6) if k not in (0, j)] if odds_c else []
+        syn = 1 / sum(1 / x for _, x in c3) if c3 and all(x for _, x in c3) else 0
+        if syn > o:   # 同じ結果を3連単(3着4点をオッズ配分)で買う方が高い時は3連単で(確定オッズで回収率+2〜3pt)
+            units = _alloc([(1 / x) * syn for _, x in c3], FAV_UNITS)
+            tickets += [dict(combo=f"{waku[0]}-{waku[j]}-{waku[k]}", units=u, odds=x, role=role, bet="3t")
+                        for (k, x), u in zip(c3, units) if u]
+        else:
+            tickets.append(dict(combo=f"{waku[0]}-{waku[j]}", units=FAV_UNITS, odds=o, prob=round(p, 4), role=role, bet="2t"))
     if not tickets:
         return dict(skip=True, bet="2t")
     return dict(skip=False, bet="2t", head=waku[0], himo=None, stake=sum(t["units"] for t in tickets) * 100,
-                scenario=f"インの{waku[0]}号艇が逃げて、市場が軽く見ている" + "・".join(t["combo"][-1] + "号艇" for t in tickets) + "が2着",
+                scenario=f"インの{waku[0]}号艇が逃げて、市場が軽く見ている" + "・".join(dict.fromkeys(t["combo"].split("-")[1] + "号艇" for t in tickets)) + "が2着",
                 tickets=tickets)
 
 
@@ -861,7 +870,7 @@ def make_bet(pred, odds_w, odds2_w=None, date=None, live=None):
     out["pickbinc"] = _pickbinc(pred, odds_c, odds2_w, waku, date, live)
     out["pickbint"] = _pickbint(pred, odds2_w, waku, date, live)
     out["pickgen"] = _pickgen(pred, odds_c, odds2_w, waku, date, live)
-    out["pickfav"] = _pickfav(pred, odds2_w, waku)
+    out["pickfav"] = _pickfav(pred, odds2_w, waku, odds_c)
     out["sankabin"] = _sanka(pred, odds_c, odds2_w, waku, "sankabin")
     out["sankagap"] = _sanka(pred, odds_c, odds2_w, waku, "sankagap")
     for name in OPS_PLANS + SHADOW_PLANS:   # 運用プランには今のロジックの印を付ける(集計はこの印があるものだけ)
