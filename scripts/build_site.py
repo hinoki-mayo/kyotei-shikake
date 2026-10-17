@@ -1214,7 +1214,8 @@ def _tree_nodes():
         nodes[nd] = dict(parent=".".join(p[:-1]) or None, label=label, level=len(p) + 1, plan=plan,
                          color=GROUP_COLOR.get(".".join(p[:2]), "#6B7079"),
                          status=_plan_status(plan) if plan else "",
-                         conf=c.get("conf"), n=c.get("n", 0), roi=c.get("roi"))
+                         conf=c.get("conf"), n=c.get("n", 0), roi=c.get("roi"),
+                         hit_rate=c.get("hit_rate"), avg_mult=c.get("avg_mult"))
     order = {pk: i for i, pk in enumerate(ORG_PLANS_ORDER)}
     for nd, x in nodes.items():
         x["children"] = sorted([k for k, y in nodes.items() if y["parent"] == nd],
@@ -1269,6 +1270,23 @@ function board(a){
   const roi=(r,s)=>s?`<b style="color:${r>=s?'var(--green)':'var(--red)'}">${pc(r,s)}</b>`:'-';
   return `<span class="sub">提案${a.n}・採用${a.an}・的中${a.hit}｜回収 全</span>${roi(a.ret,a.st)}<span class="sub">・採用</span>${roi(a.aret,a.ast)}`;
 }
+// 提案の当たり方のタイプ: 一番細かい箱(印があれば印の箱)の過去の的中率で決める
+function typeOf(leaf,tags){
+  for(const b of [...tags,leaf]) for(const a of anc(b)){ const x=ORG.nodes[a]; if(x&&x.hit_rate!=null) return x.hit_rate>=0.25?'🎯本命型':x.hit_rate>=0.08?'⚖️中穴型':'💣大穴型'; }
+  return '？';
+}
+function kessaiTypes(){
+  const days=[...new Set(D.filter(x=>x.pp&&x.pp.length).map(x=>x.d))].sort(), last=days[days.length-1];
+  if(!last) return '<span class="sub">まだ記録なし</span>';
+  const g={};
+  for(const x of D){ if(x.d!==last||!x.pp) continue;
+    for(const [leaf,tags,s,r,c,ad] of x.pp){ if(!ad) continue; const t=typeOf(leaf,tags);
+      const a=(g[t]=g[t]||{n:0,hit:0,st:0,ret:0}); a.n++; a.hit+=r>0?1:0; a.st+=s; a.ret+=r; } }
+  const ks=Object.keys(g).sort();
+  if(!ks.length) return `<span class="sub">${+last.slice(4,6)}/${+last.slice(6)}は採用なし</span>`;
+  return `<span class="sub">${+last.slice(4,6)}/${+last.slice(6)}(結果が出た分)</span>`+ks.map(t=>{const a=g[t];
+    return `<div class="boat" style="padding:4px 0"><div style="flex:1"><b>${t}</b> <span class="sub">${a.n}件・的中${a.hit}</span></div><b style="color:${a.ret>=a.st?'var(--green)':'var(--red)'}">${sg(a.ret-a.st)}</b></div>`;}).join('');
+}
 function boardTable(a){
   if(!a.n) return '<p class="sub">まだ提案なし</p>';
   const row=(lab,n,h,s,r)=>`<tr><td style="text-align:left">${lab}</td><td>${n}</td><td>${h}</td><td>${n?Math.round(h/n*100):0}%</td><td>${yen(s)}</td><td>${yen(r)}</td><td style="font-weight:700;color:${r>=s?'var(--green)':'var(--red)'}">${s?pc(r,s):'-'}</td></tr>`;
@@ -1288,6 +1306,7 @@ function fill(){
     else if(k.startsWith('plan:')) el.innerHTML=statLine(aggPlans([k.slice(5)]),'R');
     else if(k.startsWith('node:')) el.innerHTML=board(aggNode(k.slice(5)));
     else if(k.startsWith('table:')) el.innerHTML=boardTable(aggNode(k.slice(6)));
+    else if(k==='kessai-types') el.innerHTML=kessaiTypes();
   });
   document.querySelectorAll('[data-pnl]').forEach(el=>{
     const k=el.dataset.pnl;
@@ -1298,13 +1317,21 @@ fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;fill()});
 """
 
 
+def _type_html(x):
+    t = org_tree.hit_type(x.get("hit_rate"))
+    if not t:
+        return ""
+    mult = f'・当たると平均{x["avg_mult"]:.0f}倍' if x.get("avg_mult") else ""
+    return f'<span class="org-stat sub">{t[1]}{t[0]}(的中{x["hit_rate"]:.0%}{mult})</span>'
+
+
 def _conf_html(x):
     if x.get("conf") is None:
         return '<span class="org-stat sub">自信度 まだなし</span>'
     c = x["conf"]
     col = "var(--green)" if c >= org_tree.ADOPT else "var(--sub)"
     return (f'<span class="org-stat">自信度 <b style="color:{col}">{c:.0%}</b> '
-            f'<span class="sub">(過去{x["n"]:,}件・素{x["roi"]:.0%})</span></span>')
+            f'<span class="sub">(過去{x["n"]:,}件・素{x["roi"]:.0%})</span></span>' + _type_html(x))
 
 
 def _node_tile(nd, x, size=40, cls="org-mini"):
@@ -1368,6 +1395,8 @@ def kessai_room():
               f'③ 同じ結果を取り合う提案(同じ頭の艇の買い目)同士だけを比べ、自信度が一番高い提案を1つ上げる。提案はどれも1回{org_tree.STAKE:,}円にそろえる(社員の買い方の割合で、100円単位に配り直す)。<br>'
               f'④ 上がってきた提案のうち、自信度{org_tree.ADOPT:.0%}以上は全部採用(違う頭なら複数残る)。1つも無ければ見送り。<br>'
               '⑤ 今は立説中。v0(運用中の部長の提案を全部採用)と成績を並べて記録し、勝ち越したら本番の決め手にする。</p></div>'
+            + '<div class="card"><b>今日の採用の中身</b> <span class="sub">当たり方のタイプ別(🎯本命型=的中25%以上・⚖️中穴型=8〜25%・💣大穴型=8%未満)</span>'
+              '<div data-stat="kessai-types" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>v1 の成績(立説中)</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>v0 の成績(運用中の部長の提案を全部採用)</b><div data-stat="ops"></div><div data-pnl="ops" style="margin-top:6px"></div></div>'
             + '<div id="up"></div>')
