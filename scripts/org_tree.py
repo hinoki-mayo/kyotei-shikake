@@ -125,9 +125,14 @@ def hit_type(hit_rate):
     return next((name, icon) for lo, name, icon in HIT_TYPES if hit_rate >= lo)
 
 
-def load_confidence():
+def load_confidence(date=None):
+    """自信度の表。date を渡すと、その日に使っていた表(作り直す前の日は、残しておいた古い表 confidence_until_最終日.json)"""
+    p = CONF_P
+    if date:
+        old = sorted(CONF_P.parent.glob("confidence_until_*.json"))
+        p = next((x for x in old if date <= x.stem[-8:]), CONF_P)
     try:
-        return json.loads(CONF_P.read_text())["nodes"]
+        return json.loads(p.read_text())["nodes"]
     except Exception:
         return {}
 
