@@ -266,7 +266,7 @@ def info_page(date, info, boats, season, series, n_series, pred, races, result_r
                  f'モ{b["motor_2r"]:.1f}%｜{ser_s}</div></div></div>')
     entry = ("展示の進入：" + " ".join(str(w) for w in order)) if order else "展示の進入が出たら、スタートスリットと1マークの展開予想を公開します（締切の約20分前）。"
     body = (race_head(date, v, info, "info", locked, base, result_ready) + (f'<div class="card">{labels(pred)}</div>' if not locked else "")
-            + (view_card(date, info, pred) if not locked else "")
+            + (view_card(date, info, pred) + scen_card(race_view_of(date, info, pred)) if not locked else "")
             + f'<div class="card">{rows}</div><p class="sub">{entry}</p>' + (NUDGE if not order else "")
             + ad() + rnav(date, info["jcd"], info["race"], races, ""))
     return page(f"{v}{info['race']}R 出走表・展開予想 {jp(date)}", body,
@@ -288,23 +288,47 @@ def _pct(x):
     return f"{x * 100:.0f}%" if x >= 0.095 else f"{x * 100:.1f}%"
 
 
-def view_card(date, info, pred):
-    """当てる予想: 艇ごとの1着・2着・3着の確率と、普段の力との比べ(🔥熱い・🧊冷たい)"""
+ROLE_COLOR = {"頭あり": "var(--red)", "2着が熱い": "#d4537e", "2着まで": "#888780", "3着押さえ": "var(--green)", "消し寄り": "#444441"}
+
+
+def race_view_of(date, info, pred):
     key = f'{info["jcd"]}-{info["race"]:02d}'
     live = _entries(date).get(key)
     try:
-        v = race_view.view(pred, date, _odds_live(date).get(key), live if isinstance(live, dict) else None)
+        return race_view.view(pred, date, _odds_live(date).get(key), live if isinstance(live, dict) else None)
     except Exception as e:
         print(f"当てる予想を作れませんでした({key}): {e!r}")
+        return None
+
+
+def scen_card(v):
+    """展開ごとの予想(勝ちそうな艇ごとに、その時の2着・3着の候補)"""
+    if not v or not v.get("scen"):
         return ""
+    out = ""
+    for x in v["scen"]:
+        sec = "・".join(f'{w}号艇<span class="sub">{_pct(q)}</span>' for w, q in x["sec"])
+        thr = "・".join(f'{w}号艇<span class="sub">{_pct(q)}</span>' for w, q in x["thr"])
+        out += (f'<div class="boat">{chip(x["head"])}<div style="flex:1;min-width:0"><div><b>{html.escape(x["name"])}</b> '
+                f'<b style="color:var(--red)">{_pct(x["p"])}</b></div>'
+                f'<div class="sub">2着 {sec}</div><div class="sub">3着 {thr}</div></div></div>')
+    return ('<h2>展開ごとの予想</h2><div class="card"><p class="sub" style="margin:0 0 6px">勝ちそうな艇の順に、その展開になる確率と、'
+            'その時に2着・3着へ来やすい艇(その展開になった時の確率)。</p>' + out + '</div>')
+
+
+def view_card(date, info, pred):
+    """当てる予想: 艇ごとの1着・2着・3着の確率と、普段の力との比べ(🔥熱い・🧊冷たい)"""
+    v = race_view_of(date, info, pred)
     if not v:
         return ""
     rows = ""
     for b in v["boats"]:
         heat = ' <b style="color:var(--red)">🔥熱い</b>' if b["heat"] > 0 else (' <b style="color:var(--ac)">🧊冷たい</b>' if b["heat"] < 0 else "")
         why = "・".join(b["good"]) + (("｜" if b["good"] else "") + "・".join(b["bad"]) if b["bad"] else "")
+        rl = "".join(f'<span class="lab" style="background:{ROLE_COLOR[r]};font-size:11px;padding:1px 6px;margin-left:4px">{r}</span>'
+                     for r in b["roles"])
         rows += (f'<div class="boat">{chip(b["waku"])}<div style="flex:1;min-width:0">'
-                 f'<div><b>{html.escape(b["name"])}</b>{heat}</div>'
+                 f'<div><b>{html.escape(b["name"])}</b>{heat}{rl}</div>'
                  f'<div class="sub">1着 <b style="color:var(--tx)">{_pct(b["p1"])}</b>・2着 {_pct(b["p2"])}・3着 {_pct(b["p3"])}'
                  f'　<span style="white-space:nowrap">普段 {b["course"]}コースで1着{_pct(b["base1"])}・2着以内{_pct(b["base2"])}</span></div>'
                  + (f'<div class="sub" style="font-size:11px">{html.escape(why)}</div>' if why else "") + '</div></div>')
@@ -313,7 +337,8 @@ def view_card(date, info, pred):
     src = (f'情報部の予想と、{v["at"]}時点のオッズ(市場)を混ぜた確率' if v["src"] == "混ぜた"
            else "情報部の予想だけの確率(締切の約25分前からオッズを混ぜます)")
     return (f'<h2>当てる予想</h2><div class="card"><p class="sub" style="margin:0 0 6px">{src}。'
-            '🔥＝普段のそのコースの成績より今日は2着以内に来やすい、🧊＝来にくい。</p>' + rows
+            '🔥＝普段のそのコースの成績より今日は2着以内に来やすい、🧊＝来にくい。'
+            '頭あり＝1着20%以上、2着が熱い＝2着25%以上、3着押さえ＝3着25%以上で1・2着は薄い。</p>' + rows
             + f'<div style="margin-top:8px"><b>2連単</b> {t2}</div><div style="margin-top:4px"><b>3連単</b> {t3}</div></div>')
 
 
@@ -393,7 +418,7 @@ def turn_page(date, info, pred, races, result_ready=False):
         waku = [b["waku"] for b in pred["boats"]]
         lines = "".join(f'<div class="boat">{chip(b["waku"])}<div><span class="sub">{html.escape(b["name"])}</span><br>'
                         f'{html.escape(sc["lines"].get(str(k), "展開待ち"))}</div></div>' for k, b in enumerate(pred["boats"]))
-        content = (f'<div class="card">{labels(pred)}</div>{turn_svg(sc2, waku)}<h2>各艇の展開</h2><div class="card">{lines}</div>'
+        content = (scen_card(race_view_of(date, info, pred)) + f'<div class="card">{labels(pred)}</div>{turn_svg(sc2, waku)}<h2>各艇の展開</h2><div class="card">{lines}</div>'
                    + _trifecta_card(pred) + _scenarios_html(pred))
     body = race_head(date, v, info, "turn", locked, base, result_ready) + content + ad() + rnav(date, info["jcd"], info["race"], races, "-turn")
     return page(f"{v}{info['race']}R 1マーク展開予想 {jp(date)}", body, f"{v}{info['race']}Rの1マーク仕掛け・展開予想",
@@ -723,6 +748,9 @@ def quick_upcoming(now=None):
 ORG_CONF = org_tree.load_confidence()
 
 
+FLEX_WIN_SINCE = "20261019"   # v2 の頭の確率を1着専門で直し始めた日(前の日は直さない形で記録)
+
+
 @functools.lru_cache(maxsize=None)
 def conf_for(date):
     """その日に決裁者が使っていた自信度の表(表を作り直しても、前の日の判断は書き換えない)"""
@@ -771,7 +799,9 @@ def bets_records():
             fx_rec = None
             s2 = (b.get("stages") or {}).get("確定")   # 決裁者v2(柔軟型・記録だけ): 締切2分前のオッズで割安な2連単を自由に選ぶ
             if pred and s2 and s2.get("o2") and date >= ORG_SINCE:
-                fx = flex.picks(pred, {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s2["o2"]) if v})
+                lv = _entries(date).get(key)
+                fx = flex.picks(pred, {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s2["o2"]) if v},
+                                lv if isinstance(lv, dict) else None, win=date >= FLEX_WIN_SINCE)
                 sp = settle(dict(tickets=[dict(t, bet="2t") for t in fx], stake=len(fx) * flex.STAKE, bet="2t"), result) if fx else None
                 st["flex"] = list(sp) if sp else 0
                 fx_rec = [[t["combo"], t["odds"], round(t["ev"], 2)] for t in fx] if sp else None
