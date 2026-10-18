@@ -798,16 +798,17 @@ def bets_records():
                 st[n] = 0 if pl.get("skip") else list(settle(pl, result))
             pred = preds.get(key)
             fx_rec = None
-            s2 = (b.get("stages") or {}).get("確定")   # 決裁者v2(柔軟型・記録だけ): 締切2分前のオッズで割安な2連単を自由に選ぶ
+            new = date >= FLEX_WIN_SINCE   # 10/19から: 45秒前のオッズ・見込みの確定オッズ・1着専門・3連単への切り替え
+            stg = b.get("stages") or {}
+            s2 = (stg.get("直前") or stg.get("確定")) if new else stg.get("確定")   # 決裁者v2(柔軟型・記録だけ)
             if pred and s2 and s2.get("o2") and date >= ORG_SINCE:
                 lv = _entries(date).get(key)
-                new = date >= FLEX_WIN_SINCE   # 10/19から: 頭の確率を1着専門で直し、3連単への切り替えもする
                 fx = flex.picks(pred, {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s2["o2"]) if v},
                                 lv if isinstance(lv, dict) else None, win=new,
-                                o3={c: v for c, v in zip(bet_mod.ODDS_ORDER, s2.get("o3") or []) if v} if new else None)
+                                o3={c: v for c, v in zip(bet_mod.ODDS_ORDER, s2.get("o3") or []) if v} if new else None, drift=new)
                 sp = settle(dict(tickets=fx, stake=sum(t["units"] for t in fx) * 100), result) if fx else None
                 st["flex"] = list(sp) if sp else 0
-                fx_rec = [[t["combo"], t["odds"], round(t["ev"], 2)] for t in fx] if sp else None
+                fx_rec = [[t["combo"], t["odds"], round(t["ev"], 2), t.get("odds_f")] for t in fx] if sp else None
                 o2s = {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s2["o2"]) if v}
                 o3s = {c: v for c, v in zip(bet_mod.ODDS_ORDER, s2.get("o3") or []) if v}
                 for pk, tks in (("setsuD", shadow_staff.setsu_d(pred, o2s)),
@@ -1547,7 +1548,8 @@ def kessai_room():
             + '<div class="card"><b>v1 の成績(立説中)</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>v2(柔軟型)の成績(記録だけ)</b><p class="sub" style="margin:2px 0 6px">'
               f'情報部と市場の確率を混ぜ、割安さ{flex.EV}以上・{flex.ODDS_MAX:.0f}倍未満の2連単を全部(頭はいくつでも・1点{flex.STAKE:,}円)。'
-              '締切2分前のオッズで判断。v1と並べて記録し、勝ち越したら本番に上げる。</p>'
+              f'10/19から: 締切45秒前のオッズで判断し、割安に見える目ほど最後に下がる分を割り引いた「見込みの確定オッズ」で割安さ{flex.EV_DRIFT}以上を選ぶ。'
+              '頭の確率は1着専門で直し、3着が固ければ3連単2点に切り替える。v1と並べて記録し、勝ち越したら本番に上げる。</p>'
               '<div data-stat="plan:flex"></div><div data-pnl="flex" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>社員候補(記録だけ)</b><p class="sub" style="margin:2px 0 6px">'
               '事前に決めた条件を別の年で確かめて残った買い方。1点1,000円・締切2分前のオッズで判断。成績がよければ社員にする。</p>'
