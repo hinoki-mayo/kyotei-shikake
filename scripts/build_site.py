@@ -104,6 +104,23 @@ main{max-width:760px;margin:0 auto;padding:10px}h1{font-size:19px;margin:10px 0}
 .lab{display:inline-block;font-size:12px;padding:2px 8px;border-radius:6px;color:#fff;margin:2px 4px 2px 0}
 .lock{text-align:center;padding:36px 12px}.rnav{display:flex;justify-content:space-between;margin:14px 0}.rnav a{color:var(--ac)}
 .ad{margin:16px 0;text-align:center;overflow:hidden}
+.sum{padding:14px}.rank{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;font-weight:800;font-size:19px;color:#fff;margin-right:8px;flex:none}
+.rank-S{background:#C0392B}.rank-A{background:#E8742E}.rank-B{background:#6b7a90}.rank-C{background:#444441}
+.sumhead{display:flex;align-items:center}.sumhead b{font-size:17px}.big5{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
+.big5 span{background:var(--off);border:1px solid var(--bd);border-radius:8px;padding:4px 9px;font-weight:700;font-size:15px}
+.big5 small{font-weight:500;color:var(--sub);font-size:11px;margin-left:3px}
+.brow>summary{list-style:none;cursor:pointer;display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)}
+.brow>summary::-webkit-details-marker{display:none}.brow[open]>summary{border-bottom:0}
+.brow .nm{flex:1;min-width:0;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar{width:64px;height:6px;border-radius:3px;background:var(--off);overflow:hidden;flex:none}.bar i{display:block;height:100%;background:var(--hot)}
+.pc{width:38px;text-align:right;font-weight:800;font-size:14px;flex:none}.bdet{padding:0 0 8px 38px;border-bottom:1px solid var(--bd);font-size:12.5px}
+.rl{display:inline-block;font-size:10.5px;padding:0 5px;border-radius:5px;color:#fff;margin-left:3px;vertical-align:1px}
+.btnrow{display:flex;gap:8px;margin:10px 0}.btnrow a{flex:1;text-align:center;padding:10px 0;border-radius:10px;background:var(--card);border:1px solid var(--bd);font-weight:700;font-size:13.5px}
+.nx{display:flex;gap:10px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--bd)}.nx:last-child{border:0}
+.nx .rank{width:30px;height:30px;font-size:16px;margin:0}.nx .rank-w{background:var(--off);color:var(--sub);font-size:11px}
+.nx .t{flex:1;min-width:0}.nx .t b{font-size:15px}.nx .t .sub{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.nx .dl{font-weight:800;font-size:15px;text-align:right}.nx .dl small{display:block;font-weight:500;font-size:11px;color:var(--sub)}
+.help>summary{cursor:pointer;color:var(--sub);font-size:12.5px;margin:6px 0}.help p{font-size:12.5px;color:var(--sub);margin:4px 0}
 footer{max-width:760px;margin:24px auto;padding:12px;font-size:12px;color:var(--sub)}footer a{color:var(--ac)}svg{display:block;color:var(--tx)}
 """
 
@@ -213,19 +230,18 @@ def race_status(date, r, pred, now):
 
 
 def tabs(base, cur, locked, result_ready):
-    lk = '<span class="lk">展示後に公開</span>' if locked else ""
-    rlk = "" if result_ready else '<span class="lk">結果発表後に公開</span>'
-    items = [("出走表", f"{base}.html", "info", ""), ("スタートスリット", f"{base}-slit.html", "slit", lk),
-             ("1マーク", f"{base}-turn.html", "turn", lk), ("結果", f"{base}-result.html", "result", rlk),
-             ("試験買い目", f"{base}-bet.html", "bet", "")]
+    lk = '<span class="lk">展示後</span>' if locked else ""
+    rlk = "" if result_ready else '<span class="lk">レース後</span>'
+    items = [("予想", f"{base}.html", "pred", lk), ("展開", f"{base}-turn.html", "turn", lk),
+             ("出走表", f"{base}-entry.html", "entry", ""), ("結果", f"{base}-result.html", "result", rlk)]
     return '<nav class="tabs">' + "".join(
         f'<a class="{"on" if k == cur else ""}" href="{u}">{t}{x}</a>' for t, u, k, x in items) + "</nav>"
 
 
 def race_head(date, v, info, cur, locked, base, result_ready=False):
-    return (f'<p class="sub"><a href="/{date}/">{jp(date)}</a> ＞ <a href="/{date}/{info["jcd"]}/">{v}</a></p>'
-            f'<h1>{v} {info["race"]}R <span class="sub">{html.escape(info["rtype"])}</span></h1>'
-            f'<p class="sub">締切 {info["deadline"]}・{html.escape(info["title"])} {info["day"]}日目</p>'
+    return (f'<p class="sub" style="margin:4px 0 0"><a href="/{date}/">{jp(date)}</a> ＞ <a href="/{date}/{info["jcd"]}/">{v}</a>'
+            f'・{html.escape(info["title"])} {info["day"]}日目</p>'
+            f'<h1 style="margin:2px 0 0">{v} {info["race"]}R <span class="sub">{html.escape(info["rtype"])}・締切 {info["deadline"]}</span></h1>'
             f'{tabs(base, cur, locked, result_ready)}')
 
 
@@ -244,7 +260,8 @@ def labels(pred):
             f'<p class="sub" style="margin:4px 2px 0">展開不向き＝1着になりにくい、という意味です（2・3着まで否定するものではありません）。</p>')
 
 
-def info_page(date, info, boats, season, series, n_series, pred, races, result_ready=False):
+def entry_page(date, info, boats, season, series, n_series, pred, races, result_ready=False):
+    """出走表タブ: 選手の顔・級・勝率・モーター・節間成績"""
     v = VENUES[info["jcd"]]
     base = f'{info["race"]:02d}'
     locked = not (pred and pred.get("version") == "final")
@@ -265,13 +282,67 @@ def info_page(date, info, boats, season, series, n_series, pred, races, result_r
                  f'<div class="sub" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
                  f'{b["grade"]}・{b["age"]}歳・{html.escape(b["branch"])}｜全国{b["nat_win"]:.2f}/当地{b["loc_win"]:.2f}｜'
                  f'モ{b["motor_2r"]:.1f}%｜{ser_s}</div></div></div>')
-    entry = ("展示の進入：" + " ".join(str(w) for w in order)) if order else "展示の進入が出たら、スタートスリットと1マークの展開予想を公開します（締切の約20分前）。"
-    body = (race_head(date, v, info, "info", locked, base, result_ready) + (f'<div class="card">{labels(pred)}</div>' if not locked else "")
-            + (view_card(date, info, pred) + scen_card(race_view_of(date, info, pred)) if not locked else "")
-            + f'<div class="card">{rows}</div><p class="sub">{entry}</p>' + (NUDGE if not order else "")
-            + ad() + rnav(date, info["jcd"], info["race"], races, ""))
-    return page(f"{v}{info['race']}R 出走表・展開予想 {jp(date)}", body,
-                f"{v}{info['race']}Rの出走表と1マーク展開予想。今期勝率・節間成績つき。", f"/{date}/{info['jcd']}/{base}.html")
+    entry = ("展示の進入：" + " ".join(str(w) for w in order)) if order else "展示の進入が出たら、予想と展開を公開します（締切の約20分前）。"
+    body = (race_head(date, v, info, "entry", locked, base, result_ready)
+            + f'<div class="card">{rows}</div><p class="sub">{entry}</p>'
+            + ad() + rnav(date, info["jcd"], info["race"], races, "-entry"))
+    return page(f"{v}{info['race']}R 出走表 {jp(date)}", body,
+                f"{v}{info['race']}Rの出走表。今期勝率・節間成績つき。", f"/{date}/{info['jcd']}/{base}-entry.html")
+
+
+RANKS = (("S", 0.5, "ガチガチ", "57%"), ("A", 0.4, "堅め", "44%"), ("B", 0.3, "やや混戦", "33%"), ("C", 0.0, "混戦", "22%"))
+
+
+def predict_page(date, info, pred, races, result_ready=False):
+    """予想タブ(レースの最初のページ): 堅さのランク・本命・おすすめの目と、6艇の1着の確率を1画面で"""
+    v = VENUES[info["jcd"]]
+    base = f'{info["race"]:02d}'
+    locked = not (pred and pred.get("version") == "final")
+    vw = None if locked else race_view_of(date, info, pred)
+    if not vw:
+        content = ('<div class="card lock"><b>展示が出たら予想を公開します</b><br>'
+                   f'<span class="sub">締切の約20分前（{info["deadline"]}締切）に更新されます</span></div>'
+                   f'<div class="btnrow"><a href="{base}-entry.html">出走表を見る</a></div>' + NUDGE)
+    else:
+        p5 = sum(p for _, p in vw["top3"][:5])
+        rk, _, word, hist = next(x for x in RANKS if p5 >= x[1])
+        bs = sorted(vw["boats"], key=lambda b: -b["p1"])
+        fav = bs[0]
+        head = (f'<div class="sumhead"><span class="rank rank-{rk}">{rk}</span><div><b>{word}のレース</b><br>'
+                f'<span class="sub">本命 {fav["waku"]}号艇 {html.escape(fav["name"])}（1着{_pct(fav["p1"])}）</span></div></div>')
+        if rk in ("S", "A"):
+            picks = "".join(f'<span>{c}<small>{_pct(p)}</small></span>' for c, p in vw["top3"][:5])
+            mid = (f'<div class="sub" style="margin-top:10px">3連単 おすすめ5点（どれかが来る見込み <b style="color:var(--tx)">{p5:.0%}</b>）</div>'
+                   f'<div class="big5">{picks}</div>')
+        else:
+            cands = "".join(f'<span>{b["waku"]}号艇<small>{_pct(b["p1"])}</small></span>' for b in bs[:3] if b["p1"] >= 0.07)
+            mid = ('<div class="sub" style="margin-top:10px">混戦なので5点に絞りにくいレース。頭の候補（1着の確率）</div>'
+                   f'<div class="big5">{cands}</div><div class="sub">見送るのもアリ。展開タブで勝ち方ごとの並びを確認できます。</div>')
+        t2 = "　".join(f'{c} <span class="sub">{_pct(p)}</span>' for c, p in vw["top2"][:3])
+        summary = f'<div class="card sum">{head}{mid}<div class="sub" style="margin-top:8px">2連単の上位　<b style="color:var(--tx)">{t2}</b></div></div>'
+        rows = ""
+        for b in sorted(vw["boats"], key=lambda b: b["waku"]):
+            heat = "🔥" if b["heat"] > 0 else ("🧊" if b["heat"] < 0 else "")
+            rl = "".join(f'<span class="rl" style="background:{ROLE_COLOR[r]}">{r}</span>' for r in b["roles"])
+            why = "・".join(b["good"]) + (("｜" if b["good"] else "") + "・".join(b["bad"]) if b["bad"] else "")
+            rows += (f'<details class="brow"><summary>{chip(b["waku"])}<span class="nm">{html.escape(b["name"])} {heat}{rl}</span>'
+                     f'<span class="bar"><i style="width:{min(100, b["p1"] * 100):.0f}%"></i></span><span class="pc">{_pct(b["p1"])}</span></summary>'
+                     f'<div class="bdet">1着 {_pct(b["p1"])}・2着 {_pct(b["p2"])}・3着 {_pct(b["p3"])}<br>'
+                     f'普段（{b["course"]}コース）は 1着{_pct(b["base1"])}・2着以内{_pct(b["base2"])}'
+                     + (f'<br>{html.escape(why)}' if why else "") + '</div></details>')
+        src = (f'情報部の予想と{vw["at"]}時点のオッズを混ぜた確率' if vw["src"] == "混ぜた" else "情報部の予想だけの確率（オッズを混ぜる前）")
+        help_ = ('<details class="help"><summary>？ この予想の見方</summary>'
+                 f'<p>{src}です。艇の行をタップすると、2着・3着の確率と、普段のそのコースの成績、今日の材料が開きます。</p>'
+                 '<p>ランクは「おすすめ5点のどれかが来る見込み」で決めています。過去のレースでの実際の的中率は '
+                 + "、".join(f"{r}（{w}）{h}" for r, _, w, h in RANKS) + '。</p>'
+                 '<p>🔥＝普段より2着以内に来やすい、🧊＝来にくい。頭あり＝1着20%以上、2着が熱い＝2着25%以上、'
+                 '2着まで＝頭は薄いが2着はある、3着押さえ＝3着25%以上、消し寄り＝3着以内がかなり薄い。</p></details>')
+        content = (summary + '<h2 style="margin:12px 0 0">6艇の1着の確率 <span class="sub">タップで詳しく</span></h2>'
+                   f'<div class="card" style="padding:2px 12px">{rows}</div>' + help_
+                   + f'<div class="btnrow"><a href="{base}-turn.html">展開を見る</a><a href="{base}-entry.html">出走表</a></div>')
+    body = race_head(date, v, info, "pred", locked, base, result_ready) + content + ad() + rnav(date, info["jcd"], info["race"], races, "")
+    return page(f"{v}{info['race']}R 予想 {jp(date)}", body,
+                f"{v}{info['race']}Rの予想。1着・2着・3着の確率と堅さのランク、おすすめの目。", f"/{date}/{info['jcd']}/{base}.html")
 
 
 @functools.lru_cache(maxsize=4)
@@ -419,10 +490,16 @@ def turn_page(date, info, pred, races, result_ready=False):
         waku = [b["waku"] for b in pred["boats"]]
         lines = "".join(f'<div class="boat">{chip(b["waku"])}<div><span class="sub">{html.escape(b["name"])}</span><br>'
                         f'{html.escape(sc["lines"].get(str(k), "展開待ち"))}</div></div>' for k, b in enumerate(pred["boats"]))
-        content = (scen_card(race_view_of(date, info, pred)) + f'<div class="card">{labels(pred)}</div>{turn_svg(sc2, waku)}<h2>各艇の展開</h2><div class="card">{lines}</div>'
-                   + _trifecta_card(pred) + _scenarios_html(pred))
+        tags = {int(k): x for k, x in sc["tags"].items()}
+        content = (scen_card(race_view_of(date, info, pred))
+                   + '<h2>スタートと1マーク</h2><div class="card">'
+                   + slit_svg(pred["st"], waku, tags, sc["late"])
+                   + '<p class="sub" style="margin:4px 0 8px">スタートの隊形の予想（右ほど速い）。</p>'
+                   + turn_svg(sc2, waku) + f'<div style="margin-top:6px">{labels(pred)}</div></div>'
+                   + '<details class="help"><summary>もっと詳しく（各艇の動き・展開シナリオ）</summary>'
+                   + f'<h2>各艇の展開</h2><div class="card">{lines}</div>' + _trifecta_card(pred) + _scenarios_html(pred) + '</details>')
     body = race_head(date, v, info, "turn", locked, base, result_ready) + content + ad() + rnav(date, info["jcd"], info["race"], races, "-turn")
-    return page(f"{v}{info['race']}R 1マーク展開予想 {jp(date)}", body, f"{v}{info['race']}Rの1マーク仕掛け・展開予想",
+    return page(f"{v}{info['race']}R 展開予想 {jp(date)}", body, f"{v}{info['race']}Rの展開予想。勝ち方ごとの確率と2着・3着、スタート隊形と1マーク",
                 f"/{date}/{info['jcd']}/{base}-turn.html")
 
 
@@ -2012,8 +2089,14 @@ def venue_page(date, jcd, infos, preds, now):
     for i, info in enumerate(infos):
         pred = preds.get(f"{jcd}-{info['race']:02d}")
         st = race_status(date, info, pred, now)
-        badge = {"hot": '<span class="rst s-hot">展開予想！</span>', "wait": '<span class="rst s-wait">展示待ち</span>',
+        badge = {"hot": '<span class="rst s-hot">予想公開中</span>', "wait": '<span class="rst s-wait">展示待ち</span>',
                  "done": '<span class="rst s-done">締切</span>'}[st]
+        if st == "hot":
+            x = _rank_of(date, jcd, info["race"], pred)
+            if x:
+                (rk, _, word, _), fav, _ = x
+                badge = (f'<span class="sub" style="margin-left:auto">本命{fav["waku"]}</span>'
+                         f'<span class="rank rank-{rk}" style="width:26px;height:26px;font-size:14px;margin:0 0 0 8px">{rk}</span>')
         cur_id = ""
         if not cur_marked and st in ("hot", "wait"):
             cur_id = ' id="cur"'
@@ -2061,6 +2144,46 @@ def _with_live_payouts(payouts, date, thr=10000):
     return sorted(payouts, key=lambda p: -p["payout3t"])
 
 
+def _rank_of(date, jcd, race, pred):
+    """レースの堅さのランク(S〜C)と本命の艇番。予想が出ていなければNone"""
+    if not (pred and pred.get("version") == "final"):
+        return None
+    vw = race_view_of(date, dict(jcd=jcd, race=race), pred)
+    if not vw:
+        return None
+    p5 = sum(p for _, p in vw["top3"][:5])
+    rk = next(x for x in RANKS if p5 >= x[1])
+    fav = max(vw["boats"], key=lambda b: b["p1"])
+    return rk, fav, vw
+
+
+def _next_races_html(date, prog_day, preds, now, n=6):
+    """トップの「次のレース」: 締切が近い順に、ランク・本命・おすすめの1点目"""
+    rows = []
+    for r in prog_day.drop_duplicates(["jcd", "race"]).itertuples():
+        t = dl_dt(date, r.deadline)
+        if t > now:
+            rows.append((t, r.jcd, int(r.race), r.deadline))
+    rows = sorted(rows)[:n]
+    if not rows:
+        return ""
+    out = ""
+    for t, j, race, dl in rows:
+        x = _rank_of(date, j, race, preds.get(f"{j}-{race:02d}"))
+        mins = int((t - now).total_seconds() // 60)
+        if x:
+            (rk, _, word, _), fav, vw = x
+            badge = f'<span class="rank rank-{rk}">{rk}</span>'
+            info = f'{word}・本命{fav["waku"]}号艇（{_pct(fav["p1"])}）・{vw["top3"][0][0]}'
+        else:
+            badge = '<span class="rank rank-w">展示<br>待ち</span>'
+            info = "展示が出たら予想を公開"
+        out += (f'<a class="nx" href="/{date}/{j}/{race:02d}.html">{badge}<span class="t"><b>{VENUES[j]} {race}R</b>'
+                f'<span class="sub">{info}</span></span><span class="dl">{dl}<small>あと{mins}分</small></span></a>')
+    return ('<h2>次のレース <span class="sub">S＝堅い 〜 C＝混戦</span></h2>'
+            f'<div class="card" style="padding:2px 12px">{out}</div>')
+
+
 def grid_page(date, dates, prog_day, preds, now, path, payouts=None):
     tiles = ""
     hot_list = []
@@ -2081,7 +2204,7 @@ def grid_page(date, dates, prog_day, preds, now, path, payouts=None):
             ic = '<span class="tag" style="background:#1D9E75">モーニング</span>'
         headb = ""
         if hot:
-            cls, st = "hot", '<span class="hotb">展開予想！</span>'
+            cls, st = "hot", '<span class="hotb">予想公開中</span>'
             hp = preds.get(f"{j}-{hot[0].race:02d}")
             heads = hp["scene"]["head"] if hp else []
             if heads:
@@ -2098,13 +2221,11 @@ def grid_page(date, dates, prog_day, preds, now, path, payouts=None):
     i = dates.index(date)
     prev = f'<a href="/{dates[i - 1]}/">◀ 前日</a>' if i > 0 else '<span class="x">◀ 前日</span>'
     nxt = f'<a href="/{dates[i + 1]}/">翌日 ▶</a>' if i + 1 < len(dates) else '<span class="x">翌日 ▶</span>'
-    hl = "".join(f'<a href="/{date}/{j}/{r:02d}-turn.html"><span class="rno" style="width:80px">{VENUES[j]} {r}R</span>'
-                 f'<span class="sub">締切 {d}</span><span class="rst s-hot">展開予想！</span></a>'
-                 for d, j, r in sorted(hot_list))
-    hot_html = f"<h2>いま展開予想が出ているレース</h2><div class='card list'>{hl}</div>" if hl else ""
-    body = (f'<div class="dnav">{prev}<b>{jp(date)}</b>{nxt}</div><div class="grid">{tiles}</div>'
-            f'<p class="sub">展示の進入が出たレースから順に、スタートスリットと1マークの展開予想を公開します。</p>{hot_html}'
-            f'{_payout_html(date, payouts, preds)}{ad()}{NUDGE_UPDATE}')
+    body = (f'<div class="dnav">{prev}<b>{jp(date)}</b>{nxt}</div>'
+            + _next_races_html(date, prog_day, preds, now)
+            + f'<h2>開催場 <span class="sub">場を選ぶと全レース</span></h2><div class="grid">{tiles}</div>'
+            + (f'<details class="help"><summary>本日の高配当（万舟以上）を見る</summary>{_payout_html(date, payouts, preds)}</details>' if payouts else "")
+            + f'{ad()}{NUDGE_UPDATE}')
     return page(f"{jp(date)} 全24場の展開予想", body, "全24場のスタートスリット・1マーク展開予想を展示後に公開", path)
 
 
@@ -2224,12 +2345,13 @@ def main():
                 if live.get(f"{jcd}-{base}"):   # 成績ファイルが出るまでのつなぎ。2連単の配当はこちらにしかない
                     result = {**live[f"{jcd}-{base}"], **(result or {})}
                 ready = result is not None
-                (d / f"{base}.html").write_text(info_page(date, info, boats, season, series, n_series, pred, races, ready))
-                (d / f"{base}-slit.html").write_text(slit_page(date, info, pred, races, ready))
+                (d / f"{base}.html").write_text(predict_page(date, info, pred, races, ready))
+                (d / f"{base}-entry.html").write_text(entry_page(date, info, boats, season, series, n_series, pred, races, ready))
+                (d / f"{base}-slit.html").write_text(redirect_page(f"/{date}/{jcd}/{base}-turn.html"))   # スリットは展開タブに入れた
                 (d / f"{base}-turn.html").write_text(turn_page(date, info, pred, races, ready))
                 (d / f"{base}-result.html").write_text(result_page(date, info, pred, races, result))
                 (d / f"{base}-bet.html").write_text(bet_page(date, info, pred, races, result, bets.get(f"{jcd}-{base}")))
-                urls += [f"/{date}/{jcd}/{base}{s}.html" for s in ("", "-slit", "-turn", "-result")]
+                urls += [f"/{date}/{jcd}/{base}{s}.html" for s in ("", "-entry", "-turn", "-result")]
                 ent = pick_entry(date, jcd, info, pred, now)
                 if ent:
                     (pick_hi if ent[0] == "hi" else pick_lo).append(ent[1])
