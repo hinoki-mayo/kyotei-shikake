@@ -25,6 +25,10 @@ PLANS = bet.OPS_PLANS + bet.SHADOW_PLANS
 O2_ORDER = [(a, b) for a in range(6) for b in range(6) if a != b]
 
 
+def _first(g, col):
+    return g[col].dropna().iloc[0] if col in g and g[col].notna().any() else None
+
+
 def day_results(res, date):
     d = res[res.date == date]
     out = {}
@@ -42,8 +46,7 @@ def day_results(res, date):
             wind_dir=g.wind_dir.iloc[0], wind=float(g.wind.iloc[0]), wave=float(g.wave.iloc[0]),
             rain=g.weather.iloc[0] == "雨",
             win=win[0] if win else None, sec=sec[0] if sec else None, thr=thr[0] if thr else None,
-            combo3t=g.combo3t.dropna().iloc[0] if g.combo3t.notna().any() else None,
-            payout3t=g.payout3t.dropna().iloc[0] if g.payout3t.notna().any() else None)
+            combo3t=_first(g, "combo3t"), payout3t=_first(g, "payout3t"))   # 2025年以前の競走成績には払戻が無い(確定オッズで精算)
     return out
 
 
