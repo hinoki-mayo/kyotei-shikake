@@ -122,6 +122,10 @@ def main():
     a = ap.parse_args()
     end = time.time() + a.max_minutes * 60
     sync()
+    ld = last_deadline(now_jst())
+    if ld is not None and now_jst() > ld:
+        print("今日の最後のレースの締切を過ぎているので何もしません")
+        return
     ver = code_version()
     build_site.main()   # 最初にサイト全体を作っておく。その後は裏で4分おきに作り直して差し替え、決めた時は「これから」だけ差し替えて出す
     _rebuild["at"] = time.time()
