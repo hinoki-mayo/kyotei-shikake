@@ -17,6 +17,7 @@ import shutil
 import pandas as pd
 
 import bet as bet_mod
+import flex
 import org_tree
 import live_result
 import share
@@ -721,6 +722,13 @@ def bets_records():
                     continue   # 運用プランは今の版のロジックで作った買い目だけ集計する
                 st[n] = 0 if pl.get("skip") else list(settle(pl, result))
             pred = preds.get(key)
+            fx_rec = None
+            s2 = (b.get("stages") or {}).get("確定")   # 決裁者v2(柔軟型・記録だけ): 締切2分前のオッズで割安な2連単を自由に選ぶ
+            if pred and s2 and s2.get("o2") and date >= ORG_SINCE:
+                fx = flex.picks(pred, {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s2["o2"]) if v})
+                sp = settle(dict(tickets=[dict(t, bet="2t") for t in fx], stake=len(fx) * flex.STAKE, bet="2t"), result) if fx else None
+                st["flex"] = list(sp) if sp else 0
+                fx_rec = [[t["combo"], t["odds"], round(t["ev"], 2)] for t in fx] if sp else None
             rp = replay.get(key)
             if rp and pred and date >= ORG_SINCE:   # 今の方法で再生(確定オッズ)した時の、最終決裁者の採用
                 ch = []
@@ -757,6 +765,8 @@ def bets_records():
                        t=(preds.get(key) or {}).get("deadline", ""))   # 締切時刻(一覧を時刻順に並べる)
             if st_ka:
                 rec["ka"] = st_ka
+            if fx_rec:
+                rec["fx"] = fx_rec
             p2 = plans.get("pick2")
             if p2 and not p2.get("skip"):
                 rec["tk"] = [[t["combo"], t["units"], t.get("role")] for t in p2["tickets"]]
@@ -1263,8 +1273,8 @@ def _org_json():
         meta = {k: v for k, v in json.loads(org_tree.CONF_P.read_text()).items() if k != "nodes"}
     except Exception:
         pass
-    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
-                labels={**ALL_PLAN_LABELS, "kessai": "最終決裁者の採用"}, nodes=_tree_nodes(), confMeta=meta)
+    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
+                labels={**ALL_PLAN_LABELS, "kessai": "最終決裁者の採用", "flex": "決裁者v2(柔軟型)"}, nodes=_tree_nodes(), confMeta=meta)
 
 
 ORG_JS = r"""
@@ -1450,6 +1460,10 @@ def kessai_room():
             + '<div class="card"><b>今日の採用の中身</b> <span class="sub">当たり方のタイプ別(🎯本命型=的中25%以上・⚖️中穴型=8〜25%・💣大穴型=8%未満)</span>'
               '<div data-stat="kessai-types" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>v1 の成績(立説中)</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
+            + '<div class="card"><b>v2(柔軟型)の成績(記録だけ)</b><p class="sub" style="margin:2px 0 6px">'
+              f'情報部と市場の確率を混ぜ、割安さ{flex.EV}以上・{flex.ODDS_MAX:.0f}倍未満の2連単を全部(頭はいくつでも・1点{flex.STAKE:,}円)。'
+              '締切2分前のオッズで判断。v1と並べて記録し、勝ち越したら本番に上げる。</p>'
+              '<div data-stat="plan:flex"></div><div data-pnl="flex" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>採用したレース</b> <span class="sub">新しい順。✅＝当たった提案</span><div data-stat="kessai-races" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>v0 の成績(運用中の部長の提案を全部採用)</b><div data-stat="ops"></div><div data-pnl="ops" style="margin-top:6px"></div></div>'
             + '<div id="up"></div>')
