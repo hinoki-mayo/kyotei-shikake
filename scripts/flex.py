@@ -5,14 +5,24 @@
 ・混ぜた確率×オッズが EV 以上、オッズが ODDS_MAX 未満の目を全部買う(頭はいくつでも・1点 STAKE 円)
 ・2025年で学んで2026年で確かめ / 2026年で学んで2025年で確かめ、のどちらでも
   割安1.3以上・8〜20倍で111%・116%、1〜8倍で103%・115%(確定オッズ)。重みは両年まとめて学んだもの
-・10/19から頭の確率を1着専門(win_spec)で直す。割安1.3以上・20倍未満で113%→134%(2026年)、114%→134%(2025年)
+・10/19から: 締切45秒前のオッズで判断し、見込みの確定オッズ(下がり方を割り引いたもの)で割安さを見る。
+  頭の確率を1着専門(win_spec)で直す。割安1.3以上・20倍未満で113%→134%(2026年)、114%→134%(2025年)
 """
 import math
 
 W_P, W_Q = 0.608, 0.513   # 情報部・市場の対数確率の重み(2025/1/1〜2026/10/13の確定2連単オッズで学習)
 EV = 1.3
+EV_DRIFT = 1.15   # 見込みの確定オッズで判断する時の下限(確定オッズの確かめで 割安1.15以上は114%・114%、1.2以上は120%・121%)
 ODDS_MAX = 20.0
 STAKE = 1000   # 1点の金額
+# 締切45秒前のオッズ→確定オッズの下がり方(割安さの帯ごとの倍率)。割安に見える目ほど最後に買われて下がる。
+# 10/17〜18の記録(20倍未満の2連単約1,600目)で測った値。記録がたまったら測り直す
+DRIFT2 = ((0.7, 1.16), (0.9, 1.02), (1.0, 0.95), (1.1, 0.91), (1.2, 0.85), (99, 0.83))
+DRIFT3 = 0.89   # 3連単に切り替えた目
+
+
+def drift2(edge):
+    return next(r for hi, r in DRIFT2 if edge <= hi)
 
 
 def blend2(pred, o2, live=None, win=True):
@@ -54,16 +64,19 @@ def blend2(pred, o2, live=None, win=True):
     return out
 
 
-def picks(pred, o2, live=None, win=True, o3=None):
+def picks(pred, o2, live=None, win=True, o3=None, drift=False):
     """pred: 予想(コース順の boats と tri)、o2: {(1着の枠-1, 2着の枠-1): オッズ} → [{combo, units, odds, prob, ev, bet}]
     o3(3連単オッズ)を渡すと、選んだ2連単ごとに「3着専門の上位2艇の3連単に半分ずつ」の見込み払戻と2連単のオッズを比べ、
-    高い方を買う(確定オッズの確かめで 2連単だけ113%・114% → 116%・116%、3連単を選ぶのは4〜5回に1回)"""
+    高い方を買う(確定オッズの確かめで 2連単だけ113%・114% → 116%・116%、3連単を選ぶのは4〜5回に1回)
+    drift=True なら、締切前のオッズを見込みの確定オッズ(DRIFT2・DRIFT3)に直してから割安さを判断する"""
     waku = [b["waku"] for b in pred["boats"]]
     out = []
     for i, j, o, pr in blend2(pred, o2, live, win):
-        if pr * o < EV or o >= ODDS_MAX:
+        of = o * drift2(pr * o) if drift else o   # 見込みの確定オッズ
+        if pr * of < (EV_DRIFT if drift else EV) or o >= ODDS_MAX:
             continue
-        t2 = dict(combo=f"{waku[i]}-{waku[j]}", units=STAKE // 100, odds=o, prob=round(pr, 4), ev=round(pr * o, 2), bet="2t")
+        t2 = dict(combo=f"{waku[i]}-{waku[j]}", units=STAKE // 100, odds=o, odds_f=round(of, 1), prob=round(pr, 4),
+                  ev=round(pr * of, 2), bet="2t")
         p3 = None
         if o3:
             try:
@@ -74,9 +87,10 @@ def picks(pred, o2, live=None, win=True, o3=None):
         if p3:
             top = sorted(p3.items(), key=lambda x: -x[1])[:2]
             odds3 = [o3.get((waku[i] - 1, waku[j] - 1, waku[c] - 1)) for c, _ in top]
-            if all(odds3) and sum(q * x for (_, q), x in zip(top, odds3)) / 2 > o:
-                out += [dict(combo=f"{waku[i]}-{waku[j]}-{waku[c]}", units=STAKE // 200, odds=x, prob=round(pr * q, 4),
-                             ev=round(pr * q * x, 2), bet="3t") for (c, q), x in zip(top, odds3)]
+            k3 = DRIFT3 if drift else 1.0
+            if all(odds3) and sum(q * x * k3 for (_, q), x in zip(top, odds3)) / 2 > of:
+                out += [dict(combo=f"{waku[i]}-{waku[j]}-{waku[c]}", units=STAKE // 200, odds=x, odds_f=round(x * k3, 1),
+                             prob=round(pr * q, 4), ev=round(pr * q * x * k3, 2), bet="3t") for (c, q), x in zip(top, odds3)]
                 continue
         out.append(t2)
     return sorted(out, key=lambda t: -t["ev"])
