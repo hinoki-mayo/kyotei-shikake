@@ -518,7 +518,7 @@ def _org_race_html(date, pred, result, bet):
         pr["conf"] = org_tree.conf_of(pr, conf_for(date))
         sp = settle(dict(tickets=pr["tickets"], stake=pr["stake"], bet=pr["bet"]), result) if result else None
         pr["ret"] = sp[1] if sp else None
-    picked = {(c["leaf"], c["head"]) for c in org_tree.decide(props, conf_for(date))}
+    picked = {(c["leaf"], c["head"]) for c in org_tree.decide(props, conf_for(date), adopt=org_tree.adopt_for(date))}
     w2c = {b["waku"]: i + 1 for i, b in enumerate(pred["boats"])}
 
     def path(pr):
@@ -539,7 +539,7 @@ def _org_race_html(date, pred, result, bet):
         if pr["ret"] is not None:
             col = "var(--green)" if pr["ret"] >= pr["stake"] else "var(--red)"
             res = f'<b style="color:{col}">{"的中" if pr["ret"] else "外れ"} {round(pr["ret"] - pr["stake"]):+,}円</b>'
-        cc = "var(--green)" if pr["conf"] >= org_tree.ADOPT else "var(--sub)"
+        cc = "var(--green)" if pr["conf"] >= org_tree.adopt_for(date) else "var(--sub)"
         return (f'<div class="boat">{chip(pr["head"])}<div style="flex:1;min-width:0">'
                 f'<div style="display:flex;justify-content:space-between;gap:6px"><span>{badge}<b>{pr["head"]}号艇頭</b> '
                 f'<span class="sub">{w2c.get(pr["head"])}コース</span></span>{res}</div>'
@@ -557,7 +557,7 @@ def _org_race_html(date, pred, result, bet):
         head = (f'<div class="card" style="border:2px solid #7A5AE0"><b>最終決裁者の判断: {len(chosen)}件採用</b>'
                 + "".join(row(c, True) for c in sorted(chosen, key=lambda c: -c["conf"])) + tot + '</div>')
     else:
-        why = "提案がありません" if not props else f"自信度{org_tree.ADOPT:.0%}以上の提案がありません"
+        why = "提案がありません" if not props else f"自信度{org_tree.adopt_for(date):.0%}以上の提案がありません"
         head = f'<div class="card" style="border:2px solid #7A5AE0"><b>最終決裁者の判断: 見送り</b><br><span class="sub">{why}</span></div>'
     body = head
     if props:
@@ -566,7 +566,7 @@ def _org_race_html(date, pred, result, bet):
             ps = sorted([pr for pr in props if pr["leaf"].startswith(side + ".")], key=lambda pr: -pr["conf"])
             if ps:
                 body += f'<div class="card"><b>{org_tree.NODES[side]}</b>' + "".join(row(pr) for pr in ps) + '</div>'
-    return body + f'<p class="sub">同じ頭(同じ結果)を取り合う提案は自信度が一番高いものだけが上がり、自信度{org_tree.ADOPT:.0%}以上は全部採用します。<a href="/ops.html" style="color:var(--ac)">予想組織図</a></p>'
+    return body + f'<p class="sub">同じ頭(同じ結果)を取り合う提案は自信度が一番高いものだけが上がり、自信度{org_tree.adopt_for(date):.0%}以上は全部採用します。<a href="/ops.html" style="color:var(--ac)">予想組織図</a></p>'
 
 
 def bet_page(date, info, pred, races, result, bet):
@@ -635,7 +635,7 @@ def bets_upcoming(now=None):
             out.append(dict(base, p=n, tk=[[t["combo"], t["units"], t.get("role"), t.get("odds")] for t in pl["tickets"]]))
         pred = preds.get(key)
         if pred and plans:   # 最終決裁者が採用した提案(1提案4,000円にそろえたもの)
-            for c in org_tree.decide(org_tree.proposals(plans, pred), conf_for(date)):
+            for c in org_tree.decide(org_tree.proposals(plans, pred), conf_for(date), adopt=org_tree.adopt_for(date)):
                 lab = f'{ALL_PLAN_LABELS.get(c["plan"], c["plan"])}・自信度{c["conf"]:.0%}'
                 out.append(dict(base, p="kessai", tk=[[t["combo"], t["units"], lab, t.get("odds")] for t in c["tickets"]]))
     return sorted(out, key=lambda x: (x["t"], x["v"]))
@@ -724,7 +724,7 @@ def bets_records():
             rp = replay.get(key)
             if rp and pred and date >= ORG_SINCE:   # 今の方法で再生(確定オッズ)した時の、最終決裁者の採用
                 ch = []
-                for pr in org_tree.decide(org_tree.proposals({n: pl for n, pl in rp.items() if not pl.get("skip")}, pred), conf_for(date)):
+                for pr in org_tree.decide(org_tree.proposals({n: pl for n, pl in rp.items() if not pl.get("skip")}, pred), conf_for(date), adopt=org_tree.adopt_for(date)):
                     sp = settle(dict(tickets=pr["tickets"], stake=pr["stake"], bet=pr["bet"]), result)
                     if sp:
                         ch.append(sp)
@@ -744,7 +744,7 @@ def bets_records():
                         pr["ret"] = sp[1]
                         pp.append([pr["leaf"], pr["tags"], sp[0], round(sp[1]), round(org_tree.conf_of(pr, conf_for(date)), 3), pr["head"]])
                 if props:
-                    chosen = [pr for pr in org_tree.decide(props, conf_for(date)) if "ret" in pr]
+                    chosen = [pr for pr in org_tree.decide(props, conf_for(date), adopt=org_tree.adopt_for(date)) if "ret" in pr]
                     st["kessai"] = [sum(c["stake"] for c in chosen), round(sum(c["ret"] for c in chosen))] if chosen else 0
                     picked = {(c["leaf"], c["head"]) for c in chosen}
                     for x in pp:   # 6つ目: 決裁者に採用されたか
