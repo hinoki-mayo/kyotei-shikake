@@ -749,7 +749,7 @@ def quick_upcoming(now=None):
 ORG_CONF = org_tree.load_confidence()
 
 
-FLEX_WIN_SINCE = "20261019"   # v2 の頭の確率を1着専門で直し始めた日(前の日は直さない形で記録)
+FLEX_WIN_SINCE = "20261019"   # v2 の頭の確率を1着専門で直し、3連単への切り替えも始めた日(前の日は前の形で記録)
 
 
 @functools.lru_cache(maxsize=None)
@@ -801,9 +801,11 @@ def bets_records():
             s2 = (b.get("stages") or {}).get("確定")   # 決裁者v2(柔軟型・記録だけ): 締切2分前のオッズで割安な2連単を自由に選ぶ
             if pred and s2 and s2.get("o2") and date >= ORG_SINCE:
                 lv = _entries(date).get(key)
+                new = date >= FLEX_WIN_SINCE   # 10/19から: 頭の確率を1着専門で直し、3連単への切り替えもする
                 fx = flex.picks(pred, {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s2["o2"]) if v},
-                                lv if isinstance(lv, dict) else None, win=date >= FLEX_WIN_SINCE)
-                sp = settle(dict(tickets=[dict(t, bet="2t") for t in fx], stake=len(fx) * flex.STAKE, bet="2t"), result) if fx else None
+                                lv if isinstance(lv, dict) else None, win=new,
+                                o3={c: v for c, v in zip(bet_mod.ODDS_ORDER, s2.get("o3") or []) if v} if new else None)
+                sp = settle(dict(tickets=fx, stake=sum(t["units"] for t in fx) * 100), result) if fx else None
                 st["flex"] = list(sp) if sp else 0
                 fx_rec = [[t["combo"], t["odds"], round(t["ev"], 2)] for t in fx] if sp else None
                 o2s = {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s2["o2"]) if v}

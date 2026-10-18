@@ -54,9 +54,29 @@ def blend2(pred, o2, live=None, win=True):
     return out
 
 
-def picks(pred, o2, live=None, win=True):
-    """pred: 予想(コース順の boats と tri)、o2: {(1着の枠-1, 2着の枠-1): オッズ} → [{combo, units, odds, prob, ev}]"""
+def picks(pred, o2, live=None, win=True, o3=None):
+    """pred: 予想(コース順の boats と tri)、o2: {(1着の枠-1, 2着の枠-1): オッズ} → [{combo, units, odds, prob, ev, bet}]
+    o3(3連単オッズ)を渡すと、選んだ2連単ごとに「3着専門の上位2艇の3連単に半分ずつ」の見込み払戻と2連単のオッズを比べ、
+    高い方を買う(確定オッズの確かめで 2連単だけ113%・114% → 116%・116%、3連単を選ぶのは4〜5回に1回)"""
     waku = [b["waku"] for b in pred["boats"]]
-    out = [dict(combo=f"{waku[i]}-{waku[j]}", units=STAKE // 100, odds=o, prob=round(pr, 4), ev=round(pr * o, 2))
-           for i, j, o, pr in blend2(pred, o2, live, win) if pr * o >= EV and o < ODDS_MAX]
+    out = []
+    for i, j, o, pr in blend2(pred, o2, live, win):
+        if pr * o < EV or o >= ODDS_MAX:
+            continue
+        t2 = dict(combo=f"{waku[i]}-{waku[j]}", units=STAKE // 100, odds=o, prob=round(pr, 4), ev=round(pr * o, 2), bet="2t")
+        p3 = None
+        if o3:
+            try:
+                import third_spec
+                p3 = third_spec.probs(pred, i, j, o3, live)
+            except Exception:
+                p3 = None
+        if p3:
+            top = sorted(p3.items(), key=lambda x: -x[1])[:2]
+            odds3 = [o3.get((waku[i] - 1, waku[j] - 1, waku[c] - 1)) for c, _ in top]
+            if all(odds3) and sum(q * x for (_, q), x in zip(top, odds3)) / 2 > o:
+                out += [dict(combo=f"{waku[i]}-{waku[j]}-{waku[c]}", units=STAKE // 200, odds=x, prob=round(pr * q, 4),
+                             ev=round(pr * q * x, 2), bet="3t") for (c, q), x in zip(top, odds3)]
+                continue
+        out.append(t2)
     return sorted(out, key=lambda t: -t["ev"])
