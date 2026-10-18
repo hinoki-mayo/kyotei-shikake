@@ -14,8 +14,8 @@ ODDS_MAX = 20.0
 STAKE = 1000   # 1点の金額
 
 
-def picks(pred, o2):
-    """pred: 予想(コース順の boats と tri)、o2: {(1着の枠-1, 2着の枠-1): オッズ} → [{combo, units, odds, prob, ev}]"""
+def blend2(pred, o2):
+    """2連単30通りの混ぜた確率。[(1着のコース-1, 2着のコース-1, オッズ, 確率)]。作れなければ[]"""
     from bet import PI
     tri = pred.get("tri")
     if not tri or not o2:
@@ -36,9 +36,12 @@ def picks(pred, o2):
     inv = sum(1 / o for *_, o, _ in rows)
     sc = [math.exp(W_P * math.log(max(p, 1e-5)) + W_Q * math.log(max((1 / o) / inv, 1e-5))) for i, j, o, p in rows]
     tot = sum(sc)
-    out = []
-    for (i, j, o, _), s in zip(rows, sc):
-        pr = s / tot
-        if pr * o >= EV and o < ODDS_MAX:
-            out.append(dict(combo=f"{waku[i]}-{waku[j]}", units=STAKE // 100, odds=o, prob=round(pr, 4), ev=round(pr * o, 2)))
+    return [(i, j, o, s / tot) for (i, j, o, _), s in zip(rows, sc)]
+
+
+def picks(pred, o2):
+    """pred: 予想(コース順の boats と tri)、o2: {(1着の枠-1, 2着の枠-1): オッズ} → [{combo, units, odds, prob, ev}]"""
+    waku = [b["waku"] for b in pred["boats"]]
+    out = [dict(combo=f"{waku[i]}-{waku[j]}", units=STAKE // 100, odds=o, prob=round(pr, 4), ev=round(pr * o, 2))
+           for i, j, o, pr in blend2(pred, o2) if pr * o >= EV and o < ODDS_MAX]
     return sorted(out, key=lambda t: -t["ev"])
