@@ -20,6 +20,7 @@ import bet as bet_mod
 import flex
 import org_tree
 import race_view
+import shadow_staff
 import live_result
 import share
 from common import DATA, ROOT, now_jst
@@ -805,6 +806,12 @@ def bets_records():
                 sp = settle(dict(tickets=[dict(t, bet="2t") for t in fx], stake=len(fx) * flex.STAKE, bet="2t"), result) if fx else None
                 st["flex"] = list(sp) if sp else 0
                 fx_rec = [[t["combo"], t["odds"], round(t["ev"], 2)] for t in fx] if sp else None
+                o2s = {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s2["o2"]) if v}
+                o3s = {c: v for c, v in zip(bet_mod.ODDS_ORDER, s2.get("o3") or []) if v}
+                for pk, tks in (("setsuD", shadow_staff.setsu_d(pred, o2s)),
+                                ("hot3", shadow_staff.hot3(pred, o2s, o3s, lv if isinstance(lv, dict) else None))):
+                    sp = settle(dict(tickets=tks, stake=len(tks) * shadow_staff.STAKE), result) if tks else None
+                    st[pk] = list(sp) if sp else 0
             rp = replay.get(key)
             if rp and pred and date >= ORG_SINCE:   # 今の方法で再生(確定オッズ)した時の、最終決裁者の採用
                 ch = []
@@ -1349,8 +1356,8 @@ def _org_json():
         meta = {k: v for k, v in json.loads(org_tree.CONF_P.read_text()).items() if k != "nodes"}
     except Exception:
         pass
-    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
-                labels={**ALL_PLAN_LABELS, "kessai": "最終決裁者の採用", "flex": "決裁者v2(柔軟型)"}, nodes=_tree_nodes(), confMeta=meta)
+    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
+                labels={**ALL_PLAN_LABELS, "kessai": "最終決裁者の採用", "flex": "決裁者v2(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点"}, nodes=_tree_nodes(), confMeta=meta)
 
 
 ORG_JS = r"""
@@ -1540,6 +1547,12 @@ def kessai_room():
               f'情報部と市場の確率を混ぜ、割安さ{flex.EV}以上・{flex.ODDS_MAX:.0f}倍未満の2連単を全部(頭はいくつでも・1点{flex.STAKE:,}円)。'
               '締切2分前のオッズで判断。v1と並べて記録し、勝ち越したら本番に上げる。</p>'
               '<div data-stat="plan:flex"></div><div data-pnl="flex" style="margin-top:6px"></div></div>'
+            + '<div class="card"><b>社員候補(記録だけ)</b><p class="sub" style="margin:2px 0 6px">'
+              '事前に決めた条件を別の年で確かめて残った買い方。1点1,000円・締切2分前のオッズで判断。成績がよければ社員にする。</p>'
+              '<div><b>説D 1-3/1-4</b> <span class="sub">インが堅い(本予想60%以上)時の、8〜12倍で割安な1-3・1-4(2連単)</span></div>'
+              '<div data-stat="plan:setsuD"></div>'
+              '<div style="margin-top:8px"><b>3連単の熱い一点</b> <span class="sub">混ぜた2連単の確率×3着専門の3着確率で、割安2.0以上・100倍未満</span></div>'
+              '<div data-stat="plan:hot3"></div></div>'
             + '<div class="card"><b>採用したレース</b> <span class="sub">新しい順。✅＝当たった提案</span><div data-stat="kessai-races" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>v0 の成績(運用中の部長の提案を全部採用)</b><div data-stat="ops"></div><div data-pnl="ops" style="margin-top:6px"></div></div>'
             + '<div id="up"></div>')
