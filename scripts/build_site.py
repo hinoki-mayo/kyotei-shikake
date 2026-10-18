@@ -726,6 +726,7 @@ def bets_records():
                 out.append(dict(d=date, v=jcd, r=int(race), res=result["combo3t"], pay=int(result["payout3t"]), s=st,
                                 t=(pred or {}).get("deadline", "")))
                 continue
+            st_ka = None
             if pred and date >= ORG_SINCE:   # 予想組織: 頭ごとの提案の記録と、最終決裁者(v1)の判断
                 live_plans = {n: pl for n, pl in plans.items() if isinstance(st.get(n), list)}
                 props = org_tree.proposals(live_plans, pred)
@@ -742,8 +743,13 @@ def bets_records():
                     for x in pp:   # 6つ目: 決裁者に採用されたか
                         x.append(int((x[0], x[5]) in picked))
                         del x[5]
+                    # 採用した提案の中身(当たったレースの一覧用): [箱, 頭, 買い目, 投資, 払戻]
+                    st_ka = [[c["leaf"], c["head"], " ".join(f'{t["combo"]} {t["units"] * 100}円' for t in c["tickets"]), c["stake"], round(c["ret"])]
+                             for c in chosen]
             rec = dict(d=date, v=jcd, r=int(race), res=result["combo3t"], pay=int(result["payout3t"]), s=st,
                        t=(preds.get(key) or {}).get("deadline", ""))   # 締切時刻(一覧を時刻順に並べる)
+            if st_ka:
+                rec["ka"] = st_ka
             p2 = plans.get("pick2")
             if p2 and not p2.get("skip"):
                 rec["tk"] = [[t["combo"], t["units"], t.get("role")] for t in p2["tickets"]]
@@ -1303,6 +1309,26 @@ function kessaiTypes(){
   return `<span class="sub">${+last.slice(4,6)}/${+last.slice(6)}(結果が出た分)</span>`+ks.map(t=>{const a=g[t];
     return `<div class="boat" style="padding:4px 0"><div style="flex:1"><b>${t}</b> <span class="sub">${a.n}件・的中${a.hit}</span></div><b style="color:${a.ret>=a.st?'var(--green)':'var(--red)'}">${sg(a.ret-a.st)}</b></div>`;}).join('');
 }
+// 決裁者が採用したレースの一覧(新しい順)。当たりだけ/全部を切り替え
+let KR_ALL=false, KR_N=30;
+function kessaiRaces(){
+  const rows=D.filter(x=>x.ka&&x.ka.length&&(KR_ALL||x.ka.some(k=>k[4]>0)))
+    .sort((a,b)=>(b.d+b.t).localeCompare(a.d+a.t));
+  const tg=`<div class="sub" style="margin-bottom:6px"><a href="#" data-kr="hit" style="${KR_ALL?'':'font-weight:700'}">当たりだけ</a>｜<a href="#" data-kr="all" style="${KR_ALL?'font-weight:700':''}">全部</a>　${rows.length}レース</div>`;
+  if(!rows.length) return tg+'<span class="sub">まだありません</span>';
+  return tg+rows.slice(0,KR_N).map(x=>{
+    const rr=String(x.r).padStart(2,'0'), st=x.ka.reduce((a,k)=>a+k[3],0), rt=x.ka.reduce((a,k)=>a+k[4],0);
+    return `<div style="border-top:1px solid var(--bd);padding:6px 0"><div style="display:flex;justify-content:space-between">`+
+      `<a href="/${x.d}/${x.v}/${rr}-bet.html"><b>${+x.d.slice(4,6)}/${+x.d.slice(6)} ${VN[x.v]||x.v} ${x.r}R</b></a>`+
+      `<b style="color:${rt>=st?'var(--green)':'var(--red)'}">${sg(rt-st)}</b></div>`+
+      `<div class="sub">結果 ${x.res}（3連単 ${yen(x.pay)}円）</div>`+
+      x.ka.map(k=>`<div class="sub">${k[4]>0?'✅':'・'} ${typeOf(k[0],[])} ${ORG.labels[k[0].split('.').pop()]||k[0]}｜${k[2]}${k[4]>0?`｜払戻 ${yen(k[4])}円`:''}</div>`).join('')+
+      `</div>`;}).join('')+
+    (rows.length>KR_N?`<div style="text-align:center;margin-top:6px"><a href="#" data-kr="more">もっと見る</a></div>`:'');
+}
+document.addEventListener('click',e=>{const a=e.target.closest('[data-kr]'); if(!a) return; e.preventDefault();
+  const k=a.dataset.kr; if(k==='more') KR_N+=30; else {KR_ALL=k==='all'; KR_N=30;}
+  document.querySelectorAll('[data-stat="kessai-races"]').forEach(el=>el.innerHTML=kessaiRaces());});
 function boardTable(a){
   if(!a.n) return '<p class="sub">まだ提案なし</p>';
   const row=(lab,n,h,s,r)=>`<tr><td style="text-align:left">${lab}</td><td>${n}</td><td>${h}</td><td>${n?Math.round(h/n*100):0}%</td><td>${yen(s)}</td><td>${yen(r)}</td><td style="font-weight:700;color:${r>=s?'var(--green)':'var(--red)'}">${s?pc(r,s):'-'}</td></tr>`;
@@ -1324,6 +1350,7 @@ function fill(){
     else if(k.startsWith('node:')) el.innerHTML=board(aggNode(k.slice(5)));
     else if(k.startsWith('table:')) el.innerHTML=boardTable(aggNode(k.slice(6)));
     else if(k==='kessai-types') el.innerHTML=kessaiTypes();
+    else if(k==='kessai-races') el.innerHTML=kessaiRaces();
   });
   document.querySelectorAll('[data-pnl]').forEach(el=>{
     const k=el.dataset.pnl;
@@ -1416,6 +1443,7 @@ def kessai_room():
             + '<div class="card"><b>今日の採用の中身</b> <span class="sub">当たり方のタイプ別(🎯本命型=的中25%以上・⚖️中穴型=8〜25%・💣大穴型=8%未満)</span>'
               '<div data-stat="kessai-types" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>v1 の成績(立説中)</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
+            + '<div class="card"><b>採用したレース</b> <span class="sub">新しい順。✅＝当たった提案</span><div data-stat="kessai-races" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>v0 の成績(運用中の部長の提案を全部採用)</b><div data-stat="ops"></div><div data-pnl="ops" style="margin-top:6px"></div></div>'
             + '<div id="up"></div>')
     return _org_page("最終決裁者", "/org/kessai.html", body, upcoming=["kessai"])
