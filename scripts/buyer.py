@@ -16,13 +16,17 @@ import subprocess
 import sys
 import time
 
+import threading
+
 import bet
 import build_site
+import live_result
 from common import DATA, JST, ROOT, now_jst
 
 TICK = 15        # 見回りの間隔(秒)
 REBUILD_EVERY = 240   # サイト全体を裏で作り直す間隔(秒)。成績(v1など)を新しく保つ
 PUSH_EVERY = 60  # 買い目のコミットをまとめる間隔(秒)
+RESULT_EVERY = 30   # 締切を過ぎたレースの結果を見に行く間隔(秒)
 
 
 def git(*args, check=False):
@@ -35,7 +39,7 @@ def git(*args, check=False):
 def sync(commit_msg=None):
     """自分の買い目をコミットして、展示反映の更新が作った予想などを取り込む"""
     if commit_msg:
-        git("add", "data/bets")
+        git("add", "data/bets", "data/live_results_fast")
         git("commit", "-q", "-m", commit_msg)
     if not git("pull", "-q", "--rebase", "--autostash"):
         git("rebase", "--abort")
@@ -102,6 +106,30 @@ def rebuild():
     return swapped
 
 
+_res = {"th": None, "at": 0.0, "new": []}
+
+
+def results_bg(now):
+    """締切を過ぎたレースの結果を裏で取りに行く(見回りは止めない)。前の回で取れたレースを返す"""
+    th = _res["th"]
+    if th is not None and th.is_alive():
+        return []
+    got, _res["new"] = _res["new"], []
+    if time.time() - _res["at"] >= RESULT_EVERY:
+        _res["at"] = time.time()
+        p = DATA / "predictions" / f"{now:%Y%m%d}.json"
+        races = {k: x.get("deadline") for k, x in json.loads(p.read_text())["races"].items()} if p.exists() else {}
+
+        def work():
+            try:
+                _res["new"] = live_result.run_fast(f"{now:%Y%m%d}", races, now)
+            except Exception as e:
+                print("結果の取り込みで失敗:", repr(e), file=sys.stderr)
+        _res["th"] = threading.Thread(target=work, daemon=True)
+        _res["th"].start()
+    return got
+
+
 def code_version():
     """scripts の中身の版(git のツリー)。変わったら購入係を起動し直す"""
     r = subprocess.run(["git", "rev-parse", "HEAD:scripts"], cwd=ROOT, capture_output=True, text=True)
@@ -123,7 +151,7 @@ def main():
     end = time.time() + a.max_minutes * 60
     sync()
     ld = last_deadline(now_jst())
-    if ld is not None and now_jst() > ld:
+    if ld is not None and now_jst() > ld + dt.timedelta(minutes=10):
         print("今日の最後のレースの締切を過ぎているので何もしません")
         return
     ver = code_version()
@@ -133,7 +161,7 @@ def main():
     while time.time() < end:
         now = now_jst()
         ld = last_deadline(now)
-        if ld is not None and now > ld:
+        if ld is not None and now > ld + dt.timedelta(minutes=10):   # 最後のレースの結果まで取ってから終わる
             print("今日の最後のレースの締切を過ぎたので終わります")
             break
         try:
@@ -141,6 +169,13 @@ def main():
         except Exception as e:   # 1回の見回りで失敗しても常駐は続ける
             print("見回りで失敗:", repr(e), file=sys.stderr)
             done = []
+        got = results_bg(now)
+        if got:   # 結果が取れたら、そのレースの買い目ページをすぐ作り直し、サイト全体の作り直しも早める
+            pending += [f"結果 {k}" for k in got]
+            build_site.quick_upcoming(now)   # 結果が出たレースを「これから」から外す
+            build_site.quick_bet_pages(now, got)
+            deploy()
+            _rebuild["at"] = 0.0
         if rebuild():   # 裏で作り直したサイト全体に差し替えた(成績が新しくなる)
             build_site.quick_upcoming(now)
             deploy()
