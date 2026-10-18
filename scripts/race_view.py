@@ -127,13 +127,48 @@ def _reasons(pred, k, live):
     return good, bad
 
 
+def roles(p1, p2, p3):
+    """その艇の狙いどころ(頭あり・2着が熱い・3着押さえ・消し寄り)"""
+    out = []
+    if p1 >= 0.20:
+        out.append("頭あり")
+    if p2 >= 0.25:
+        out.append("2着が熱い")
+    elif p2 >= 0.15 and p1 < 0.20:
+        out.append("2着まで")
+    if p3 >= 0.25 and p1 + p2 < 0.35 and p2 < 0.25:
+        out.append("3着押さえ")
+    if p1 + p2 + p3 < 0.20:
+        out.append("消し寄り")
+    return out
+
+
+def scenarios(pred, s2, s3, p1, n=3, floor=0.07):
+    """展開ごとの予想: 勝ちそうな艇ごとに、その確率と、その時の2着・3着の候補(条件つき確率の上位2つ)"""
+    waku = [b["waku"] for b in pred["boats"]]
+    out = []
+    for a in sorted(range(6), key=lambda x: -p1[x])[:n]:
+        if p1[a] < floor:
+            break
+        sec = sorted(((j, p / p1[a]) for i, j, _, p in s2 if i == a), key=lambda x: -x[1])[:2]
+        ta = sum(p for i, _, _, p in s3 if i == a) or 1
+        thr = {}
+        for i, _, k, p in s3:
+            if i == a:
+                thr[k] = thr.get(k, 0) + p / ta
+        thr = sorted(thr.items(), key=lambda x: -x[1])[:2]
+        name = "イン逃げ" if a == 0 else f"{a + 1}コース({waku[a]}号艇)が勝つ"
+        out.append(dict(name=name, head=waku[a], p=p1[a], sec=[(waku[j], q) for j, q in sec], thr=[(waku[k], q) for k, q in thr]))
+    return out
+
+
 def view(pred, date, odds=None, live=None):
     """{src, at, boats:[{waku, name, p1, p2, p3, base1, base2, n, heat, good, bad}], top2:[(組, 確率)], top3:[(組, 確率)]}"""
     if not pred or not pred.get("tri"):
         return None
     waku = [b["waku"] for b in pred["boats"]]
     o2, o3 = (odds or {}).get("o2"), (odds or {}).get("o3")
-    s2 = flex.blend2(pred, o2) if o2 else []
+    s2 = flex.blend2(pred, o2, live) if o2 else []
     s3 = _blend3(pred, o3) if o3 else []
     tri = pred["tri"]
     if not s3:
@@ -161,7 +196,8 @@ def view(pred, date, odds=None, live=None):
             heat = -1
         good, bad = _reasons(pred, k, live)
         boats.append(dict(waku=b["waku"], name=b["name"], course=b["course"], p1=p1[k], p2=p2[k], p3=p3[k],
-                          base1=b1, base2=b2, n=n, heat=heat, good=good, bad=bad))
+                          base1=b1, base2=b2, n=n, heat=heat, good=good, bad=bad, roles=roles(p1[k], p2[k], p3[k])))
     top2 = sorted(((f"{waku[i]}-{waku[j]}", p) for i, j, _, p in s2), key=lambda x: -x[1])[:5]
     top3 = sorted(((f"{waku[i]}-{waku[j]}-{waku[k]}", p) for i, j, k, p in s3), key=lambda x: -x[1])[:5]
-    return dict(src="混ぜた" if o2 else "情報部のみ", at=(odds or {}).get("t", ""), boats=boats, top2=top2, top3=top3)
+    return dict(src="混ぜた" if o2 else "情報部のみ", at=(odds or {}).get("t", ""), boats=boats, top2=top2, top3=top3,
+                scen=scenarios(pred, s2, s3, p1))
