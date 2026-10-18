@@ -16,8 +16,8 @@ ORG_PLANS = tuple(bet.OPS_PLANS) + tuple(bet.SHADOW_PLANS) + ("pick2",)
 PRIOR = 0.75   # 一番上(何も分からない時)の回収率の見込み＝控除率並み
 SHRINK = 50    # 親へ寄せる強さ(レース数換算)。提案がこの数たまると自分の数字と親の数字が半々
 STAKE = 4000   # 提案1回の金額。社員ごとの買い方の割合はそのままで、40口を整数で配り直して1回4,000円にそろえる
-ADOPT = 1.05   # 決裁者が採用する自信度の下限。別期間の確かめで 95%: 107%・92%、105%: 129%(168件)・103%(302件)
-               # (比の帯で細かくすると逆に悪化したので、今は比の帯は使っていない)
+ADOPT = 1.03   # 決裁者が採用する自信度の下限(10/19から。2年分の表でインA級の「軽視された2着」103%を残す)
+ADOPT_OLD = (("20261018", 1.05),)   # この日まではこの下限で判断していた(前の日の判断を書き換えない)
 
 NODES = {
     "in": "イン逃げ(1着＝1コース)",
@@ -149,7 +149,11 @@ def conf_of(p, table):
     return max(look(t) for t in tags) if tags else look(bs[0])
 
 
-def decide(props, table, mode="head"):
+def adopt_for(date):
+    return next((a for until, a in ADOPT_OLD if date and date <= until), ADOPT)
+
+
+def decide(props, table, mode="head", adopt=ADOPT):
     """最終決裁(v1)。同じ結果を取り合う提案(同じ頭の艇)同士だけ比べて一番自信度が高いものを上げ、
     上がった提案のうち自信度がADOPT以上のものは全部採用(違う頭なら複数残る)。mode="side"はイン側・負け側で1つずつ(比較用)"""
     best = {}
@@ -157,7 +161,7 @@ def decide(props, table, mode="head"):
         c = conf_of(p, table)
         k = (c, p.get("ratio") or 0)   # 自信度が同じなら、予想÷市場の比が大きい方
         g = p["head"] if mode == "head" else p["leaf"].split(".")[0]
-        if c >= ADOPT and (g not in best or k > best[g][0]):
+        if c >= adopt and (g not in best or k > best[g][0]):
             best[g] = (k, p)
     return [dict(p, conf=k[0]) for k, p in best.values()]
 
