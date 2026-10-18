@@ -749,6 +749,7 @@ def quick_upcoming(now=None):
 ORG_CONF = org_tree.load_confidence()
 
 
+KESSAI_R2_SINCE = "20261019"   # 決裁者A r2: 2年分の表・採用103%・45秒前のオッズを見込みの確定オッズに直して判断
 FLEX_WIN_SINCE = "20261019"   # v2 の頭の確率を1着専門で直し、3連単への切り替えも始めた日(前の日は前の形で記録)
 
 
@@ -828,8 +829,19 @@ def bets_records():
                                 t=(pred or {}).get("deadline", "")))
                 continue
             st_ka = None
-            if pred and date >= ORG_SINCE:   # 予想組織: 頭ごとの提案の記録と、最終決裁者(v1)の判断
+            if pred and date >= ORG_SINCE:   # 予想組織: 頭ごとの提案の記録と、決裁者A(自信度型)の判断
                 live_plans = {n: pl for n, pl in plans.items() if isinstance(st.get(n), list)}
+                s45 = (b.get("stages") or {}).get("直前")
+                if date >= KESSAI_R2_SINCE and s45 and s45.get("o2") and s45.get("o3"):
+                    # 決裁者A r2: 締切45秒前のオッズを見込みの確定オッズに直して、社員の買い目を作り直す
+                    o2f, o3f = flex.expected_final(pred, {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s45["o2"]) if v},
+                                                   {c: v for c, v in zip(bet_mod.ODDS_ORDER, s45["o3"]) if v})
+                    lv2 = _entries(date).get(key)
+                    try:
+                        made = bet_mod.make_bet(pred, o3f, o2f, date, lv2 if isinstance(lv2, dict) else None)["plans"]
+                        live_plans = {n: pl for n, pl in made.items() if n in org_tree.ORG_PLANS and not pl.get("skip")}
+                    except Exception as e:
+                        print(f"決裁者Aの作り直しに失敗({date} {key}): {e!r}")
                 props = org_tree.proposals(live_plans, pred)
                 pp = []
                 for pr in props:
@@ -1360,7 +1372,7 @@ def _org_json():
     except Exception:
         pass
     return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
-                labels={**ALL_PLAN_LABELS, "kessai": "最終決裁者の採用", "flex": "決裁者v2(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点"}, nodes=_tree_nodes(), confMeta=meta)
+                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点"}, nodes=_tree_nodes(), confMeta=meta)
 
 
 ORG_JS = r"""
@@ -1523,8 +1535,9 @@ def org_home():
             + '<div class="lv">① 最終決裁</div>'
             + f'<a class="org-tile org-boss" href="/org/kessai.html">{robot_svg(k["color"], k["acc"], 40)}'
               f'<div><b>{k["name"]}</b>'
-              '<span class="org-stat">v1(立説中) <span data-stat="kessai"></span></span>'
-              '<span class="org-stat">再生(確定オッズ) <span data-stat="kessai_r"></span></span>'
+              '<span class="org-stat">決裁者A(自信度型) <span data-stat="kessai"></span></span>'
+              '<span class="org-stat">決裁者B(柔軟型・記録だけ) <span data-stat="plan:flex"></span></span>'
+              '<span class="org-stat">Aの再生(確定オッズ) <span data-stat="kessai_r"></span></span>'
               '<span class="org-stat">v0(全部採用) <span data-stat="ops"></span></span></div></a>'
             + _tree_html(nodes, "_root")
             + '<div id="up"></div>'
@@ -1537,28 +1550,36 @@ def org_home():
 def kessai_room():
     k = ORG_KESSAI
     body = (_room_head(k["color"], k["acc"], k["name"], k["role"])
-            + '<div class="card"><b>決め方 v1(自信度で選ぶ・立説中)</b><p class="sub" style="margin:4px 0 0">'
-              '① 各プランの買い目を頭の艇ごとの「提案」に分け、入った箱の自信度(確定オッズの過去データでの推定回収率)を付ける。印があれば一番細かい印の箱の自信度。<br>'
+            + '<div class="card"><b>最終決裁者は2人</b><p class="sub" style="margin:4px 0 0">'
+              '考え方の違う2人の決裁者が、同じレースでそれぞれ判断し、成績を並べて記録する(お金は使わない)。'
+              'r1・r2…は、同じ決裁者の中で買い方を直した版。</p></div>'
+            + '<h2>決裁者A(自信度型)</h2>'
+            + '<div class="card"><b>決め方</b><p class="sub" style="margin:4px 0 0">'
+              '① 各社員の買い目を頭の艇ごとの「提案」に分け、入った箱の自信度(確定オッズの過去データでの推定回収率)を付ける。印があれば一番細かい印の箱の自信度。<br>'
               f'② 記録が少ない箱は一つ上の箱の自信度へ寄せる({org_tree.SHRINK}件で半々、一番上は控除率並みの{org_tree.PRIOR:.0%})。<br>'
-              f'③ 同じ結果を取り合う提案(同じ頭の艇の買い目)同士だけを比べ、自信度が一番高い提案を1つ上げる。提案はどれも1回{org_tree.STAKE:,}円にそろえる(社員の買い方の割合で、100円単位に配り直す)。<br>'
-              f'④ 上がってきた提案のうち、自信度{org_tree.ADOPT:.0%}以上は全部採用(違う頭なら複数残る)。1つも無ければ見送り。<br>'
-              '⑤ 今は立説中。v0(運用中の部長の提案を全部採用)と成績を並べて記録し、勝ち越したら本番の決め手にする。</p></div>'
+              f'③ 同じ結果を取り合う提案(同じ頭の艇の買い目)同士だけを比べ、自信度が一番高い提案を1つ上げる。提案はどれも1回{org_tree.STAKE:,}円にそろえる。<br>'
+              f'④ 上がってきた提案のうち、自信度{org_tree.ADOPT:.0%}以上は全部採用(違う頭なら複数残る)。1つも無ければ見送り。</p>'
+              '<p class="sub" style="margin:6px 0 0"><b>r1</b>(〜10/18): 2026年の表・採用105%・締切2分前のオッズで社員が買い目を作る<br>'
+              f'<b>r2</b>(10/19〜): 2025〜2026年の表・採用{org_tree.ADOPT:.0%}・締切45秒前のオッズを「見込みの確定オッズ」'
+              '(割安に見える目ほど最後に下がる分を割り引いたもの)に直してから、社員が買い目を作り直す</p></div>'
             + '<div class="card"><b>今日の採用の中身</b> <span class="sub">当たり方のタイプ別(🎯本命型=的中25%以上・⚖️中穴型=8〜25%・💣大穴型=8%未満)</span>'
               '<div data-stat="kessai-types" style="margin-top:6px"></div></div>'
-            + '<div class="card"><b>v1 の成績(立説中)</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
-            + '<div class="card"><b>v2(柔軟型)の成績(記録だけ)</b><p class="sub" style="margin:2px 0 6px">'
-              f'情報部と市場の確率を混ぜ、割安さ{flex.EV}以上・{flex.ODDS_MAX:.0f}倍未満の2連単を全部(頭はいくつでも・1点{flex.STAKE:,}円)。'
-              f'10/19から: 締切45秒前のオッズで判断し、割安に見える目ほど最後に下がる分を割り引いた「見込みの確定オッズ」で割安さ{flex.EV_DRIFT}以上を選ぶ。'
-              '頭の確率は1着専門で直し、3着が固ければ3連単2点に切り替える。v1と並べて記録し、勝ち越したら本番に上げる。</p>'
-              '<div data-stat="plan:flex"></div><div data-pnl="flex" style="margin-top:6px"></div></div>'
+            + '<div class="card"><b>決裁者Aの成績</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
+            + '<h2>決裁者B(柔軟型・記録だけ)</h2>'
+            + '<div class="card"><b>決め方</b><p class="sub" style="margin:4px 0 0">'
+              f'情報部と市場の確率を混ぜて2連単30通りの確率を出し、割安な目を全部買う(頭はいくつでも・{flex.ODDS_MAX:.0f}倍未満・1点{flex.STAKE:,}円)。</p>'
+              f'<p class="sub" style="margin:6px 0 0"><b>r1</b>(10/17〜18): 締切2分前のオッズで割安さ{flex.EV}以上<br>'
+              f'<b>r2</b>(10/19〜): 締切45秒前のオッズを見込みの確定オッズに直して割安さ{flex.EV_DRIFT}以上。'
+              '頭の確率は1着専門で直し、3着が固ければ3連単2点に切り替える</p></div>'
+            + '<div class="card"><b>決裁者Bの成績</b><div data-stat="plan:flex"></div><div data-pnl="flex" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>社員候補(記録だけ)</b><p class="sub" style="margin:2px 0 6px">'
               '事前に決めた条件を別の年で確かめて残った買い方。1点1,000円・締切2分前のオッズで判断。成績がよければ社員にする。</p>'
               '<div><b>説D 1-3/1-4</b> <span class="sub">インが堅い(本予想60%以上)時の、8〜12倍で割安な1-3・1-4(2連単)</span></div>'
               '<div data-stat="plan:setsuD"></div>'
               '<div style="margin-top:8px"><b>3連単の熱い一点</b> <span class="sub">混ぜた2連単の確率×3着専門の3着確率で、割安2.0以上・100倍未満</span></div>'
               '<div data-stat="plan:hot3"></div></div>'
-            + '<div class="card"><b>採用したレース</b> <span class="sub">新しい順。✅＝当たった提案</span><div data-stat="kessai-races" style="margin-top:6px"></div></div>'
-            + '<div class="card"><b>v0 の成績(運用中の部長の提案を全部採用)</b><div data-stat="ops"></div><div data-pnl="ops" style="margin-top:6px"></div></div>'
+            + '<div class="card"><b>決裁者Aが採用したレース</b> <span class="sub">新しい順。✅＝当たった提案</span><div data-stat="kessai-races" style="margin-top:6px"></div></div>'
+            + '<div class="card"><b>参考: 社員の提案を全部採用した場合</b><div data-stat="ops"></div><div data-pnl="ops" style="margin-top:6px"></div></div>'
             + '<div id="up"></div>')
     return _org_page("最終決裁者", "/org/kessai.html", body, upcoming=["kessai"])
 

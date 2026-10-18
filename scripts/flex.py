@@ -19,10 +19,31 @@ STAKE = 1000   # 1点の金額
 # 10/17〜18の記録(20倍未満の2連単約1,600目)で測った値。記録がたまったら測り直す
 DRIFT2 = ((0.7, 1.16), (0.9, 1.02), (1.0, 0.95), (1.1, 0.91), (1.2, 0.85), (99, 0.83))
 DRIFT3 = 0.89   # 3連単に切り替えた目
+# 3連単全部の目: 本予想の確率×45秒前オッズ(割安さ)の帯ごとの倍率(3連単は2連単ほど下がらない)
+DRIFT3_ALL = ((0.7, 1.10), (0.9, 1.04), (1.2, 1.02), (1.5, 1.00), (99, 0.97))
 
 
 def drift2(edge):
     return next(r for hi, r in DRIFT2 if edge <= hi)
+
+
+def expected_final(pred, o2, o3):
+    """締切前のオッズを、見込みの確定オッズに直す(2連単は混ぜた確率の割安さ、3連単は本予想の割安さの帯ごとの倍率)。
+    決裁者A(自信度型)が社員の買い目を作り直す時に使う"""
+    from bet import PI
+    waku = [b["waku"] for b in pred["boats"]]
+    o2f = dict(o2)
+    for i, j, o, s in blend2(pred, o2, None, False):
+        c = (waku[i] - 1, waku[j] - 1)
+        o2f[c] = round(o * drift2(s * o), 1)
+    o3f = dict(o3)
+    tri = pred.get("tri") or []
+    for (i, j, k), ix in PI.items():
+        c = (waku[i] - 1, waku[j] - 1, waku[k] - 1)
+        if c in o3f and tri:
+            e = tri[ix] * o3f[c]
+            o3f[c] = round(o3f[c] * next(r for hi, r in DRIFT3_ALL if e <= hi), 1)
+    return o2f, o3f
 
 
 def blend2(pred, o2, live=None, win=True):
