@@ -7,6 +7,7 @@
 広告は ads/ フォルダのタグを決まった位置に差し込む(図の上や途中には置かない)
 """
 import datetime as dt
+import functools
 import html
 import json
 import os
@@ -514,10 +515,10 @@ def _org_race_html(date, pred, result, bet):
              if not (n in bet_mod.OPS_PLANS + bet_mod.SHADOW_PLANS and pl.get("logic") != bet_mod.OPS_LOGIC)}
     props = org_tree.proposals(plans, pred)
     for pr in props:
-        pr["conf"] = org_tree.conf_of(pr, ORG_CONF)
+        pr["conf"] = org_tree.conf_of(pr, conf_for(date))
         sp = settle(dict(tickets=pr["tickets"], stake=pr["stake"], bet=pr["bet"]), result) if result else None
         pr["ret"] = sp[1] if sp else None
-    picked = {(c["leaf"], c["head"]) for c in org_tree.decide(props, ORG_CONF)}
+    picked = {(c["leaf"], c["head"]) for c in org_tree.decide(props, conf_for(date))}
     w2c = {b["waku"]: i + 1 for i, b in enumerate(pred["boats"])}
 
     def path(pr):
@@ -634,7 +635,7 @@ def bets_upcoming(now=None):
             out.append(dict(base, p=n, tk=[[t["combo"], t["units"], t.get("role"), t.get("odds")] for t in pl["tickets"]]))
         pred = preds.get(key)
         if pred and plans:   # 最終決裁者が採用した提案(1提案4,000円にそろえたもの)
-            for c in org_tree.decide(org_tree.proposals(plans, pred), ORG_CONF):
+            for c in org_tree.decide(org_tree.proposals(plans, pred), conf_for(date)):
                 lab = f'{ALL_PLAN_LABELS.get(c["plan"], c["plan"])}・自信度{c["conf"]:.0%}'
                 out.append(dict(base, p="kessai", tk=[[t["combo"], t["units"], lab, t.get("odds")] for t in c["tickets"]]))
     return sorted(out, key=lambda x: (x["t"], x["v"]))
@@ -673,6 +674,12 @@ def quick_upcoming(now=None):
 
 
 ORG_CONF = org_tree.load_confidence()
+
+
+@functools.lru_cache(maxsize=None)
+def conf_for(date):
+    """その日に決裁者が使っていた自信度の表(表を作り直しても、前の日の判断は書き換えない)"""
+    return org_tree.load_confidence(date)
 
 
 def bets_records():
@@ -717,7 +724,7 @@ def bets_records():
             rp = replay.get(key)
             if rp and pred and date >= ORG_SINCE:   # 今の方法で再生(確定オッズ)した時の、最終決裁者の採用
                 ch = []
-                for pr in org_tree.decide(org_tree.proposals({n: pl for n, pl in rp.items() if not pl.get("skip")}, pred), ORG_CONF):
+                for pr in org_tree.decide(org_tree.proposals({n: pl for n, pl in rp.items() if not pl.get("skip")}, pred), conf_for(date)):
                     sp = settle(dict(tickets=pr["tickets"], stake=pr["stake"], bet=pr["bet"]), result)
                     if sp:
                         ch.append(sp)
@@ -735,9 +742,9 @@ def bets_records():
                     sp = settle(dict(tickets=pr["tickets"], stake=pr["stake"], bet=pr["bet"]), result)
                     if sp:
                         pr["ret"] = sp[1]
-                        pp.append([pr["leaf"], pr["tags"], sp[0], round(sp[1]), round(org_tree.conf_of(pr, ORG_CONF), 3), pr["head"]])
+                        pp.append([pr["leaf"], pr["tags"], sp[0], round(sp[1]), round(org_tree.conf_of(pr, conf_for(date)), 3), pr["head"]])
                 if props:
-                    chosen = [pr for pr in org_tree.decide(props, ORG_CONF) if "ret" in pr]
+                    chosen = [pr for pr in org_tree.decide(props, conf_for(date)) if "ret" in pr]
                     st["kessai"] = [sum(c["stake"] for c in chosen), round(sum(c["ret"] for c in chosen))] if chosen else 0
                     picked = {(c["leaf"], c["head"]) for c in chosen}
                     for x in pp:   # 6つ目: 決裁者に採用されたか
