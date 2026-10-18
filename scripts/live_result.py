@@ -20,6 +20,7 @@ KIM_RE = re.compile(r'決まり手</th>.*?<td class="is-fs16">([^<]+)</td>', re.
 TRI_RE = re.compile(r'3連単</td>(.*?)</tr>', re.S)
 EXA_RE = re.compile(r'2連単</td>(.*?)</tr>', re.S)
 WINDOW = (5, 90)   # 締切の何分後から何分後までのレースを見に行くか
+FAST_FROM = 3      # 購入係は締切の3分後から見に行く(レースは締切の約2分後に始まり、約2分で終わる)
 
 
 def fetch_result(date, jcd, race):
@@ -57,10 +58,39 @@ def _bet(rx, h, n):
 
 
 def load(date):
-    p = DATA / "live_results" / f"{date}.json"
-    if not p.exists():
-        return {}
-    return {k: dict(v, by_waku={int(w): r for w, r in v["by_waku"].items()}) for k, v in json.loads(p.read_text()).items()}
+    """取り込んだ結果。展示反映の更新(5分おき)の分と、購入係がすぐ取った分(live_results_fast)を合わせる"""
+    out = {}
+    for d in ("live_results_fast", "live_results"):
+        p = DATA / d / f"{date}.json"
+        if p.exists():
+            out.update(json.loads(p.read_text()))
+    return {k: dict(v, by_waku={int(w): r for w, r in v["by_waku"].items()}) for k, v in out.items()}
+
+
+def run_fast(date, races, now, workers=6):
+    """購入係用: 締切を過ぎたレースの結果を、締切の FAST_FROM 分後から何度でも見に行く(並べて取る)。
+    races: {場-R: 締切 'HH:MM'}。新しく取れたレースを返す。保存先は live_results_fast(展示反映の更新とぶつからないよう別ファイル)"""
+    from concurrent.futures import ThreadPoolExecutor
+    have = load(date)
+    todo = []
+    for key, dl in races.items():
+        if key in have or not dl:
+            continue
+        t = dt.datetime.strptime(date + dl, "%Y%m%d%H:%M").replace(tzinfo=JST)
+        if dt.timedelta(minutes=FAST_FROM) <= now - t <= dt.timedelta(minutes=WINDOW[1]):
+            todo.append(key)
+    if not todo:
+        return []
+    with ThreadPoolExecutor(workers) as ex:
+        got = list(ex.map(lambda k: fetch_result(date, k.split("-")[0], int(k.split("-")[1])), todo))
+    new = {k: r for k, r in zip(todo, got) if r and r["combo3t"]}
+    if new:
+        p = DATA / "live_results_fast" / f"{date}.json"
+        p.parent.mkdir(parents=True, exist_ok=True)
+        saved = json.loads(p.read_text()) if p.exists() else {}
+        saved.update(new)
+        p.write_text(json.dumps(saved, ensure_ascii=False))
+    return sorted(new)
 
 
 def run(prog, now=None):
