@@ -21,12 +21,14 @@ import threading
 import bet
 import build_site
 import live_result
+import race_view
 from common import DATA, JST, ROOT, now_jst
 
 TICK = 15        # 見回りの間隔(秒)
 REBUILD_EVERY = 240   # サイト全体を裏で作り直す間隔(秒)。成績(v1など)を新しく保つ
 PUSH_EVERY = 60  # 買い目のコミットをまとめる間隔(秒)
 RESULT_EVERY = 30   # 締切を過ぎたレースの結果を見に行く間隔(秒)
+ODDS_EVERY = 120    # サイトの「当てる予想」用に、締切前のオッズを取りに行く間隔(秒)
 
 
 def git(*args, check=False):
@@ -39,7 +41,7 @@ def git(*args, check=False):
 def sync(commit_msg=None):
     """自分の買い目をコミットして、展示反映の更新が作った予想などを取り込む"""
     if commit_msg:
-        git("add", "data/bets", "data/live_results_fast")
+        git("add", "data/bets", "data/live_results_fast", "data/odds_live")
         git("commit", "-q", "-m", commit_msg)
     if not git("pull", "-q", "--rebase", "--autostash"):
         git("rebase", "--abort")
@@ -130,6 +132,29 @@ def results_bg(now):
     return got
 
 
+_odds = {"th": None, "at": 0.0}
+
+
+def odds_bg(now):
+    """サイトの予想用に、展示が出たレースのオッズを裏で取りに行く(見回りは止めない)"""
+    th = _odds["th"]
+    if (th is not None and th.is_alive()) or time.time() - _odds["at"] < ODDS_EVERY:
+        return
+    _odds["at"] = time.time()
+    p = DATA / "predictions" / f"{now:%Y%m%d}.json"
+    if not p.exists():
+        return
+    preds = json.loads(p.read_text())["races"]
+
+    def work():
+        try:
+            race_view.fetch_live(f"{now:%Y%m%d}", preds, now)
+        except Exception as e:
+            print("オッズの取り込みで失敗:", repr(e), file=sys.stderr)
+    _odds["th"] = threading.Thread(target=work, daemon=True)
+    _odds["th"].start()
+
+
 def code_version():
     """scripts の中身の版(git のツリー)。変わったら購入係を起動し直す"""
     r = subprocess.run(["git", "rev-parse", "HEAD:scripts"], cwd=ROOT, capture_output=True, text=True)
@@ -169,6 +194,7 @@ def main():
         except Exception as e:   # 1回の見回りで失敗しても常駐は続ける
             print("見回りで失敗:", repr(e), file=sys.stderr)
             done = []
+        odds_bg(now)
         got = results_bg(now)
         if got:   # 結果が取れたら、そのレースの買い目ページをすぐ作り直し、サイト全体の作り直しも早める
             pending += [f"結果 {k}" for k in got]

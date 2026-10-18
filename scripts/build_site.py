@@ -19,6 +19,7 @@ import pandas as pd
 import bet as bet_mod
 import flex
 import org_tree
+import race_view
 import live_result
 import share
 from common import DATA, ROOT, now_jst
@@ -265,10 +266,55 @@ def info_page(date, info, boats, season, series, n_series, pred, races, result_r
                  f'モ{b["motor_2r"]:.1f}%｜{ser_s}</div></div></div>')
     entry = ("展示の進入：" + " ".join(str(w) for w in order)) if order else "展示の進入が出たら、スタートスリットと1マークの展開予想を公開します（締切の約20分前）。"
     body = (race_head(date, v, info, "info", locked, base, result_ready) + (f'<div class="card">{labels(pred)}</div>' if not locked else "")
+            + (view_card(date, info, pred) if not locked else "")
             + f'<div class="card">{rows}</div><p class="sub">{entry}</p>' + (NUDGE if not order else "")
             + ad() + rnav(date, info["jcd"], info["race"], races, ""))
     return page(f"{v}{info['race']}R 出走表・展開予想 {jp(date)}", body,
                 f"{v}{info['race']}Rの出走表と1マーク展開予想。今期勝率・節間成績つき。", f"/{date}/{info['jcd']}/{base}.html")
+
+
+@functools.lru_cache(maxsize=4)
+def _odds_live(date):
+    return race_view.load_odds(date)
+
+
+@functools.lru_cache(maxsize=4)
+def _entries(date):
+    p = DATA / "entries" / f"{date}.json"
+    return json.loads(p.read_text()) if p.exists() else {}
+
+
+def _pct(x):
+    return f"{x * 100:.0f}%" if x >= 0.095 else f"{x * 100:.1f}%"
+
+
+def view_card(date, info, pred):
+    """当てる予想: 艇ごとの1着・2着・3着の確率と、普段の力との比べ(🔥熱い・🧊冷たい)"""
+    key = f'{info["jcd"]}-{info["race"]:02d}'
+    live = _entries(date).get(key)
+    try:
+        v = race_view.view(pred, date, _odds_live(date).get(key), live if isinstance(live, dict) else None)
+    except Exception as e:
+        print(f"当てる予想を作れませんでした({key}): {e!r}")
+        return ""
+    if not v:
+        return ""
+    rows = ""
+    for b in v["boats"]:
+        heat = ' <b style="color:var(--red)">🔥熱い</b>' if b["heat"] > 0 else (' <b style="color:var(--ac)">🧊冷たい</b>' if b["heat"] < 0 else "")
+        why = "・".join(b["good"]) + (("｜" if b["good"] else "") + "・".join(b["bad"]) if b["bad"] else "")
+        rows += (f'<div class="boat">{chip(b["waku"])}<div style="flex:1;min-width:0">'
+                 f'<div><b>{html.escape(b["name"])}</b>{heat}</div>'
+                 f'<div class="sub">1着 <b style="color:var(--tx)">{_pct(b["p1"])}</b>・2着 {_pct(b["p2"])}・3着 {_pct(b["p3"])}'
+                 f'　<span style="white-space:nowrap">普段 {b["course"]}コースで1着{_pct(b["base1"])}・2着以内{_pct(b["base2"])}</span></div>'
+                 + (f'<div class="sub" style="font-size:11px">{html.escape(why)}</div>' if why else "") + '</div></div>')
+    t2 = " ".join(f'<span style="white-space:nowrap">{c} <span class="sub">{_pct(p)}</span></span>' for c, p in v["top2"])
+    t3 = " ".join(f'<span style="white-space:nowrap">{c} <span class="sub">{_pct(p)}</span></span>' for c, p in v["top3"])
+    src = (f'情報部の予想と、{v["at"]}時点のオッズ(市場)を混ぜた確率' if v["src"] == "混ぜた"
+           else "情報部の予想だけの確率(締切の約25分前からオッズを混ぜます)")
+    return (f'<h2>当てる予想</h2><div class="card"><p class="sub" style="margin:0 0 6px">{src}。'
+            '🔥＝普段のそのコースの成績より今日は2着以内に来やすい、🧊＝来にくい。</p>' + rows
+            + f'<div style="margin-top:8px"><b>2連単</b> {t2}</div><div style="margin-top:4px"><b>3連単</b> {t3}</div></div>')
 
 
 NUDGE = '<script>fetch("/api/nudge",{method:"POST",keepalive:true}).catch(()=>{})</script>'
