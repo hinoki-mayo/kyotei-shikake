@@ -919,6 +919,7 @@ def quick_upcoming(now=None):
 ORG_CONF = org_tree.load_confidence()
 
 
+URA_M_SINCE = "20261020"   # 裏の穴×来そう一致の記録を始めた日(10/19に過去2年で見つけた)
 KESSAI_R2_SINCE = "20261019"   # 決裁者A r2: 2年分の表・採用103%・45秒前のオッズを見込みの確定オッズに直して判断
 FLEX_WIN_SINCE = "20261019"   # v2 の頭の確率を1着専門で直し、3連単への切り替えも始めた日(前の日は前の形で記録)
 
@@ -1012,6 +1013,16 @@ def bets_records():
                 if props:
                     chosen = [pr for pr in org_tree.decide(props, conf_for(date), adopt=org_tree.adopt_for(date)) if "ret" in pr]
                     st["kessai"] = [sum(c["paid"] for c in chosen), round(sum(c["ret"] for c in chosen))] if chosen else 0
+                    # 社員候補(記録だけ・10/20から): 裏の穴の頭が「イン以外で一番来そうな艇」(情報部の1着確率)と同じ時
+                    tri = pred.get("tri")
+                    if tri:
+                        p1 = [sum(tri[bet_mod.PI[(i, j, k)]] for j in range(6) for k in range(6) if len({i, j, k}) == 3)
+                              for i in range(6)]
+                        top = max(range(1, 6), key=lambda i: p1[i]) + 1   # コース
+                        mt = [c for c in chosen if c["leaf"].startswith("out.") and c.get("course") == top]
+                        st["uraM"] = [sum(c["paid"] for c in mt), round(sum(c["ret"] for c in mt))] if mt else 0
+                        st["uraM2"] = ([sum(c["paid"] for c in chosen + mt), round(sum(c["ret"] for c in chosen + mt))]
+                                       if chosen else 0)
                     picked = {(c["leaf"], c["head"]) for c in chosen}
                     for x in pp:   # 6つ目: 決裁者に採用されたか
                         x.append(int((x[0], x[5]) in picked))
@@ -1531,8 +1542,8 @@ def _org_json():
         meta = {k: v for k, v in json.loads(org_tree.CONF_P.read_text()).items() if k != "nodes"}
     except Exception:
         pass
-    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
-                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点"}, nodes=_tree_nodes(), confMeta=meta)
+    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
+                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍"}, nodes=_tree_nodes(), confMeta=meta)
 
 
 ORG_JS = r"""
@@ -1737,7 +1748,12 @@ def kessai_room():
               '<div><b>説D 1-3/1-4</b> <span class="sub">インが堅い(本予想60%以上)時の、8〜12倍で割安な1-3・1-4(2連単)</span></div>'
               '<div data-stat="plan:setsuD"></div>'
               '<div style="margin-top:8px"><b>3連単の熱い一点</b> <span class="sub">混ぜた2連単の確率×3着専門の3着確率で、割安2.0以上・100倍未満</span></div>'
-              '<div data-stat="plan:hot3"></div></div>'
+              '<div data-stat="plan:hot3"></div>'
+              '<div style="margin-top:8px"><b>裏の穴×来そう一致</b> <span class="sub">決裁者Aが採用した裏の穴のうち、頭の艇が'
+              '「イン以外で情報部が一番来そうと見る艇」と同じ時だけ買う(10/20から。過去2年で194%・296%)</span></div>'
+              '<div data-stat="plan:uraM"></div>'
+              '<div style="margin-top:8px"><b>決裁者A・一致で2倍</b> <span class="sub">決裁者Aの買い方そのままで、上の一致した時だけ金額を2倍</span></div>'
+              '<div data-stat="plan:uraM2"></div></div>'
             + '<div class="card"><b>決裁者Aが採用したレース</b> <span class="sub">新しい順。✅＝当たった提案</span><div data-stat="kessai-races" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>参考: 社員の提案を全部採用した場合</b><div data-stat="ops"></div><div data-pnl="ops" style="margin-top:6px"></div></div>'
             + '<div id="up"></div>')
