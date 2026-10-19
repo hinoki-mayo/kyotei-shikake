@@ -127,11 +127,12 @@ footer{max-width:760px;margin:24px auto;padding:12px;font-size:12px;color:var(--
 
 def page(title, body, desc="", path="", noindex=False):
     robots = '<meta name="robots" content="noindex">' if noindex else ""
+    gsc = f'<meta name="google-site-verification" content="{html.escape(CFG["gsc_verify"])}">' if CFG.get("gsc_verify") else ""
     return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8">{robots}
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(title)}｜{CFG['site_name']}</title><meta name="description" content="{html.escape(desc)}">
 <link rel="canonical" href="{CFG['base_url']}{path}"><meta property="og:title" content="{html.escape(title)}">
-<meta property="og:site_name" content="{CFG['site_name']}"><style>{CSS}</style>{CFG.get('ad_head', '')}</head><body>
+<meta property="og:site_name" content="{CFG['site_name']}">{gsc}<style>{CSS}</style>{CFG.get('ad_head', '')}</head><body>
 <header><a href="/">{CFG['site_name']}</a></header><main>{body}</main>
 <footer>{CFG['site_name']}は、展示の進入をもとにデータから見た1マークの展開の傾向を掲載しています。着順を保証するものではありません。舟券の購入は20歳から。<br>
 <a href="/record.html">的中実績</a>・<a href="/venue/">全24場の特徴</a>・<a href="/about.html">運営者情報</a>・<a href="/privacy.html">プライバシーポリシー</a>・<a href="/disclaimer.html">免責事項</a>・<a href="/contact.html">お問い合わせ</a></footer>
@@ -2190,7 +2191,7 @@ def _next_races_html(date, prog_day, preds, now, n=6):
             info = "展示が出たら予想を公開"
         out += (f'<a class="nx" href="/{date}/{j}/{race:02d}.html">{badge}<span class="t"><b>{VENUES[j]} {race}R</b>'
                 f'<span class="sub">{info}</span></span><span class="dl">{dl}<small>あと{mins}分</small></span></a>')
-    return ('<h2>次のレース <span class="sub">S＝堅い 〜 C＝混戦</span></h2>'
+    return ('<h2>次のレース <span class="sub">S＝堅い 〜 C＝混戦・<a href="/today.html" style="color:var(--ac)">今日の注目</a></span></h2>'
             f'<div class="card" style="padding:2px 12px">{out}</div>')
 
 
@@ -2346,6 +2347,52 @@ def venue_index():
                 "ボートレース全24場のインの強さ・万舟率と、今日の予想。", "/venue/")
 
 
+
+def today_page(date, prog_day, preds, now):
+    """今日の注目レース(/today.html): これからのSランク(堅い)と、🔥の艇がいるレース、今日のSランクの答え合わせ"""
+    live = live_result.load(date)
+    up_s, up_hot, done_s = [], [], []
+    for r in prog_day.drop_duplicates(["jcd", "race"]).itertuples():
+        j, race = r.jcd, int(r.race)
+        x = _rank_of(date, j, race, preds.get(f"{j}-{race:02d}"))
+        if not x:
+            continue
+        (rk, _, word, _), fav, vw = x
+        t = dl_dt(date, r.deadline)
+        hot = [b for b in vw["boats"] if b["heat"] > 0 and b["p1"] + b["p2"] >= 0.3]
+        item = (r.deadline, j, race, rk, fav, vw, hot)
+        if t > now:
+            if rk == "S":
+                up_s.append(item)
+            elif hot:
+                up_hot.append(item)
+        elif rk == "S" and live.get(f"{j}-{race:02d}"):
+            res = live[f"{j}-{race:02d}"]
+            done_s.append((item, res["combo3t"] in [c for c, _ in vw["top3"][:5]], res["combo3t"]))
+
+    def card(it, extra=""):
+        dl, j, race, rk, fav, vw, hot = it
+        picks = " ".join(f'<span>{c}</span>' for c, _ in vw["top3"][:5]) if rk in ("S", "A") else ""
+        return (f'<a class="nx" href="/{date}/{j}/{race:02d}.html"><span class="rank rank-{rk}">{rk}</span><span class="t">'
+                f'<b>{VENUES[j]} {race}R</b><span class="sub">本命{fav["waku"]}号艇（{_pct(fav["p1"])}）{extra}</span>'
+                + (f'<span class="big5" style="margin:4px 0 0">{picks}</span>' if picks else "")
+                + f'</span><span class="dl">{dl}</span></a>')
+    s_html = "".join(card(it) for it in sorted(up_s)[:10]) or '<p class="sub" style="margin:8px 0">これからのSランクはありません</p>'
+    h_html = "".join(card(it, "・🔥" + "・".join(f'{b["waku"]}号艇' for b in it[6])) for it in sorted(up_hot)[:10]) \
+        or '<p class="sub" style="margin:8px 0">これからの🔥はありません</p>'
+    hit = sum(1 for _, ok, _ in done_s if ok)
+    d_html = "".join(f'<div class="boat" style="padding:6px 0"><span style="flex:1"><b>{VENUES[it[1]]} {it[2]}R</b> '
+                     f'<span class="sub">結果 {c3}</span></span><b style="color:{"var(--green)" if ok else "var(--sub)"}">{"的中" if ok else "はずれ"}</b></div>'
+                     for it, ok, c3 in sorted(done_s))
+    body = (f'<h1>今日の注目レース <span class="sub">{jp(date)}</span></h1>'
+            '<p class="sub">これから締切のレースから、堅い（Sランク）レースのおすすめ5点と、普段より調子のいい艇（🔥）がいるレースを集めました。</p>'
+            f'<h2>堅いレース（S）</h2><div class="card" style="padding:2px 12px">{s_html}</div>'
+            f'<h2>🔥の艇がいるレース</h2><div class="card" style="padding:2px 12px">{h_html}</div>'
+            + (f'<h2>今日のSランクの答え合わせ <span class="sub">5点で{hit}/{len(done_s)}的中</span></h2><div class="card">{d_html}</div>' if done_s else "")
+            + '<div class="btnrow"><a href="/record.html">的中実績</a><a href="/">トップへ</a></div>' + ad())
+    return page(f"今日の注目レース {jp(date)}", body, f"{jp(date)}の競艇の注目レース。堅いレースのおすすめ5点と、調子のいい艇。", "/today.html")
+
+
 def grid_page(date, dates, prog_day, preds, now, path, payouts=None):
     tiles = ""
     hot_list = []
@@ -2387,7 +2434,7 @@ def grid_page(date, dates, prog_day, preds, now, path, payouts=None):
             + _next_races_html(date, prog_day, preds, now)
             + f'<h2>開催場 <span class="sub">場を選ぶと全レース</span></h2><div class="grid">{tiles}</div>'
             + (f'<details class="help"><summary>本日の高配当（万舟以上）を見る</summary>{_payout_html(date, payouts, preds)}</details>' if payouts else "")
-            + '<div class="btnrow"><a href="/record.html">的中実績</a><a href="/venue/">場ごとの特徴</a></div>'
+            + '<div class="btnrow"><a href="/today.html">今日の注目</a><a href="/record.html">的中実績</a><a href="/venue/">場の特徴</a></div>'
             + f'{ad()}{NUDGE_UPDATE}')
     return page(f"{jp(date)} 全24場の展開予想", body, "全24場のスタートスリット・1マーク展開予想を展示後に公開", path)
 
@@ -2539,7 +2586,8 @@ def main():
         urls.append(f"/venue/{SLUG[j]}.html")
     (OUT / "venue" / "index.html").write_text(venue_index())
     (OUT / "record.html").write_text(record_page())
-    urls += ["/venue/", "/record.html"]
+    (OUT / "today.html").write_text(today_page(top or today, vday, vpreds, now))
+    urls += ["/venue/", "/record.html", "/today.html"]
     (OUT / "bets-data.json").write_text(json.dumps(bets_records(), ensure_ascii=False, separators=(",", ":")))
     (OUT / "bets-upcoming.json").write_text(json.dumps(bets_upcoming(), ensure_ascii=False, separators=(",", ":")))
     (OUT / "nige-data.json").write_text(json.dumps(nige_records(), ensure_ascii=False, separators=(",", ":")))
