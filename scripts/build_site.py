@@ -208,6 +208,19 @@ class Stats:
         g["pos"] = g.pt.rank(ascending=False, method="min").astype(int)
         return g.to_dict("index"), len(g)
 
+    def recent(self, jcd, date, days=30):
+        """その場の最近(days日)の傾向: レース数・1号艇の1着率・万舟率・一番の高配当"""
+        lo = (dt.datetime.strptime(date, "%Y%m%d") - dt.timedelta(days=days)).strftime("%Y%m%d")
+        r = self.res[(self.res.jcd == jcd) & (self.res.date >= lo) & (self.res.date < date)]
+        if r.empty:
+            return None
+        races = r.drop_duplicates(["date", "race"])
+        w1 = r[(r.waku == 1)]["rank"].eq("01").mean()
+        pay = races.payout3t.dropna()
+        top = races.loc[pay.idxmax()] if len(pay) else None
+        return dict(n=len(races), days=races.date.nunique(), w1=float(w1), manshu=float((pay >= 10000).mean()) if len(pay) else None,
+                    top=(top.date, int(top.race), top.combo3t, int(top.payout3t)) if top is not None else None)
+
     def race_result(self, jcd, date, race):
         r = self.res[(self.res.jcd == jcd) & (self.res.date == date) & (self.res.race == race)]
         if len(r) != 6:
@@ -2306,7 +2319,7 @@ def _venue_lines(jcd, st):
     return out
 
 
-def venue_home(jcd, date, prog_day, preds, now):
+def venue_home(jcd, date, prog_day, preds, now, recent=None):
     """場の常設ページ(/venue/場.html): 今日のレースとランク、場の特徴、この場での的中実績"""
     v = VENUES[jcd]
     st = _venue_stats().get(jcd)
@@ -2332,8 +2345,25 @@ def venue_home(jcd, date, prog_day, preds, now):
                 f'<h2>コース別の成績 <span class="sub">{st["since"][:4]}年〜・{st["races"]:,}レース</span></h2><div class="card">{bars}</div>')
     rec = rank_record().get(jcd)
     record = f'<h2>{v}での的中実績</h2><div class="card">{_record_table(rec)}</div>' if rec else ""
+    rc = ""
+    if recent:
+        top = recent["top"]
+        rc = (f'<h2>最近の{v} <span class="sub">直近30日・{recent["days"]}日間 {recent["n"]}レース</span></h2><div class="card"><ul style="margin:0;padding-left:18px;font-size:14px">'
+              f'<li>1号艇の1着 {recent["w1"]:.0%}' + (f'（いつもは {st["course"][0][0]:.0%}）' if st else "") + '</li>'
+              + (f'<li>万舟 {recent["manshu"]:.0%}</li>' if recent["manshu"] is not None else "")
+              + (f'<li>一番の高配当 {jp(top[0])} {top[1]}R {top[2]} {top[3]:,}円</li>' if top else "") + '</ul></div>')
+    faq = ""
+    if st:
+        c1 = st["course"][0][0]
+        allc = _venue_stats().get("_all", {}).get("course", [0.55])
+        faq = (f'<h2>{v}のよくある疑問</h2><div class="card" style="font-size:14px">'
+               f'<p><b>{v}はインが強い？</b><br>1コースの1着は {c1:.0%} で、全国平均の {allc[0]:.0%} と比べて'
+               f'{"強め" if c1 >= allc[0] + 0.03 else ("弱め" if c1 <= allc[0] - 0.03 else "ほぼ同じ")}です。</p>'
+               + (f'<p><b>{v}は荒れる？</b><br>3連単が100倍以上になる万舟は {st["manshu"]:.0%}、配当の真ん中は {st["pay_median"]:,.0f}円です。</p>'
+                  if st.get("manshu") is not None else "")
+               + f'<p style="margin-bottom:0"><b>予想はいつ出る？</b><br>展示の進入が出たあと（締切の約20分前）に、1着・2着・3着の確率と堅さのランクを公開します。</p></div>')
     body = (f'<h1>{v}の競艇予想</h1><p class="sub">ボートレース{v}の今日のレースの予想（堅さのランクと本命）と、'
-            f'コース別の成績などの特徴をまとめています。</p>' + today + feat + record
+            f'コース別の成績などの特徴をまとめています。</p>' + today + feat + rc + record + faq
             + '<p class="sub"><a href="/venue/" style="color:var(--ac)">ほかの場を見る</a>・<a href="/record.html" style="color:var(--ac)">全体の的中実績</a></p>' + ad())
     return page(f"{v}の競艇予想・特徴", body, f"ボートレース{v}の今日の予想と、コース別の勝率・決まり手・万舟率などの特徴。", f"/venue/{SLUG[jcd]}.html")
 
@@ -2582,7 +2612,7 @@ def main():
     vday = prog[prog.date == top] if top else prog.iloc[0:0]
     vpreds = json.loads((DATA / "predictions" / f"{top}.json").read_text())["races"] if top and (DATA / "predictions" / f"{top}.json").exists() else {}
     for j in SLUG:
-        (OUT / "venue" / f"{SLUG[j]}.html").write_text(venue_home(j, top or today, vday, vpreds, now))
+        (OUT / "venue" / f"{SLUG[j]}.html").write_text(venue_home(j, top or today, vday, vpreds, now, stats.recent(j, top or today)))
         urls.append(f"/venue/{SLUG[j]}.html")
     (OUT / "venue" / "index.html").write_text(venue_index())
     (OUT / "record.html").write_text(record_page())
