@@ -1057,6 +1057,9 @@ def bets_records():
                         if wf:
                             fz = [c for c in chosen if c["leaf"].startswith("out.") and wf[c["course"] - 1] >= 1.2]
                             st["uraF"] = [sum(c["paid"] for c in fz), round(sum(c["ret"] for c in fz))] if fz else 0
+                    if date >= KESSAI_C_SINCE:   # 決裁者B(厳選型・10/20から): Aの採用のうち、1着専門の後押し(比1.2以上)があるものだけ
+                        sel = [c for c in chosen if wf and wf[c["course"] - 1] >= 1.2]
+                        st["kessaiB"] = [sum(c["paid"] for c in sel), round(sum(c["ret"] for c in sel))] if sel else 0
                     if date >= KESSAI_C_SINCE and chosen:
                         # 決裁者C(重ね型): 1着専門の後押し(比1.2以上)が無ければ1/4、あれば等倍、自信度が採用ライン以上の提案が同じ頭に2つ以上なら×2
                         adopt = org_tree.adopt_for(date)
@@ -1589,8 +1592,8 @@ def _org_json():
         meta = {k: v for k, v in json.loads(org_tree.CONF_P.read_text()).items() if k != "nodes"}
     except Exception:
         pass
-    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE, "outW": OUTW_SINCE, "inW": OUTW_SINCE, "uraF": OUTW_SINCE, "kessaiC": KESSAI_C_SINCE, "inSec": OUTW_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
-                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍", "outW": "外の1着専門(3・4コース頭)", "inW": "インの1着専門(嫌われたイン)", "uraF": "裏の穴×1着専門の後押し", "kessaiC": "決裁者C(重ね型・記録だけ)", "inSec": "インの2着専門(本命型)"}, nodes=_tree_nodes(), confMeta=meta)
+    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE, "outW": OUTW_SINCE, "inW": OUTW_SINCE, "uraF": OUTW_SINCE, "kessaiC": KESSAI_C_SINCE, "inSec": OUTW_SINCE, "kessaiB": KESSAI_C_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
+                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍", "outW": "外の1着専門(3・4コース頭)", "inW": "インの1着専門(嫌われたイン)", "uraF": "裏の穴×1着専門の後押し", "kessaiC": "決裁者C(重ね型・記録だけ)", "kessaiB": "決裁者B(厳選型・記録だけ)", "inSec": "インの2着専門(本命型)"}, nodes=_tree_nodes(), confMeta=meta)
 
 
 ORG_JS = r"""
@@ -1777,7 +1780,7 @@ def _kessai_tiles():
     k = ORG_KESSAI
     rows = (("kessai.html", "決裁者A(自信度型)", "kessai", "自信度103%以上の提案を全部4,000円で採用"),
             ("kessai-c.html", "決裁者C(重ね型・記録だけ)", "plan:kessaiC", "Aと同じ採用で、1着専門の後押しや重なりで金額に強弱"),
-            ("kessai-b.html", "決裁者B(柔軟型・記録だけ)", "plan:flex", "情報部と市場を混ぜて割安な2連単を全部"))
+            ("kessai-b.html", "決裁者B(厳選型・記録だけ)", "plan:kessaiB", "Aの採用のうち、1着専門の後押しがあるものだけ買う(10/20から)"))
     return "".join(f'<a class="org-tile org-boss" href="/org/{u}">{robot_svg(k["color"], k["acc"], 36)}'
                    f'<div><b>{n}</b><span class="sub">{d}</span><span class="org-stat"><span data-stat="{st}"></span></span></div></a>'
                    for u, n, st, d in rows)
@@ -1860,14 +1863,19 @@ def kessai_c_room():
 
 def kessai_b_room():
     k = ORG_KESSAI
-    body = (_room_head(k["color"], k["acc"], "決裁者B(柔軟型・記録だけ)", "情報部と市場を混ぜた確率で割安な2連単を全部買う", back="/org/monitor.html", back_label="モニターの部屋に戻る")
-            + '<h2>決裁者B(柔軟型・記録だけ)</h2>'
+    body = (_room_head(k["color"], k["acc"], "決裁者B(厳選型・記録だけ)", "Aと同じ社員の提案から、1着専門の後押しがあるものだけ買う", back="/org/monitor.html", back_label="モニターの部屋に戻る")
+            + '<div class="card"><b>決め方</b><p class="sub" style="margin:4px 0 0">決裁者Aと同じ提案を見て、Aが採用したもののうち、'
+              '1着専門(実績・展示・スタートなどから1着を当てる係)が頭の艇を市場の1.2倍以上来ると見ているものだけを4,000円で買う。ほかは見送る(10/20から)。</p>'
+              '<p class="sub" style="margin:6px 0 0">過去2年の作り直し: A 114%・123% → B 156%・179%(買う数はAの約3割)。'
+              'A=全部買う、C=金額に強弱、B=絞る、の3つを同じ社員で比べる</p></div>'
+            + '<div class="card"><b>決裁者Bの成績</b><div data-stat="plan:kessaiB"></div><div data-pnl="kessaiB" style="margin-top:6px"></div></div>'
+            + '<h2>旧B(柔軟型・10/17〜19・記録だけ続ける)</h2>'
             + '<div class="card"><b>決め方</b><p class="sub" style="margin:4px 0 0">'
               f'情報部と市場の確率を混ぜて2連単30通りの確率を出し、割安な目を全部買う(頭はいくつでも・{flex.ODDS_MAX:.0f}倍未満・1点{flex.STAKE:,}円)。</p>'
               f'<p class="sub" style="margin:6px 0 0"><b>r1</b>(10/17〜18): 締切2分前のオッズで割安さ{flex.EV}以上<br>'
               f'<b>r2</b>(10/19〜): 締切45秒前のオッズを見込みの確定オッズに直して割安さ{flex.EV_DRIFT}以上。'
               '頭の確率は1着専門で直し、3着が固ければ3連単2点に切り替える</p></div>'
-            + '<div class="card"><b>決裁者Bの成績</b><div data-stat="plan:flex"></div><div data-pnl="flex" style="margin-top:6px"></div></div>'
+            + '<div class="card"><b>旧Bの成績</b><div data-stat="plan:flex"></div><div data-pnl="flex" style="margin-top:6px"></div></div>'
             + '<div id="up"></div>')
     return _org_page("決裁者B", "/org/kessai-b.html", body)
 
