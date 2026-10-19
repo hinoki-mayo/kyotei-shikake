@@ -1001,6 +1001,9 @@ def bets_records():
                     tks = shadow_staff.out_win(pred, o2s, lv if isinstance(lv, dict) else None)
                     sp = settle(dict(tickets=tks, stake=sum(t["units"] for t in tks) * 100), result) if tks else None
                     st["outW"] = list(sp) if sp else 0
+                    tks = shadow_staff.in_sec(pred, o2s, o3s, lv if isinstance(lv, dict) else None)
+                    sp = settle(dict(tickets=tks, stake=sum(t["units"] for t in tks) * 100), result) if tks else None
+                    st["inSec"] = list(sp) if sp else 0
                     tks = shadow_staff.in_win(pred, o2s, lv if isinstance(lv, dict) else None)
                     sp = settle(dict(tickets=tks, stake=sum(t["units"] for t in tks) * 100), result) if tks else None
                     st["inW"] = list(sp) if sp else 0
@@ -1581,8 +1584,8 @@ def _org_json():
         meta = {k: v for k, v in json.loads(org_tree.CONF_P.read_text()).items() if k != "nodes"}
     except Exception:
         pass
-    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE, "outW": OUTW_SINCE, "inW": OUTW_SINCE, "uraF": OUTW_SINCE, "kessaiC": KESSAI_C_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
-                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍", "outW": "外の1着専門(3・4コース頭)", "inW": "インの1着専門(嫌われたイン)", "uraF": "裏の穴×1着専門の後押し", "kessaiC": "決裁者C(重ね型・記録だけ)"}, nodes=_tree_nodes(), confMeta=meta)
+    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE, "outW": OUTW_SINCE, "inW": OUTW_SINCE, "uraF": OUTW_SINCE, "kessaiC": KESSAI_C_SINCE, "inSec": OUTW_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
+                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍", "outW": "外の1着専門(3・4コース頭)", "inW": "インの1着専門(嫌われたイン)", "uraF": "裏の穴×1着専門の後押し", "kessaiC": "決裁者C(重ね型・記録だけ)", "inSec": "インの2着専門(本命型)"}, nodes=_tree_nodes(), confMeta=meta)
 
 
 ORG_JS = r"""
@@ -1805,7 +1808,10 @@ def monitor_room():
               '<div data-stat="plan:inW"></div>'
               '<div style="margin-top:8px"><b>裏の穴×1着専門の後押し</b> <span class="sub">決裁者Aが採用した裏の穴のうち、1着専門が頭の艇を'
               '市場の1.2倍以上と見る時だけ買う(45秒前のオッズ)。10/20から。過去2年で166%・193%(今の裏の穴は123%・144%)</span></div>'
-              '<div data-stat="plan:uraF"></div></div>'
+              '<div data-stat="plan:uraF"></div>'
+              '<div style="margin-top:8px"><b>インの2着専門(本命型)</b> <span class="sub">インが頭の2連単1-Xで、1着専門のイン1着確率×2着専門の2着確率×見込みの確定オッズが1.1以上、'
+              '見込みの確定オッズ3〜15倍の目を1点1,000円。10/20から。年をまたいだ確かめ(1.1以上)で3〜8倍120%・130%(的中約20%)、8〜15倍118%・118%</span></div>'
+              '<div data-stat="plan:inSec"></div></div>'
             + '<div id="up"></div>')
     return _org_page("モニター", "/org/monitor.html", body, upcoming=["kessai"])
 

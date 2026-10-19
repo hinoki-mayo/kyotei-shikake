@@ -116,3 +116,30 @@ def win_ratio(pred, o2, live=None):
             inv[a] = inv.get(a, 0) + 1 / o
     tot = sum(inv.values())
     return [w[i] / (inv.get(waku[i] - 1, 0) / tot) if inv.get(waku[i] - 1) else 0 for i in range(6)]
+
+
+INSEC_EV = 1.1            # インの2着専門: 1着専門のイン1着確率×2着専門の2着確率×見込みの確定オッズ がこれ以上(確かめで1.1〜1.2も110%・129%)
+INSEC_ODDS = (3.0, 15.0)  # 見込みの確定オッズの範囲
+
+
+def in_sec(pred, o2, o3=None, live=None):
+    """インの2着専門(本命型・10/19に見つけた): インが頭の2連単1-Xを、1着専門×2着専門の確率で見て、
+    見込みの回収が1.1以上・見込みの確定オッズ3〜15倍の目を1点1,000円。
+    年をまたいだ確かめ(確定オッズ): 3〜8倍 157%・138%(的中21〜25%)、8〜15倍 132%・117%"""
+    import sec_spec
+    import win_spec
+    if not o2:
+        return []
+    w = win_spec.probs(pred, o2, live)
+    p2 = sec_spec.probs(pred, 0, o2, live)
+    if not w or not p2:
+        return []
+    o2f, _ = flex.expected_final(pred, o2, o3 or {})
+    waku = [b["waku"] for b in pred["boats"]]
+    out = []
+    for j, q in p2.items():
+        c = (waku[0] - 1, waku[j] - 1)
+        of = o2f.get(c)
+        if of and INSEC_ODDS[0] <= of < INSEC_ODDS[1] and w[0] * q * of >= INSEC_EV:
+            out.append(dict(combo=f"{waku[0]}-{waku[j]}", units=STAKE // 100, odds=o2.get(c), odds_f=of, bet="2t"))
+    return out
