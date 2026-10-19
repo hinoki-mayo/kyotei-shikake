@@ -46,3 +46,39 @@ def hot3(pred, o2, o3, live=None):
             if o_ and o_ < 100 and s * q * o_ >= 2.0:
                 out.append(dict(combo=f"{waku[a]}-{waku[b]}-{waku[c]}", units=STAKE // 100, odds=o_, bet="3t"))
     return out
+
+
+OUTW_RATIO = 1.5   # 外の1着専門: 1着専門の1着確率÷市場の1着確率がこれ以上
+OUTW_UNITS = 40    # 頭1艇につき4,000円(2着5艇をオッズの逆数で配分=単勝と同じ形)
+
+
+def out_win(pred, o2, live=None):
+    """外の1着専門(10/19に見つけた): 3・4コースの艇で、1着専門の1着確率が市場の1.5倍以上の時、その艇を頭に単勝と同じ形で買う。
+    1着専門を片方の年で学んでもう片方で確かめて、2025年151%・2026年159%(確定オッズ・1日約3レース・的中約10%)。
+    2コースは同じ条件で85%・119%と不安定なので入れない"""
+    import win_spec
+    if not o2:
+        return []
+    w = win_spec.probs(pred, o2, live)
+    if not w:
+        return []
+    waku = [b["waku"] for b in pred["boats"]]
+    inv = {}
+    for (a, _), o in o2.items():
+        if o:
+            inv[a] = inv.get(a, 0) + 1 / o
+    tot = sum(inv.values())
+    out = []
+    for i in (2, 3):
+        a = waku[i] - 1
+        if a not in inv or w[i] / (inv[a] / tot) < OUTW_RATIO:
+            continue
+        legs = [(waku[j], o2.get((a, waku[j] - 1))) for j in range(6) if j != i]
+        if any(not o for _, o in legs):
+            continue
+        s = sum(1 / o for _, o in legs)
+        for wj, o in legs:
+            u = round(OUTW_UNITS * (1 / o) / s)
+            if u:
+                out.append(dict(combo=f"{waku[i]}-{wj}", units=u, odds=o, bet="2t"))
+    return out
