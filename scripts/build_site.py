@@ -2619,6 +2619,13 @@ def main():
     for name, (title, body) in STATIC.items():
         (OUT / name).write_text(page(title, body.format(about=CFG.get("about", ""), contact=CFG.get("contact", "")), title, "/" + name))
         urls.append("/" + name)
+    (OUT / "404.html").write_text(page("ページが見つかりません",
+        '<h1>ページが見つかりません</h1><div class="card"><p>レースのページは、その日のうちだけ公開しています。'
+        '終わったレースの結果や今日の予想は、こちらからどうぞ。</p></div>'
+        '<div class="btnrow"><a href="/">今日のレース</a><a href="/today.html">今日の注目</a></div>'
+        '<div class="btnrow"><a href="/venue/">場ごとの特徴</a><a href="/record.html">的中実績</a></div>', "", "/404.html", noindex=True))
+    # サイトマップには、ずっと残るページだけを入れる(日付のページは翌日には消えるため)
+    urls = [u for u in urls if not u[1:2].isdigit()]
     (OUT / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
                                      + "".join(f"<url><loc>{CFG['base_url']}{u}</loc></url>" for u in urls) + "</urlset>")
     for name in CFG.get("gsc_files", []):   # Search Console の所有権の確認ファイル(消さない)
