@@ -101,3 +101,18 @@ def in_win(pred, o2, live=None):
     """インの1着専門(10/19に見つけた): 1着専門がインの1着確率を市場の1.7倍以上と見る時(市場がインを嫌っている時)、
     インを頭に単勝と同じ形で買う。年をまたいだ確かめ(確定オッズ)で2025年259%・2026年191%(1年に約180レース、単勝相当は中央5〜7倍)"""
     return out_win(pred, o2, live, courses=(0,), ratio=INW_RATIO)
+
+
+def win_ratio(pred, o2, live=None):
+    """コース順6艇の「1着専門の1着確率÷市場の1着確率」。作れなければNone"""
+    import win_spec
+    w = win_spec.probs(pred, o2, live) if o2 else None
+    if not w:
+        return None
+    waku = [b["waku"] for b in pred["boats"]]
+    inv = {}
+    for (a, _), o in o2.items():
+        if o:
+            inv[a] = inv.get(a, 0) + 1 / o
+    tot = sum(inv.values())
+    return [w[i] / (inv.get(waku[i] - 1, 0) / tot) if inv.get(waku[i] - 1) else 0 for i in range(6)]
