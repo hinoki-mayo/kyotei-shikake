@@ -857,7 +857,7 @@ def _kessai_plans(date, key, pred, b, plans):
     try:
         made = bet_mod.make_bet(pred, o3f, o2f, date, lv if isinstance(lv, dict) else None)["plans"]
         # 外の1着専門は、45秒前と確定で「1着専門÷市場」がほぼ変わらない(10/17〜19で中央1.005倍)ので、45秒前のオッズそのままで判断する
-        made["pickwin"] = bet_mod._pickwin(pred, {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s45["o2"]) if v},
+        made["pickwin"] = dict(skip=True, bet="2t") if date < KESSAI_R3_SINCE else bet_mod._pickwin(pred, {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s45["o2"]) if v},
                                             lv if isinstance(lv, dict) else None)
         made["pickwin"]["logic"] = bet_mod.OPS_LOGIC
         return {n: pl for n, pl in made.items() if n in org_tree.ORG_PLANS and not pl.get("skip")}
@@ -931,6 +931,7 @@ def quick_upcoming(now=None):
 ORG_CONF = org_tree.load_confidence()
 
 
+KESSAI_R3_SINCE = "20261020"   # 決裁者A r3: 外の1着専門を社員に入れた日
 KESSAI_C_SINCE = "20261020"   # 決裁者C(重ね型・記録だけ)を始めた日
 OUTW_SINCE = "20261020"   # 外の1着専門の記録を始めた日
 URA_M_SINCE = "20261020"   # 裏の穴×来そう一致の記録を始めた日(10/19に過去2年で見つけた)
