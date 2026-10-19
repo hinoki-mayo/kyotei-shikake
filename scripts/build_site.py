@@ -919,6 +919,7 @@ def quick_upcoming(now=None):
 ORG_CONF = org_tree.load_confidence()
 
 
+OUTW_SINCE = "20261020"   # 外の1着専門の記録を始めた日
 URA_M_SINCE = "20261020"   # 裏の穴×来そう一致の記録を始めた日(10/19に過去2年で見つけた)
 KESSAI_R2_SINCE = "20261019"   # 決裁者A r2: 2年分の表・採用103%・45秒前のオッズを見込みの確定オッズに直して判断
 FLEX_WIN_SINCE = "20261019"   # v2 の頭の確率を1着専門で直し、3連単への切り替えも始めた日(前の日は前の形で記録)
@@ -987,6 +988,10 @@ def bets_records():
                                 ("hot3", shadow_staff.hot3(pred, o2s, o3s, lv if isinstance(lv, dict) else None))):
                     sp = settle(dict(tickets=tks, stake=len(tks) * shadow_staff.STAKE), result) if tks else None
                     st[pk] = list(sp) if sp else 0
+                if date >= OUTW_SINCE:   # 外の1着専門(記録だけ・4,000円/頭)
+                    tks = shadow_staff.out_win(pred, o2s, lv if isinstance(lv, dict) else None)
+                    sp = settle(dict(tickets=tks, stake=sum(t["units"] for t in tks) * 100), result) if tks else None
+                    st["outW"] = list(sp) if sp else 0
             rp = replay.get(key)
             if rp and pred and date >= ORG_SINCE:   # 今の方法で再生(確定オッズ)した時の、最終決裁者の採用
                 ch = []
@@ -1542,8 +1547,8 @@ def _org_json():
         meta = {k: v for k, v in json.loads(org_tree.CONF_P.read_text()).items() if k != "nodes"}
     except Exception:
         pass
-    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
-                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍"}, nodes=_tree_nodes(), confMeta=meta)
+    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE, "outW": OUTW_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
+                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍", "outW": "外の1着専門(3・4コース頭)"}, nodes=_tree_nodes(), confMeta=meta)
 
 
 ORG_JS = r"""
@@ -1753,7 +1758,10 @@ def kessai_room():
               '「イン以外で情報部が一番来そうと見る艇」と同じ時だけ買う(10/20から。過去2年で194%・296%)</span></div>'
               '<div data-stat="plan:uraM"></div>'
               '<div style="margin-top:8px"><b>決裁者A・一致で2倍</b> <span class="sub">決裁者Aの買い方そのままで、上の一致した時だけ金額を2倍</span></div>'
-              '<div data-stat="plan:uraM2"></div></div>'
+              '<div data-stat="plan:uraM2"></div>'
+              '<div style="margin-top:8px"><b>外の1着専門(3・4コース頭)</b> <span class="sub">3・4コースの艇の1着確率を1着専門が市場の1.5倍以上と見る時、'
+              'その艇を頭に4,000円(2着5艇にオッズ配分)。締切45秒前のオッズで判断(10/20から。年をまたいだ確かめで151%・159%)</span></div>'
+              '<div data-stat="plan:outW"></div></div>'
             + '<div class="card"><b>決裁者Aが採用したレース</b> <span class="sub">新しい順。✅＝当たった提案</span><div data-stat="kessai-races" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>参考: 社員の提案を全部採用した場合</b><div data-stat="ops"></div><div data-pnl="ops" style="margin-top:6px"></div></div>'
             + '<div id="up"></div>')
