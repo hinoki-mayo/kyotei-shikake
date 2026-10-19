@@ -49,7 +49,8 @@ def hot3(pred, o2, o3, live=None):
 
 
 OUTW_RATIO = 1.5   # 外の1着専門: 1着専門の1着確率÷市場の1着確率がこれ以上
-OUTW_UNITS = 40    # 頭1艇につき4,000円(2着5艇をオッズの逆数で配分=単勝と同じ形)
+OUTW_UNITS = 40    # 頭1艇につき4,000円(2着をオッズの逆数で配分=どれが来ても払戻がほぼ同じ)
+SEC_TOP = 3        # 2着は2着専門の上位3点
 
 
 def out_win(pred, o2, live=None, courses=(2, 3), ratio=OUTW_RATIO):
@@ -73,9 +74,18 @@ def out_win(pred, o2, live=None, courses=(2, 3), ratio=OUTW_RATIO):
         a = waku[i] - 1
         if a not in inv or w[i] / (inv[a] / tot) < ratio:
             continue
-        legs = [(waku[j], o2.get((a, waku[j] - 1))) for j in range(6) if j != i]
+        legs = [(j, o2.get((a, waku[j] - 1))) for j in range(6) if j != i]
         if any(not o for _, o in legs):
             continue
+        try:   # 10/20から: 2着は2着専門の上位3点に絞る(過去2年で5点154%・135% → 3点160%・149%)
+            import sec_spec
+            p2 = sec_spec.probs(pred, i, o2, live)
+        except Exception:
+            p2 = None
+        if p2:
+            top = sorted(p2, key=lambda j: -p2[j])[:SEC_TOP]
+            legs = [(j, o) for j, o in legs if j in top]
+        legs = [(waku[j], o) for j, o in legs]
         s = sum(1 / o for _, o in legs)
         for wj, o in legs:
             u = round(OUTW_UNITS * (1 / o) / s)
