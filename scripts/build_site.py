@@ -1734,14 +1734,12 @@ def org_home():
               f'同じ頭(同じ結果)を取り合う提案は自信度(推定回収率)が一番高いものだけが上に上がり、決裁者は上がってきた提案のうち自信度{org_tree.ADOPT:.0%}以上を全部採用します(複数OK、無ければ見送り)。'
               f'自信度＝その箱の提案を確定オッズの過去データ({per})で精算した回収率を、件数が少ないほど一つ上の箱の自信度へ寄せた値({org_tree.SHRINK}件で半々)。決裁者の採用線({org_tree.ADOPT:.0%})以上が緑。'
               f'各箱の「提案・採用・的中・回収(全提案/採用分)」は{jp(ORG_SINCE)}からの実戦の記録です。</details>'
+            + '<div class="lv">⓪ モニター</div>'
+            + f'<a class="org-tile org-boss" href="/org/monitor.html">{_monitor_img(44)}<div><b>モニター</b>'
+              '<span class="sub">決裁者A・B・Cを見張って、どれを本命にするか決める</span></div></a>'
             + '<div class="lv">① 最終決裁</div>'
-            + f'<a class="org-tile org-boss" href="/org/kessai.html">{robot_svg(k["color"], k["acc"], 40)}'
-              f'<div><b>{k["name"]}</b>'
-              '<span class="org-stat">決裁者A(自信度型) <span data-stat="kessai"></span></span>'
-              '<span class="org-stat">決裁者C(重ね型・記録だけ) <span data-stat="plan:kessaiC"></span></span>'
-              '<span class="org-stat">決裁者B(柔軟型・記録だけ) <span data-stat="plan:flex"></span></span>'
-              '<span class="org-stat">Aの再生(確定オッズ) <span data-stat="kessai_r"></span></span>'
-              '<span class="org-stat">v0(全部採用) <span data-stat="ops"></span></span></div></a>'
+            + _kessai_tiles()
+            + '<span class="org-stat sub">参考: Aの再生(確定オッズ) <span data-stat="kessai_r"></span>・v0(全部採用) <span data-stat="ops"></span></span>'
             + _tree_html(nodes, "_root")
             + '<div id="up"></div>'
             + '<h2>情報部 <span class="sub">全部の箱に材料を渡す係(買わない)</span></h2><div class="org-grid2">' + info + '</div>'
@@ -1750,38 +1748,36 @@ def org_home():
     return _org_page("予想組織図", "/ops.html", body, upcoming=["kessai"])
 
 
-def kessai_room():
+MONITOR = dict(name="モニター", role="組織の一番上。決裁者A・B・Cの成績を見張って、どの決裁者を本命にするか決める(判定は10/31・11/17)",
+               img="/img/monitor_face.jpg")
+
+
+def _monitor_img(size):
+    return f'<img src="{MONITOR["img"]}" alt="モニター" width="{size}" height="{size}" style="border-radius:50%;object-fit:cover;flex:none">'
+
+
+def _kessai_tiles():
+    """決裁者A・C・Bの部屋へのタイル(成績つき)"""
     k = ORG_KESSAI
-    body = (_room_head(k["color"], k["acc"], k["name"], k["role"])
-            + '<div class="card"><b>最終決裁者は2人</b><p class="sub" style="margin:4px 0 0">'
-              '考え方の違う2人の決裁者が、同じレースでそれぞれ判断し、成績を並べて記録する(お金は使わない)。'
-              'r1・r2…は、同じ決裁者の中で買い方を直した版。</p></div>'
-            + '<h2>決裁者A(自信度型)</h2>'
-            + '<div class="card"><b>決め方</b><p class="sub" style="margin:4px 0 0">'
-              '① 各社員の買い目を頭の艇ごとの「提案」に分け、入った箱の自信度(確定オッズの過去データでの推定回収率)を付ける。印があれば一番細かい印の箱の自信度。<br>'
-              f'② 記録が少ない箱は一つ上の箱の自信度へ寄せる({org_tree.SHRINK}件で半々、一番上は控除率並みの{org_tree.PRIOR:.0%})。<br>'
-              f'③ 同じ結果を取り合う提案(同じ頭の艇の買い目)同士だけを比べ、自信度が一番高い提案を1つ上げる。提案はどれも1回{org_tree.STAKE:,}円にそろえる。<br>'
-              f'④ 上がってきた提案のうち、自信度{org_tree.ADOPT:.0%}以上は全部採用(違う頭なら複数残る)。1つも無ければ見送り。</p>'
-              '<p class="sub" style="margin:6px 0 0"><b>r1</b>(〜10/18): 2026年の表・採用105%・締切2分前のオッズで社員が買い目を作る<br>'
-              f'<b>r2</b>(10/19〜): 2025〜2026年の表・採用{org_tree.ADOPT:.0%}・締切45秒前のオッズを「見込みの確定オッズ」'
-              '(割安に見える目ほど最後に下がる分を割り引いたもの)に直してから、社員が買い目を作り直す</p></div>'
-            + '<div class="card"><b>今日の採用の中身</b> <span class="sub">当たり方のタイプ別(🎯本命型=的中25%以上・⚖️中穴型=8〜25%・💣大穴型=8%未満)</span>'
-              '<div data-stat="kessai-types" style="margin-top:6px"></div></div>'
+    rows = (("kessai.html", "決裁者A(自信度型)", "kessai", "自信度103%以上の提案を全部4,000円で採用"),
+            ("kessai-c.html", "決裁者C(重ね型・記録だけ)", "plan:kessaiC", "Aと同じ採用で、1着専門の後押しや重なりで金額に強弱"),
+            ("kessai-b.html", "決裁者B(柔軟型・記録だけ)", "plan:flex", "情報部と市場を混ぜて割安な2連単を全部"))
+    return "".join(f'<a class="org-tile org-boss" href="/org/{u}">{robot_svg(k["color"], k["acc"], 36)}'
+                   f'<div><b>{n}</b><span class="sub">{d}</span><span class="org-stat"><span data-stat="{st}"></span></span></div></a>'
+                   for u, n, st, d in rows)
+
+
+def monitor_room():
+    body = (f'<a class="back-lk" href="/ops.html">← 組織図に戻る</a>'
+            f'<div class="room-head">{_monitor_img(76)}<div><h1 style="margin:0">{MONITOR["name"]}</h1>'
+            f'<span class="sub">{MONITOR["role"]}</span></div></div>'
+            + '<div class="card"><b>見張っている決裁者</b><p class="sub" style="margin:4px 0 6px">どれもお金は使わず記録だけ。'
+              '同じレースでそれぞれ判断し、成績を並べる。r1・r2…は同じ決裁者の中で買い方を直した版。</p>'
+            + _kessai_tiles() + '</div>'
             + '<div class="card"><b>決裁者Aの成績</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
-            + '<h2>決裁者C(重ね型・記録だけ)</h2>'
-            + '<div class="card"><b>決め方</b><p class="sub" style="margin:4px 0 0">決裁者Aと同じ提案を採用し、金額に強弱をつける(10/20から)。'
-              '1着専門が頭の艇を市場の1.2倍以上と見ていなければ1/4(1,000円)、見ていれば等倍(4,000円)、'
-              '自信度が採用ライン以上の提案が同じ頭に2つ以上あればさらに2倍。'
-              'そこに足し買いとして、3連単の熱い一点(1点1,000円)と、外の1着専門・インの1着専門(2連単3点・4,000円)を加える。</p>'
-              '<p class="sub" style="margin:6px 0 0">過去2年の作り直し(Aの部分): 今のA 114%・123% → 135%・151%、投資は約半分で儲けは多い</p></div>'
             + '<div class="card"><b>決裁者Cの成績</b><div data-stat="plan:kessaiC"></div><div data-pnl="kessaiC" style="margin-top:6px"></div></div>'
-            + '<h2>決裁者B(柔軟型・記録だけ)</h2>'
-            + '<div class="card"><b>決め方</b><p class="sub" style="margin:4px 0 0">'
-              f'情報部と市場の確率を混ぜて2連単30通りの確率を出し、割安な目を全部買う(頭はいくつでも・{flex.ODDS_MAX:.0f}倍未満・1点{flex.STAKE:,}円)。</p>'
-              f'<p class="sub" style="margin:6px 0 0"><b>r1</b>(10/17〜18): 締切2分前のオッズで割安さ{flex.EV}以上<br>'
-              f'<b>r2</b>(10/19〜): 締切45秒前のオッズを見込みの確定オッズに直して割安さ{flex.EV_DRIFT}以上。'
-              '頭の確率は1着専門で直し、3着が固ければ3連単2点に切り替える</p></div>'
-            + '<div class="card"><b>決裁者Bの成績</b><div data-stat="plan:flex"></div><div data-pnl="flex" style="margin-top:6px"></div></div>'
+            + '<div class="card"><b>判定の予定</b><p class="sub" style="margin:4px 0 0">10/31(14日)と11/17(30日)に、A・Cの成績と社員候補を比べて、'
+              '本命の決裁者と社員の入れ替えを決める。決め方は運用メモに事前に書いてある。</p></div>'
             + '<div class="card"><b>社員候補(記録だけ)</b><p class="sub" style="margin:2px 0 6px">'
               '事前に決めた条件を別の年で確かめて残った買い方。1点1,000円・締切2分前のオッズで判断。成績がよければ社員にする。</p>'
               '<div><b>説D 1-3/1-4</b> <span class="sub">インが堅い(本予想60%以上)時の、8〜12倍で割安な1-3・1-4(2連単)</span></div>'
@@ -1802,10 +1798,57 @@ def kessai_room():
               '<div style="margin-top:8px"><b>裏の穴×1着専門の後押し</b> <span class="sub">決裁者Aが採用した裏の穴のうち、1着専門が頭の艇を'
               '市場の1.2倍以上と見る時だけ買う(45秒前のオッズ)。10/20から。過去2年で166%・193%(今の裏の穴は123%・144%)</span></div>'
               '<div data-stat="plan:uraF"></div></div>'
+            + '<div id="up"></div>')
+    return _org_page("モニター", "/org/monitor.html", body, upcoming=["kessai"])
+
+
+def kessai_room():
+    k = ORG_KESSAI
+    body = (_room_head(k["color"], k["acc"], "決裁者A(自信度型)", "社員の提案を自信度で選んで採用する", back="/org/monitor.html", back_label="モニターの部屋に戻る")
+            + '<h2>決裁者A(自信度型)</h2>'
+            + '<div class="card"><b>決め方</b><p class="sub" style="margin:4px 0 0">'
+              '① 各社員の買い目を頭の艇ごとの「提案」に分け、入った箱の自信度(確定オッズの過去データでの推定回収率)を付ける。印があれば一番細かい印の箱の自信度。<br>'
+              f'② 記録が少ない箱は一つ上の箱の自信度へ寄せる({org_tree.SHRINK}件で半々、一番上は控除率並みの{org_tree.PRIOR:.0%})。<br>'
+              f'③ 同じ結果を取り合う提案(同じ頭の艇の買い目)同士だけを比べ、自信度が一番高い提案を1つ上げる。提案はどれも1回{org_tree.STAKE:,}円にそろえる。<br>'
+              f'④ 上がってきた提案のうち、自信度{org_tree.ADOPT:.0%}以上は全部採用(違う頭なら複数残る)。1つも無ければ見送り。</p>'
+              '<p class="sub" style="margin:6px 0 0"><b>r1</b>(〜10/18): 2026年の表・採用105%・締切2分前のオッズで社員が買い目を作る<br>'
+              f'<b>r2</b>(10/19〜): 2025〜2026年の表・採用{org_tree.ADOPT:.0%}・締切45秒前のオッズを「見込みの確定オッズ」'
+              '(割安に見える目ほど最後に下がる分を割り引いたもの)に直してから、社員が買い目を作り直す</p></div>'
+            + '<div class="card"><b>今日の採用の中身</b> <span class="sub">当たり方のタイプ別(🎯本命型=的中25%以上・⚖️中穴型=8〜25%・💣大穴型=8%未満)</span>'
+              '<div data-stat="kessai-types" style="margin-top:6px"></div></div>'
+            + '<div class="card"><b>決裁者Aの成績</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>決裁者Aが採用したレース</b> <span class="sub">新しい順。✅＝当たった提案</span><div data-stat="kessai-races" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>参考: 社員の提案を全部採用した場合</b><div data-stat="ops"></div><div data-pnl="ops" style="margin-top:6px"></div></div>'
             + '<div id="up"></div>')
-    return _org_page("最終決裁者", "/org/kessai.html", body, upcoming=["kessai"])
+    return _org_page("決裁者A", "/org/kessai.html", body, upcoming=["kessai"])
+
+
+def kessai_c_room():
+    k = ORG_KESSAI
+    body = (_room_head(k["color"], k["acc"], "決裁者C(重ね型・記録だけ)", "Aと同じ採用で、後押しや重なりで金額に強弱をつける", back="/org/monitor.html", back_label="モニターの部屋に戻る")
+            + '<h2>決裁者C(重ね型・記録だけ)</h2>'
+            + '<div class="card"><b>決め方</b><p class="sub" style="margin:4px 0 0">決裁者Aと同じ提案を採用し、金額に強弱をつける(10/20から)。'
+              '1着専門が頭の艇を市場の1.2倍以上と見ていなければ1/4(1,000円)、見ていれば等倍(4,000円)、'
+              '自信度が採用ライン以上の提案が同じ頭に2つ以上あればさらに2倍。'
+              'そこに足し買いとして、3連単の熱い一点(1点1,000円)と、外の1着専門・インの1着専門(2連単3点・4,000円)を加える。</p>'
+              '<p class="sub" style="margin:6px 0 0">過去2年の作り直し(Aの部分): 今のA 114%・123% → 135%・151%、投資は約半分で儲けは多い</p></div>'
+            + '<div class="card"><b>決裁者Cの成績</b><div data-stat="plan:kessaiC"></div><div data-pnl="kessaiC" style="margin-top:6px"></div></div>'
+            + '<div id="up"></div>')
+    return _org_page("決裁者C", "/org/kessai-c.html", body)
+
+
+def kessai_b_room():
+    k = ORG_KESSAI
+    body = (_room_head(k["color"], k["acc"], "決裁者B(柔軟型・記録だけ)", "情報部と市場を混ぜた確率で割安な2連単を全部買う", back="/org/monitor.html", back_label="モニターの部屋に戻る")
+            + '<h2>決裁者B(柔軟型・記録だけ)</h2>'
+            + '<div class="card"><b>決め方</b><p class="sub" style="margin:4px 0 0">'
+              f'情報部と市場の確率を混ぜて2連単30通りの確率を出し、割安な目を全部買う(頭はいくつでも・{flex.ODDS_MAX:.0f}倍未満・1点{flex.STAKE:,}円)。</p>'
+              f'<p class="sub" style="margin:6px 0 0"><b>r1</b>(10/17〜18): 締切2分前のオッズで割安さ{flex.EV}以上<br>'
+              f'<b>r2</b>(10/19〜): 締切45秒前のオッズを見込みの確定オッズに直して割安さ{flex.EV_DRIFT}以上。'
+              '頭の確率は1着専門で直し、3着が固ければ3連単2点に切り替える</p></div>'
+            + '<div class="card"><b>決裁者Bの成績</b><div data-stat="plan:flex"></div><div data-pnl="flex" style="margin-top:6px"></div></div>'
+            + '<div id="up"></div>')
+    return _org_page("決裁者B", "/org/kessai-b.html", body)
 
 
 def node_room(nd, nodes):
@@ -2810,6 +2853,13 @@ def main():
     (OUT / "ops.html").write_text(org_home())
     (OUT / "org").mkdir(exist_ok=True)
     (OUT / "org" / "kessai.html").write_text(kessai_room())
+    (OUT / "org" / "kessai-c.html").write_text(kessai_c_room())
+    (OUT / "org" / "kessai-b.html").write_text(kessai_b_room())
+    (OUT / "org" / "monitor.html").write_text(monitor_room())
+    (OUT / "img").mkdir(exist_ok=True)
+    for f in ("monitor.jpg", "monitor_face.jpg"):
+        if (ROOT / "assets" / f).exists():
+            shutil.copy(ROOT / "assets" / f, OUT / "img" / f)
     for x in ORG_INFO:
         (OUT / "org" / f'{x["id"]}.html').write_text(info_room(x, pick_hi, pick_lo))
     (OUT / "org" / "n").mkdir(exist_ok=True)
