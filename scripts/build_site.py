@@ -729,15 +729,18 @@ def _plan_card(name, pl, result):
     return out
 
 
-def _org_race_html(date, pred, result, bet):
+def _org_race_html(date, pred, result, bet, key=None):
     """レースごとの組織の判断: 決裁者が採用した提案・上がってきた提案(箱・自信度・採用)・結果"""
     plans = {n: pl for n, pl in plans_of(bet).items()
              if not (n in bet_mod.OPS_PLANS + bet_mod.SHADOW_PLANS and pl.get("logic") != bet_mod.OPS_LOGIC)}
+    if key:   # 記録と同じく、45秒前のオッズで作り直した買い目で判断する(決裁者A r2)
+        plans = _kessai_plans(date, key, pred, bet, {n: pl for n, pl in plans.items() if not pl.get("skip")})
     props = org_tree.proposals(plans, pred)
     for pr in props:
         pr["conf"] = org_tree.conf_of(pr, conf_for(date))
         sp = settle(dict(tickets=pr["tickets"], stake=pr["stake"], bet=pr["bet"]), result) if result else None
         pr["ret"] = sp[1] if sp else None
+        pr["paid"] = sp[0] if sp else pr["stake"]   # 返還分を引いた投資
     picked = {(c["leaf"], c["head"]) for c in org_tree.decide(props, conf_for(date), adopt=org_tree.adopt_for(date))}
     w2c = {b["waku"]: i + 1 for i, b in enumerate(pred["boats"])}
 
@@ -757,8 +760,9 @@ def _org_race_html(date, pred, result, bet):
         badge = (f'<span class="lab" style="background:{"#7A5AE0" if ad else "#9aa0a8"}">{"採用" if ad else "不採用"}</span>')
         res = ""
         if pr["ret"] is not None:
-            col = "var(--green)" if pr["ret"] >= pr["stake"] else "var(--red)"
-            res = f'<b style="color:{col}">{"的中" if pr["ret"] else "外れ"} {round(pr["ret"] - pr["stake"]):+,}円</b>'
+            col = "var(--green)" if pr["ret"] >= pr["paid"] else "var(--red)"
+            word = "返還" if pr["paid"] == 0 else ("的中" if pr["ret"] else "外れ")
+            res = f'<b style="color:{col}">{word} {round(pr["ret"] - pr["paid"]):+,}円</b>'
         cc = "var(--green)" if pr["conf"] >= org_tree.adopt_for(date) else "var(--sub)"
         return (f'<div class="boat">{chip(pr["head"])}<div style="flex:1;min-width:0">'
                 f'<div style="display:flex;justify-content:space-between;gap:6px"><span>{badge}<b>{pr["head"]}号艇頭</b> '
@@ -769,7 +773,7 @@ def _org_race_html(date, pred, result, bet):
                 + '</div></div>')
     chosen = [pr for pr in props if (pr["leaf"], pr["head"]) in picked]
     if chosen:
-        st = sum(c["stake"] for c in chosen)
+        st = sum(c["paid"] for c in chosen)
         tot = ""
         if all(c["ret"] is not None for c in chosen):
             ret = round(sum(c["ret"] for c in chosen))
@@ -805,7 +809,7 @@ def bet_page(date, info, pred, races, result, bet):
         cards = "".join(_safe_plan_card(n, pl, result) for n, pl in plans_of(bet).items())
         if pred and date >= ORG_SINCE:
             try:
-                content += _org_race_html(date, pred, result, bet)
+                content += _org_race_html(date, pred, result, bet, f'{info["jcd"]}-{info["race"]:02d}')
             except Exception as e:   # 組織の判断が作れなくても、サイト全体の更新は止めない
                 print(f"組織の判断を作れませんでした({date} {info['jcd']}-{info['race']}): {e!r}")
             content += f'<details class="card"><summary class="sub">資料室: 各プランの買い目カード(旧プランも含む)</summary>{cards}</details>'
@@ -1003,17 +1007,17 @@ def bets_records():
                 for pr in props:
                     sp = settle(dict(tickets=pr["tickets"], stake=pr["stake"], bet=pr["bet"]), result)
                     if sp:
-                        pr["ret"] = sp[1]
+                        pr["ret"], pr["paid"] = sp[1], sp[0]   # 投資は返還分を引いたもの
                         pp.append([pr["leaf"], pr["tags"], sp[0], round(sp[1]), round(org_tree.conf_of(pr, conf_for(date)), 3), pr["head"]])
                 if props:
                     chosen = [pr for pr in org_tree.decide(props, conf_for(date), adopt=org_tree.adopt_for(date)) if "ret" in pr]
-                    st["kessai"] = [sum(c["stake"] for c in chosen), round(sum(c["ret"] for c in chosen))] if chosen else 0
+                    st["kessai"] = [sum(c["paid"] for c in chosen), round(sum(c["ret"] for c in chosen))] if chosen else 0
                     picked = {(c["leaf"], c["head"]) for c in chosen}
                     for x in pp:   # 6つ目: 決裁者に採用されたか
                         x.append(int((x[0], x[5]) in picked))
                         del x[5]
                     # 採用した提案の中身(当たったレースの一覧用): [箱, 頭, 買い目, 投資, 払戻]
-                    st_ka = [[c["leaf"], c["head"], " ".join(f'{t["combo"]} {t["units"] * 100}円' for t in c["tickets"]), c["stake"], round(c["ret"])]
+                    st_ka = [[c["leaf"], c["head"], " ".join(f'{t["combo"]} {t["units"] * 100}円' for t in c["tickets"]), c["paid"], round(c["ret"])]
                              for c in chosen]
             rec = dict(d=date, v=jcd, r=int(race), res=result["combo3t"], pay=int(result["payout3t"]), s=st,
                        t=(preds.get(key) or {}).get("deadline", ""))   # 締切時刻(一覧を時刻順に並べる)
