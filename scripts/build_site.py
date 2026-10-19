@@ -45,14 +45,13 @@ CSS = """
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f1114;--card:#191c21;--tx:#eceef1;--sub:#a1a7b0;--bd:#2a2f37;--ac:#8EC0F2;--off:#22262d;--gain:#5B95EC;--loss:#E8705F;--mark:#4A3D14;--navy:#151f33;--shadow:none;--herobd:#2c3d63;--red:#EE7B7B;--green:#2FA57F}}
 :root[data-theme=dark]{--bg:#0f1114;--card:#191c21;--tx:#eceef1;--sub:#a1a7b0;--bd:#2a2f37;--ac:#8EC0F2;--off:#22262d;--gain:#5B95EC;--loss:#E8705F;--mark:#4A3D14;--navy:#151f33;--shadow:none;--herobd:#2c3d63;--red:#EE7B7B;--green:#2FA57F}
 *{box-sizing:border-box}html{color-scheme:light dark}:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
-body{margin:0;background:var(--bg);color:var(--tx);font-family:'BIZ UDPGothic','Hiragino Sans','Noto Sans JP',sans-serif;line-height:1.65;
+body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic',Meiryo,sans-serif;line-height:1.6;
 -webkit-text-size-adjust:100%}
 a{color:inherit;text-decoration:none}
 header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;background:var(--navy);color:#fff;padding:0 16px;height:48px;font-weight:700;font-size:16px}
 .thm{background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:16px;padding:5px 12px;font:inherit;font-size:12px;font-weight:700;letter-spacing:.02em;cursor:pointer}
-main{max-width:760px;margin:0 auto;padding:10px 14px}h1{font-size:21px;font-weight:700;line-height:1.35;margin:12px 0 8px}
-h2{font-size:16.5px;font-weight:700;margin:22px 0 8px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
-h2::before{content:'';width:4px;height:15px;border-radius:2px;background:var(--hot);align-self:center;flex:none}
+main{max-width:760px;margin:0 auto;padding:10px 14px}h1{font-size:20px;font-weight:700;line-height:1.4;margin:12px 0 8px}
+h2{font-size:16px;font-weight:700;margin:20px 0 8px}
 .sub{color:var(--sub);font-size:13px}.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin:10px 0;box-shadow:var(--shadow)}
 .pc,.dl,.tot-num,.pc-roi,.rno,.nums,.org-stat,.res .sub{font-variant-numeric:tabular-nums}
 .dnav{display:flex;justify-content:space-between;align-items:center;margin:8px 0}.dnav a,.dnav span.x{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:4px 14px;font-size:14px}
@@ -120,7 +119,7 @@ h2::before{content:'';width:4px;height:15px;border-radius:2px;background:var(--h
 .brow>summary{list-style:none;cursor:pointer;display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)}
 .brow>summary::-webkit-details-marker{display:none}.brow[open]>summary{border-bottom:0}
 .brow .nm{flex:1;min-width:0;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bar{width:72px;height:8px;border-radius:4px;background:var(--off);flex:none;position:relative}.bar i{display:block;height:100%;background:var(--hot);border-radius:4px}.bar u{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--tx);opacity:.55}.pc small{display:block;font-weight:500;font-size:10px;color:var(--sub);white-space:nowrap}.hero{background:var(--navy);color:#fff;border:1px solid var(--herobd);border-radius:14px;padding:14px 14px 12px;margin:10px 0}.hero .hl{font-size:22px;font-weight:800;line-height:1.3}.hero .hs{font-size:13px;opacity:.85;margin-top:4px}.stack{display:flex;height:30px;border-radius:8px;overflow:hidden;margin:12px 0 4px;background:#fff2}.stack span{display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;min-width:0;overflow:hidden}.hero .cap{font-size:11px;opacity:.7}.res{display:flex;gap:8px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--bd)}.res:last-child{border:0}.res .t{flex:1;min-width:0}.res .t b{font-size:14px}.ok{background:var(--green);color:#fff;border-radius:6px;padding:2px 7px;font-size:12px;font-weight:700;white-space:nowrap}.ng{color:var(--sub);font-size:12px;white-space:nowrap}
+.bar{width:72px;height:8px;border-radius:4px;background:var(--off);flex:none;position:relative}.bar i{display:block;height:100%;background:var(--hot);border-radius:4px}.bar u{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--tx);opacity:.55}.pc small{display:block;font-weight:500;font-size:10px;color:var(--sub);white-space:nowrap}.hero{background:var(--navy);color:#fff;border:1px solid var(--herobd);border-radius:14px;padding:14px 14px 12px;margin:10px 0}.hero .hl{font-size:21px;font-weight:700;line-height:1.3}.hero .hs{font-size:13px;opacity:.85;margin-top:4px}.stack{display:flex;height:30px;border-radius:8px;overflow:hidden;margin:12px 0 4px;background:#fff2}.stack span{display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;min-width:0;overflow:hidden}.hero .cap{font-size:11px;opacity:.7}.res{display:flex;gap:8px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--bd)}.res:last-child{border:0}.res .t{flex:1;min-width:0}.res .t b{font-size:14px}.ok{background:var(--green);color:#fff;border-radius:6px;padding:2px 7px;font-size:12px;font-weight:700;white-space:nowrap}.ng{color:var(--sub);font-size:12px;white-space:nowrap}
 .pc{width:38px;text-align:right;font-weight:800;font-size:14px;flex:none}.bdet{padding:0 0 8px 38px;border-bottom:1px solid var(--bd);font-size:12.5px}
 .rl{display:inline-block;font-size:10.5px;padding:0 5px;border-radius:5px;color:#fff;margin-left:3px;vertical-align:1px}
 .btnrow{display:flex;gap:8px;margin:10px 0}.btnrow a{flex:1;text-align:center;padding:12px 0;border-radius:12px;box-shadow:var(--shadow);background:var(--card);border:1px solid var(--bd);font-weight:700;font-size:13.5px}
@@ -140,8 +139,7 @@ def page(title, body, desc="", path="", noindex=False):
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(title)}｜{CFG['site_name']}</title><meta name="description" content="{html.escape(desc)}">
 <link rel="canonical" href="{CFG['base_url']}{path}"><meta property="og:title" content="{html.escape(title)}">
-<meta property="og:site_name" content="{CFG['site_name']}">{gsc}<meta name="theme-color" content="#1B2A4A"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap" rel="stylesheet">
+<meta property="og:site_name" content="{CFG['site_name']}">{gsc}<meta name="theme-color" content="#1B2A4A">
 <style>{CSS}</style>{CFG.get('ad_head', '')}</head><body>
 <header><a href="/">{CFG['site_name']}</a></header><main>{body}</main>
 <footer>{CFG['site_name']}は、展示の進入をもとにデータから見た1マークの展開の傾向を掲載しています。着順を保証するものではありません。舟券の購入は20歳から。<br>
