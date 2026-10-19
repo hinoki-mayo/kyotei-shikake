@@ -919,6 +919,7 @@ def quick_upcoming(now=None):
 ORG_CONF = org_tree.load_confidence()
 
 
+KESSAI_C_SINCE = "20261020"   # 決裁者C(重ね型・記録だけ)を始めた日
 OUTW_SINCE = "20261020"   # 外の1着専門の記録を始めた日
 URA_M_SINCE = "20261020"   # 裏の穴×来そう一致の記録を始めた日(10/19に過去2年で見つけた)
 KESSAI_R2_SINCE = "20261019"   # 決裁者A r2: 2年分の表・採用103%・45秒前のオッズを見込みの確定オッズに直して判断
@@ -1008,6 +1009,7 @@ def bets_records():
                                 t=(pred or {}).get("deadline", "")))
                 continue
             st_ka = None
+            c_a = None   # 決裁者C(重ね型)の、Aの採用を強弱つけて買った分 [投資, 払戻]
             if pred and date >= ORG_SINCE:   # 予想組織: 頭ごとの提案の記録と、決裁者A(自信度型)の判断
                 live_plans = {n: pl for n, pl in plans.items() if isinstance(st.get(n), list)}
                 live_plans = _kessai_plans(date, key, pred, b, live_plans)
@@ -1023,6 +1025,7 @@ def bets_records():
                     st["kessai"] = [sum(c["paid"] for c in chosen), round(sum(c["ret"] for c in chosen))] if chosen else 0
                     # 社員候補(記録だけ・10/20から): 裏の穴の頭が「イン以外で一番来そうな艇」(情報部の1着確率)と同じ時
                     tri = pred.get("tri")
+                    wf = None
                     if tri:
                         p1 = [sum(tri[bet_mod.PI[(i, j, k)]] for j in range(6) for k in range(6) if len({i, j, k}) == 3)
                               for i in range(6)]
@@ -1038,6 +1041,16 @@ def bets_records():
                         if wf:
                             fz = [c for c in chosen if c["leaf"].startswith("out.") and wf[c["course"] - 1] >= 1.2]
                             st["uraF"] = [sum(c["paid"] for c in fz), round(sum(c["ret"] for c in fz))] if fz else 0
+                    if date >= KESSAI_C_SINCE and chosen:
+                        # 決裁者C(重ね型): 1着専門の後押し(比1.2以上)が無ければ1/4、あれば等倍、自信度が採用ライン以上の提案が同じ頭に2つ以上なら×2
+                        adopt = org_tree.adopt_for(date)
+                        c_a = [0, 0]
+                        for c in chosen:
+                            f = 1.0 if wf and wf[c["course"] - 1] >= 1.2 else 0.25
+                            gv = sum(1 for p in props if p.get("course") == c.get("course") and org_tree.conf_of(p, conf_for(date)) >= adopt)
+                            f *= 2 if gv >= 2 else 1
+                            c_a[0] += c["paid"] * f
+                            c_a[1] += c["ret"] * f
                     picked = {(c["leaf"], c["head"]) for c in chosen}
                     for x in pp:   # 6つ目: 決裁者に採用されたか
                         x.append(int((x[0], x[5]) in picked))
@@ -1045,6 +1058,9 @@ def bets_records():
                     # 採用した提案の中身(当たったレースの一覧用): [箱, 頭, 買い目, 投資, 払戻]
                     st_ka = [[c["leaf"], c["head"], " ".join(f'{t["combo"]} {t["units"] * 100}円' for t in c["tickets"]), c["paid"], round(c["ret"])]
                              for c in chosen]
+            if date >= KESSAI_C_SINCE:   # 決裁者C = Aの採用を強弱つけた分 + 足し買い(熱い一点・外/インの1着専門)
+                parts = ([c_a] if c_a and c_a[0] else []) + [st[k] for k in ("hot3", "outW", "inW") if isinstance(st.get(k), list)]
+                st["kessaiC"] = [round(sum(a for a, _ in parts)), round(sum(r for _, r in parts))] if parts else 0
             rec = dict(d=date, v=jcd, r=int(race), res=result["combo3t"], pay=int(result["payout3t"]), s=st,
                        t=(preds.get(key) or {}).get("deadline", ""))   # 締切時刻(一覧を時刻順に並べる)
             if st_ka:
@@ -1557,8 +1573,8 @@ def _org_json():
         meta = {k: v for k, v in json.loads(org_tree.CONF_P.read_text()).items() if k != "nodes"}
     except Exception:
         pass
-    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE, "outW": OUTW_SINCE, "inW": OUTW_SINCE, "uraF": OUTW_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
-                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍", "outW": "外の1着専門(3・4コース頭)", "inW": "インの1着専門(嫌われたイン)", "uraF": "裏の穴×1着専門の後押し"}, nodes=_tree_nodes(), confMeta=meta)
+    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE, "outW": OUTW_SINCE, "inW": OUTW_SINCE, "uraF": OUTW_SINCE, "kessaiC": KESSAI_C_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
+                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍", "outW": "外の1着専門(3・4コース頭)", "inW": "インの1着専門(嫌われたイン)", "uraF": "裏の穴×1着専門の後押し", "kessaiC": "決裁者C(重ね型・記録だけ)"}, nodes=_tree_nodes(), confMeta=meta)
 
 
 ORG_JS = r"""
@@ -1722,6 +1738,7 @@ def org_home():
             + f'<a class="org-tile org-boss" href="/org/kessai.html">{robot_svg(k["color"], k["acc"], 40)}'
               f'<div><b>{k["name"]}</b>'
               '<span class="org-stat">決裁者A(自信度型) <span data-stat="kessai"></span></span>'
+              '<span class="org-stat">決裁者C(重ね型・記録だけ) <span data-stat="plan:kessaiC"></span></span>'
               '<span class="org-stat">決裁者B(柔軟型・記録だけ) <span data-stat="plan:flex"></span></span>'
               '<span class="org-stat">Aの再生(確定オッズ) <span data-stat="kessai_r"></span></span>'
               '<span class="org-stat">v0(全部採用) <span data-stat="ops"></span></span></div></a>'
@@ -1751,6 +1768,13 @@ def kessai_room():
             + '<div class="card"><b>今日の採用の中身</b> <span class="sub">当たり方のタイプ別(🎯本命型=的中25%以上・⚖️中穴型=8〜25%・💣大穴型=8%未満)</span>'
               '<div data-stat="kessai-types" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>決裁者Aの成績</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
+            + '<h2>決裁者C(重ね型・記録だけ)</h2>'
+            + '<div class="card"><b>決め方</b><p class="sub" style="margin:4px 0 0">決裁者Aと同じ提案を採用し、金額に強弱をつける(10/20から)。'
+              '1着専門が頭の艇を市場の1.2倍以上と見ていなければ1/4(1,000円)、見ていれば等倍(4,000円)、'
+              '自信度が採用ライン以上の提案が同じ頭に2つ以上あればさらに2倍。'
+              'そこに足し買いとして、3連単の熱い一点(1点1,000円)と、外の1着専門・インの1着専門(2連単3点・4,000円)を加える。</p>'
+              '<p class="sub" style="margin:6px 0 0">過去2年の作り直し(Aの部分): 今のA 114%・123% → 135%・151%、投資は約半分で儲けは多い</p></div>'
+            + '<div class="card"><b>決裁者Cの成績</b><div data-stat="plan:kessaiC"></div><div data-pnl="kessaiC" style="margin-top:6px"></div></div>'
             + '<h2>決裁者B(柔軟型・記録だけ)</h2>'
             + '<div class="card"><b>決め方</b><p class="sub" style="margin:4px 0 0">'
               f'情報部と市場の確率を混ぜて2連単30通りの確率を出し、割安な目を全部買う(頭はいくつでも・{flex.ODDS_MAX:.0f}倍未満・1点{flex.STAKE:,}円)。</p>'
