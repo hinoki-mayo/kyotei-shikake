@@ -1086,6 +1086,8 @@ def bets_records():
                        t=(preds.get(key) or {}).get("deadline", ""))   # 締切時刻(一覧を時刻順に並べる)
             if st_ka:
                 rec["ka"] = st_ka
+                if result.get("combo2t") and result.get("payout2t") and not pd.isna(result.get("payout2t")):
+                    rec["r2"], rec["p2"] = result["combo2t"], int(result["payout2t"])   # 2連単で買った提案の払戻が分かるように
             if fx_rec:
                 rec["fx"] = fx_rec
             p2 = plans.get("pick2")
@@ -1659,7 +1661,7 @@ function kessaiRaces(){
     return `<div style="border-top:1px solid var(--bd);padding:6px 0"><div style="display:flex;justify-content:space-between">`+
       `<a href="/${x.d}/${x.v}/${rr}-bet.html"><b>${+x.d.slice(4,6)}/${+x.d.slice(6)} ${VN[x.v]||x.v} ${x.r}R</b></a>`+
       `<b style="color:${rt>=st?'var(--green)':'var(--red)'}">${sg(rt-st)}</b></div>`+
-      `<div class="sub">結果 ${x.res}（3連単 ${yen(x.pay)}円）</div>`+
+      `<div class="sub">結果 ${x.res}（3連単 ${yen(x.pay)}円${x.r2?`・2連単 ${x.r2} ${yen(x.p2)}円`:''}）</div>`+
       x.ka.map(k=>`<div class="sub">${k[4]>0?'✅':'・'} ${typeOf(k[0],[])} ${ORG.labels[k[0].split('.').pop()]||k[0]}｜${k[2]}${k[4]>0?`｜払戻 ${yen(k[4])}円`:''}</div>`).join('')+
       `</div>`;}).join('')+
     (rows.length>KR_N?`<div style="text-align:center;margin-top:6px"><a href="#" data-kr="more">もっと見る</a></div>`:'');
