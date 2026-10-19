@@ -12,7 +12,8 @@ import bet
 from common import DATA
 
 CONF_P = DATA / "org" / "confidence.json"
-ORG_PLANS = tuple(bet.OPS_PLANS) + tuple(bet.SHADOW_PLANS) + ("pick2",)
+RETIRED = ("pick21", "pick21t", "pick2", "pick2tan")   # 10/19: 2コースなどの箱で一度も採用されず記録だけになっていた社員を組織から外す(記録は続ける)
+ORG_PLANS = tuple(p for p in tuple(bet.OPS_PLANS) + tuple(bet.SHADOW_PLANS) if p not in RETIRED)
 PRIOR = 0.75   # 一番上(何も分からない時)の回収率の見込み＝控除率並み
 SHRINK = 50    # 親へ寄せる強さ(レース数換算)。提案がこの数たまると自分の数字と親の数字が半々
 STAKE = 4000   # 提案1回の金額。社員ごとの買い方の割合はそのままで、40口を整数で配り直して1回4,000円にそろえる
