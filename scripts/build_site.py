@@ -633,14 +633,29 @@ def settle(plan, result):
     2連単の買い方(bet="2t")は2連単の結果で精算する"""
     if not plan or plan.get("skip") or not result:
         return None
+    gone = returned_boats(result)
+    keep = [t for t in plan["tickets"] if not gone & {int(x) for x in t["combo"].split("-")}]
+    refund = sum(t["units"] for t in plan["tickets"]) * 100 - sum(t["units"] for t in keep) * 100
     ret = 0
-    for kind in {t.get("bet", plan.get("bet", "3t")) for t in plan["tickets"]}:   # 買い目ごとに券種が違うプランもある
+    for kind in {t.get("bet", plan.get("bet", "3t")) for t in keep}:   # 買い目ごとに券種が違うプランもある
         combo, pay = result.get(f"combo{kind}"), result.get(f"payout{kind}")
         if not combo or pay is None or pd.isna(pay):
             return None
-        ret += sum(t["units"] * int(pay) for t in plan["tickets"]
+        ret += sum(t["units"] * int(pay) for t in keep
                    if t.get("bet", plan.get("bet", "3t")) == kind and t["combo"] == combo)
-    return plan["stake"], ret
+    return plan["stake"] - refund, ret   # 返還された目は、買わなかったのと同じ扱い(投資から引く)
+
+
+RETURN_MARKS = ("F", "L", "K", "欠")   # フライング・出遅れ・欠場 → その艇を含む舟券は返還
+
+
+def returned_boats(result):
+    """返還になった艇の枠番の集合(フライング・出遅れ・欠場。結果に名前が無い艇も欠場とみなす)"""
+    bw = result.get("by_waku") or {}
+    out = {int(w) for w, r in bw.items() if str(r).strip().startswith(RETURN_MARKS)}
+    if len(bw) >= 3:
+        out |= {w for w in range(1, 7) if w not in {int(x) for x in bw}}
+    return out
 
 
 TRIAL_NOTE = ('<div class="card" style="border:2px dashed var(--hot)"><b style="color:var(--hot)">試験運用中</b>'
