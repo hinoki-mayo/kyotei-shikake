@@ -1031,6 +1031,13 @@ def bets_records():
                         st["uraM"] = [sum(c["paid"] for c in mt), round(sum(c["ret"] for c in mt))] if mt else 0
                         st["uraM2"] = ([sum(c["paid"] for c in chosen + mt), round(sum(c["ret"] for c in chosen + mt))]
                                        if chosen else 0)
+                        # 社員候補(記録だけ・10/20から): 裏の穴のうち、1着専門が頭を市場の1.2倍以上と見る時だけ(45秒前のオッズ)
+                        o2k = {c: v for c, v in zip(bet_mod.ODDS2_ORDER, ((b.get("stages") or {}).get("直前") or {}).get("o2") or []) if v}
+                        lvk = _entries(date).get(key)
+                        wf = shadow_staff.win_ratio(pred, o2k, lvk if isinstance(lvk, dict) else None) if o2k else None
+                        if wf:
+                            fz = [c for c in chosen if c["leaf"].startswith("out.") and wf[c["course"] - 1] >= 1.2]
+                            st["uraF"] = [sum(c["paid"] for c in fz), round(sum(c["ret"] for c in fz))] if fz else 0
                     picked = {(c["leaf"], c["head"]) for c in chosen}
                     for x in pp:   # 6つ目: 決裁者に採用されたか
                         x.append(int((x[0], x[5]) in picked))
@@ -1550,8 +1557,8 @@ def _org_json():
         meta = {k: v for k, v in json.loads(org_tree.CONF_P.read_text()).items() if k != "nodes"}
     except Exception:
         pass
-    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE, "outW": OUTW_SINCE, "inW": OUTW_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
-                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍", "outW": "外の1着専門(3・4コース頭)", "inW": "インの1着専門(嫌われたイン)"}, nodes=_tree_nodes(), confMeta=meta)
+    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE, "outW": OUTW_SINCE, "inW": OUTW_SINCE, "uraF": OUTW_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
+                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍", "outW": "外の1着専門(3・4コース頭)", "inW": "インの1着専門(嫌われたイン)", "uraF": "裏の穴×1着専門の後押し"}, nodes=_tree_nodes(), confMeta=meta)
 
 
 ORG_JS = r"""
@@ -1767,7 +1774,10 @@ def kessai_room():
               '<div data-stat="plan:outW"></div>'
               '<div style="margin-top:8px"><b>インの1着専門(嫌われたイン)</b> <span class="sub">1着専門がインの1着確率を市場の1.7倍以上と見る時、'
               'インを頭に2連単3点・計4,000円(2着は2着専門の上位3艇、オッズに合わせて配分)。10/20から。年をまたいだ確かめで259%・191%</span></div>'
-              '<div data-stat="plan:inW"></div></div>'
+              '<div data-stat="plan:inW"></div>'
+              '<div style="margin-top:8px"><b>裏の穴×1着専門の後押し</b> <span class="sub">決裁者Aが採用した裏の穴のうち、1着専門が頭の艇を'
+              '市場の1.2倍以上と見る時だけ買う(45秒前のオッズ)。10/20から。過去2年で166%・193%(今の裏の穴は123%・144%)</span></div>'
+              '<div data-stat="plan:uraF"></div></div>'
             + '<div class="card"><b>決裁者Aが採用したレース</b> <span class="sub">新しい順。✅＝当たった提案</span><div data-stat="kessai-races" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>参考: 社員の提案を全部採用した場合</b><div data-stat="ops"></div><div data-pnl="ops" style="margin-top:6px"></div></div>'
             + '<div id="up"></div>')
