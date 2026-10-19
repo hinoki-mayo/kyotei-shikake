@@ -856,6 +856,10 @@ def _kessai_plans(date, key, pred, b, plans):
     lv = _entries(date).get(key)
     try:
         made = bet_mod.make_bet(pred, o3f, o2f, date, lv if isinstance(lv, dict) else None)["plans"]
+        # 外の1着専門は、45秒前と確定で「1着専門÷市場」がほぼ変わらない(10/17〜19で中央1.005倍)ので、45秒前のオッズそのままで判断する
+        made["pickwin"] = dict(skip=True, bet="2t") if date < KESSAI_R3_SINCE else bet_mod._pickwin(pred, {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s45["o2"]) if v},
+                                            lv if isinstance(lv, dict) else None)
+        made["pickwin"]["logic"] = bet_mod.OPS_LOGIC
         return {n: pl for n, pl in made.items() if n in org_tree.ORG_PLANS and not pl.get("skip")}
     except Exception as e:
         print(f"決裁者Aの作り直しに失敗({date} {key}): {e!r}")
@@ -927,6 +931,7 @@ def quick_upcoming(now=None):
 ORG_CONF = org_tree.load_confidence()
 
 
+KESSAI_R3_SINCE = "20261020"   # 決裁者A r3: 外の1着専門を社員に入れた日
 KESSAI_C_SINCE = "20261020"   # 決裁者C(重ね型・記録だけ)を始めた日
 OUTW_SINCE = "20261020"   # 外の1着専門の記録を始めた日
 URA_M_SINCE = "20261020"   # 裏の穴×来そう一致の記録を始めた日(10/19に過去2年で見つけた)
@@ -1070,7 +1075,7 @@ def bets_records():
                     st_ka = [[c["leaf"], c["head"], " ".join(f'{t["combo"]} {t["units"] * 100}円' for t in c["tickets"]), c["paid"], round(c["ret"])]
                              for c in chosen]
             if date >= KESSAI_C_SINCE:   # 決裁者C = Aの採用を強弱つけた分 + 足し買い(熱い一点・外/インの1着専門)
-                parts = ([c_a] if c_a and c_a[0] else []) + [st[k] for k in ("hot3", "outW", "inW") if isinstance(st.get(k), list)]
+                parts = ([c_a] if c_a and c_a[0] else []) + [st[k] for k in ("hot3", "inW") if isinstance(st.get(k), list)]   # 外の1着専門は10/20からAの社員(pickwin)なので足し買いにしない
                 st["kessaiC"] = [round(sum(a for a, _ in parts)), round(sum(r for _, r in parts))] if parts else 0
             rec = dict(d=date, v=jcd, r=int(race), res=result["combo3t"], pay=int(result["payout3t"]), s=st,
                        t=(preds.get(key) or {}).get("deadline", ""))   # 締切時刻(一覧を時刻順に並べる)
@@ -1538,9 +1543,9 @@ GROUP_COLOR = {"in": "#2F6BD8", "in.B": "#2F6BD8", "in.A": "#5B8DEF",
 TREE_SKELETON = {
     "in.B": ["pickbin", "pickbinc", "pickbint", "pickbinx", "pickin", "pick6a", "pickfav", "pickgen", "sankabin", "sankagap"],
     "in.A": ["pickin", "pick6a", "pickfav", "pickgen", "sankagap"],
-    "out.c2": ["pickura", "pick21", "pick21t", "pick2tan", "pick2", "pickgen", "pickoutfav"],
-    "out.c34": ["pickura", "pick2tan", "pick2", "pickgen", "pickoutfav"],
-    "out.c56": ["pickura", "pick2tan", "pick2", "pickgen", "pickoutfav"],
+    "out.c2": ["pickura", "pickgen", "pickoutfav"],
+    "out.c34": ["pickura", "pickwin", "pickgen", "pickoutfav"],
+    "out.c56": ["pickura", "pickgen", "pickoutfav"],
 }
 URA_TAGS = {"out.c2": ["tagM", "tagQ"], "out.c34": ["tagM", "tagQ", "tagW"], "out.c56": ["tagM", "tagQ"]}
 
@@ -1826,8 +1831,10 @@ def kessai_room():
               f'③ 同じ結果を取り合う提案(同じ頭の艇の買い目)同士だけを比べ、自信度が一番高い提案を1つ上げる。提案はどれも1回{org_tree.STAKE:,}円にそろえる。<br>'
               f'④ 上がってきた提案のうち、自信度{org_tree.ADOPT:.0%}以上は全部採用(違う頭なら複数残る)。1つも無ければ見送り。</p>'
               '<p class="sub" style="margin:6px 0 0"><b>r1</b>(〜10/18): 2026年の表・採用105%・締切2分前のオッズで社員が買い目を作る<br>'
-              f'<b>r2</b>(10/19〜): 2025〜2026年の表・採用{org_tree.ADOPT:.0%}・締切45秒前のオッズを「見込みの確定オッズ」'
-              '(割安に見える目ほど最後に下がる分を割り引いたもの)に直してから、社員が買い目を作り直す</p></div>'
+              f'<b>r2</b>(10/19): 2025〜2026年の表・採用{org_tree.ADOPT:.0%}・締切45秒前のオッズを「見込みの確定オッズ」'
+              '(割安に見える目ほど最後に下がる分を割り引いたもの)に直してから、社員が買い目を作り直す<br>'
+              '<b>r3</b>(10/20〜): 3〜4コースの箱に社員「外の1着専門」(1着専門が市場の1.5倍以上と見る3・4コースの艇を頭に2連単3点)を入れ、'
+              '2コースなどの箱で一度も採用されなかった4人(2-1・2-1の3連単・2連単・外の2連単)を組織から外す</p></div>'
             + '<div class="card"><b>今日の採用の中身</b> <span class="sub">当たり方のタイプ別(🎯本命型=的中25%以上・⚖️中穴型=8〜25%・💣大穴型=8%未満)</span>'
               '<div data-stat="kessai-types" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>決裁者Aの成績</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
@@ -1844,7 +1851,7 @@ def kessai_c_room():
             + '<div class="card"><b>決め方</b><p class="sub" style="margin:4px 0 0">決裁者Aと同じ提案を採用し、金額に強弱をつける(10/20から)。'
               '1着専門が頭の艇を市場の1.2倍以上と見ていなければ1/4(1,000円)、見ていれば等倍(4,000円)、'
               '自信度が採用ライン以上の提案が同じ頭に2つ以上あればさらに2倍。'
-              'そこに足し買いとして、3連単の熱い一点(1点1,000円)と、外の1着専門・インの1着専門(2連単3点・4,000円)を加える。</p>'
+              'そこに足し買いとして、3連単の熱い一点(1点1,000円)と、インの1着専門(2連単3点・4,000円)を加える(外の1着専門は10/20からAの社員)。</p>'
               '<p class="sub" style="margin:6px 0 0">過去2年の作り直し(Aの部分): 今のA 114%・123% → 135%・151%、投資は約半分で儲けは多い</p></div>'
             + '<div class="card"><b>決裁者Cの成績</b><div data-stat="plan:kessaiC"></div><div data-pnl="kessaiC" style="margin-top:6px"></div></div>'
             + '<div id="up"></div>')

@@ -84,7 +84,7 @@ PLANS = {"balance": "バランス", "in_hit": "イン・的中重視", "in_ev": 
          "pick6a": "6コースだけA級・2連単(立説中)", "pick21": "2差し1残し・2連単2-1(立説中)",
          "pick21t": "2差し1残し・3連単2-1-□(立説中)", "pickbinx": "B級イン・絞り込み(立説中)",
          "pickura": "B級イン・裏の穴(立説中)", "pickbinc": "B級イン・凪で強敵なし(立説中)", "pickbint": "B級イン・凪で展示1位(立説中)",
-         "pickgen": "一般職・市場が軽く見る艇(立説中)", "pickfav": "イン頭・軽視された2着(立説中)", "pickoutfav": "外の本命(立説中)",
+         "pickgen": "一般職・市場が軽く見る艇(立説中)", "pickfav": "イン頭・軽視された2着(立説中)", "pickoutfav": "外の本命(立説中)", "pickwin": "外の1着専門(3・4コース頭)",
          "sankabin": "参加枠・自信のB級イン", "sankagap": "参加枠・市場より強いイン"}
 PICK2_NIGE_MAX = 0.22   # pressedの中でもこれ未満だけ対象(実オッズ検証: 頻度と回収率のバランスで22%に)
 PICK2_MIN_ODDS = 2.25   # 5分前時点オッズなので、損益分岐の2倍より変動分の余裕を見て高め
@@ -117,7 +117,7 @@ PICKBIN_UNITS = (16, 24)   # 2着の確率1位・2位に何口ずつ(合計4,000
 PICKBIN_LOGIC_SINCE = "20261014"   # 運用タブの集計開始日(実際の区切りはOPS_LOGICの印)
 OPS_PLANS = ("pickura", "pickbin")   # 運用ダッシュボードに出すプラン(10/16: 逆張りを立説中へ下げ、裏の穴を上げた)
 SANKA_PLANS = ("sankabin", "sankagap")   # 参加枠(当たりやすく負けがゆるい買い目を楽しむ用。総合収支・決裁者とは別に集計)
-SHADOW_PLANS = ("pickbinc", "pickbint", "pickbinx", "pickin", "pick21", "pick21t", "pick6a", "pick2tan", "pickgen", "pickfav", "pickoutfav") + SANKA_PLANS   # 立説中(総合収支に含めない)。優先度の高い順
+SHADOW_PLANS = ("pickbinc", "pickbint", "pickbinx", "pickin", "pick21", "pick21t", "pick6a", "pick2tan", "pickgen", "pickfav", "pickoutfav", "pickwin") + SANKA_PLANS   # 立説中(総合収支に含めない)。優先度の高い順
                     # (外・2連単は6/1〜10/11の実オッズで232点・89%だったので10/15に運用から立説中へ下げた)
 PICK6A_UNITS = (24, 36)      # 6コースだけA級: 2着の確率1位・2位に何口ずつ(合計6,000円)
 PICK6A_LOGIC_SINCE = "20261014"
@@ -905,6 +905,7 @@ def make_bet(pred, odds_w, odds2_w=None, date=None, live=None):
     out["pickgen"] = _pickgen(pred, odds_c, odds2_w, waku, date, live)
     out["pickfav"] = _pickfav(pred, odds2_w, waku, odds_c)
     out["pickoutfav"] = _pickoutfav(pred, odds_c, odds2_w, waku)
+    out["pickwin"] = _pickwin(pred, odds2_w, live)
     out["sankabin"] = _sanka(pred, odds_c, odds2_w, waku, "sankabin")
     out["sankagap"] = _sanka(pred, odds_c, odds2_w, waku, "sankagap")
     for name in OPS_PLANS + SHADOW_PLANS:   # 運用プランには今のロジックの印を付ける(集計はこの印があるものだけ)
@@ -912,6 +913,24 @@ def make_bet(pred, odds_w, odds2_w=None, date=None, live=None):
     # 締切前オッズそのもの(公式表の並び)も残す。締切時オッズとの差の分析用
     raw = [odds_w.get(c) for c in ODDS_ORDER]
     return dict(plans=out, odds=raw, cond=_conditions(pred, waku))
+
+
+def _pickwin(pred, odds2_w, live=None):
+    """外の1着専門(10/20から組織の社員): 3・4コースの艇で、1着専門の1着確率が市場の1.5倍以上の時、その艇を頭に
+    2連単3点(2着は2着専門の上位3艇、オッズに合わせて配分・計4,000円)。年をまたいだ確かめ(確定オッズ)で160%・149%"""
+    if not odds2_w:
+        return dict(skip=True, bet="2t")
+    try:
+        import shadow_staff
+        tks = shadow_staff.out_win(pred, odds2_w, live)
+    except Exception:
+        tks = []
+    if not tks:
+        return dict(skip=True, bet="2t")
+    heads = sorted({int(t["combo"].split("-")[0]) for t in tks})
+    return dict(skip=False, bet="2t", head=heads[0], himo=None, stake=sum(t["units"] for t in tks) * 100,
+                heads=[dict(head=h, tags=[]) for h in heads],
+                scenario="1着専門が市場より高く見ている" + "・".join(f"{h}号艇" for h in heads) + "が勝つ展開", tickets=tks)
 
 
 def _exacta_top1(pred, waku):
