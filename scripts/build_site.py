@@ -45,15 +45,15 @@ CSS = """
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f1114;--card:#191c21;--tx:#eceef1;--sub:#a1a7b0;--bd:#2a2f37;--ac:#8EC0F2;--off:#22262d;--gain:#5B95EC;--loss:#E8705F;--mark:#4A3D14;--navy:#151f33;--shadow:none;--herobd:#2c3d63;--red:#EE7B7B;--green:#2FA57F}}
 :root[data-theme=dark]{--bg:#0f1114;--card:#191c21;--tx:#eceef1;--sub:#a1a7b0;--bd:#2a2f37;--ac:#8EC0F2;--off:#22262d;--gain:#5B95EC;--loss:#E8705F;--mark:#4A3D14;--navy:#151f33;--shadow:none;--herobd:#2c3d63;--red:#EE7B7B;--green:#2FA57F}
 *{box-sizing:border-box}html{color-scheme:light dark}:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
-body{margin:0;background:var(--bg);color:var(--tx);font-family:'Hiragino Sans','Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;line-height:1.65;
-font-feature-settings:"palt";letter-spacing:.02em;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:'BIZ UDPGothic','Hiragino Sans','Noto Sans JP',sans-serif;line-height:1.65;
+-webkit-text-size-adjust:100%}
 a{color:inherit;text-decoration:none}
-header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;background:var(--navy);color:#fff;padding:0 16px;height:48px;font-weight:800;letter-spacing:.06em}
+header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;background:var(--navy);color:#fff;padding:0 16px;height:48px;font-weight:700;font-size:16px}
 .thm{background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:16px;padding:5px 12px;font:inherit;font-size:12px;font-weight:700;letter-spacing:.02em;cursor:pointer}
-main{max-width:760px;margin:0 auto;padding:10px 14px}h1{font-size:21px;font-weight:800;line-height:1.35;margin:12px 0 8px;letter-spacing:.03em}
-h2{font-size:16.5px;font-weight:800;margin:22px 0 8px;letter-spacing:.03em;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+main{max-width:760px;margin:0 auto;padding:10px 14px}h1{font-size:21px;font-weight:700;line-height:1.35;margin:12px 0 8px}
+h2{font-size:16.5px;font-weight:700;margin:22px 0 8px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
 h2::before{content:'';width:4px;height:15px;border-radius:2px;background:var(--hot);align-self:center;flex:none}
-.sub{color:var(--sub);font-size:13px;letter-spacing:.01em}.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin:10px 0;box-shadow:var(--shadow)}
+.sub{color:var(--sub);font-size:13px}.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin:10px 0;box-shadow:var(--shadow)}
 .pc,.dl,.tot-num,.pc-roi,.rno,.nums,.org-stat,.res .sub{font-variant-numeric:tabular-nums}
 .dnav{display:flex;justify-content:space-between;align-items:center;margin:8px 0}.dnav a,.dnav span.x{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:4px 14px;font-size:14px}
 .dnav span.x{opacity:.35}
@@ -140,7 +140,8 @@ def page(title, body, desc="", path="", noindex=False):
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>{html.escape(title)}｜{CFG['site_name']}</title><meta name="description" content="{html.escape(desc)}">
 <link rel="canonical" href="{CFG['base_url']}{path}"><meta property="og:title" content="{html.escape(title)}">
-<meta property="og:site_name" content="{CFG['site_name']}">{gsc}<meta name="theme-color" content="#1B2A4A">
+<meta property="og:site_name" content="{CFG['site_name']}">{gsc}<meta name="theme-color" content="#1B2A4A"><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&display=swap" rel="stylesheet">
 <style>{CSS}</style>{CFG.get('ad_head', '')}</head><body>
 <header><a href="/">{CFG['site_name']}</a></header><main>{body}</main>
 <footer>{CFG['site_name']}は、展示の進入をもとにデータから見た1マークの展開の傾向を掲載しています。着順を保証するものではありません。舟券の購入は20歳から。<br>
