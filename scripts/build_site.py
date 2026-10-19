@@ -134,7 +134,7 @@ def page(title, body, desc="", path="", noindex=False):
 <meta property="og:site_name" content="{CFG['site_name']}"><style>{CSS}</style>{CFG.get('ad_head', '')}</head><body>
 <header><a href="/">{CFG['site_name']}</a></header><main>{body}</main>
 <footer>{CFG['site_name']}は、展示の進入をもとにデータから見た1マークの展開の傾向を掲載しています。着順を保証するものではありません。舟券の購入は20歳から。<br>
-<a href="/about.html">運営者情報</a>・<a href="/privacy.html">プライバシーポリシー</a>・<a href="/disclaimer.html">免責事項</a>・<a href="/contact.html">お問い合わせ</a></footer>
+<a href="/record.html">的中実績</a>・<a href="/venue/">全24場の特徴</a>・<a href="/about.html">運営者情報</a>・<a href="/privacy.html">プライバシーポリシー</a>・<a href="/disclaimer.html">免責事項</a>・<a href="/contact.html">お問い合わせ</a></footer>
 </body></html>"""
 
 
@@ -2114,7 +2114,8 @@ def venue_page(date, jcd, infos, preds, now):
                   f'<span><span class="sub">{info["deadline"]}</span> {html.escape(info["rtype"])}</span>{badge}</a>')
         if i == 5:
             items += f"</div>{ad()}<div class='card list'>"
-    head = f'<h1>{v} {jp(date)}</h1><p class="sub">{html.escape(infos[0]["title"])}・{infos[0]["day"]}日目</p>'
+    head = (f'<h1>{v} {jp(date)}</h1><p class="sub">{html.escape(infos[0]["title"])}・{infos[0]["day"]}日目'
+            f'・<a href="/venue/{SLUG[jcd]}.html" style="color:var(--ac)">{v}の特徴</a></p>')
     scroll = '<script>document.getElementById("cur")?.scrollIntoView({block:"center"})</script>'
     return page(f"{v} {jp(date)} 出走表・展開予想", head + f"<div class='card list'>{items}</div>" + scroll,
                 f"{v}の全レースの出走表と1マーク展開予想", f"/{date}/{jcd}/")
@@ -2193,6 +2194,158 @@ def _next_races_html(date, prog_day, preds, now, n=6):
             f'<div class="card" style="padding:2px 12px">{out}</div>')
 
 
+SLUG = {"01": "kiryu", "02": "toda", "03": "edogawa", "04": "heiwajima", "05": "tamagawa", "06": "hamanako", "07": "gamagori",
+        "08": "tokoname", "09": "tsu", "10": "mikuni", "11": "biwako", "12": "suminoe", "13": "amagasaki", "14": "naruto",
+        "15": "marugame", "16": "kojima", "17": "miyajima", "18": "tokuyama", "19": "shimonoseki", "20": "wakamatsu",
+        "21": "ashiya", "22": "fukuoka", "23": "karatsu", "24": "omura"}
+
+
+@functools.lru_cache(maxsize=1)
+def _venue_stats():
+    p = DATA / "venue_stats.json"
+    return json.loads(p.read_text()) if p.exists() else {}
+
+
+@functools.lru_cache(maxsize=1)
+def rank_record():
+    """的中実績: サイトに出した予想(締切前のオッズを混ぜたもの)を、結果と突き合わせた記録。
+    {"all": {ランク: [レース数, 5点的中, 2連単1番手的中, 本命1着]}, 場コード: {...}, "since": 最初の日}"""
+    out, since = {}, None
+    for f in sorted((DATA / "odds_live").glob("*.json")):
+        date = f.stem
+        pp = DATA / "predictions" / f"{date}.json"
+        if not pp.exists():
+            continue
+        preds = json.loads(pp.read_text())["races"]
+        live = live_result.load(date)
+        odds = race_view.load_odds(date)
+        ents = _entries(date)
+        for key, od in odds.items():
+            res, pred = live.get(key), preds.get(key)
+            if not res or not res.get("combo3t") or not pred or pred.get("version") != "final":
+                continue
+            try:
+                lv = ents.get(key)
+                v = race_view.view(pred, date, od, lv if isinstance(lv, dict) else None)
+            except Exception:
+                continue
+            if not v:
+                continue
+            p5 = sum(p for _, p in v["top3"][:5])
+            rk = next(x for x in RANKS if p5 >= x[1])[0]
+            fav = max(v["boats"], key=lambda b: b["p1"])["waku"]
+            row = [1, int(res["combo3t"] in [c for c, _ in v["top3"][:5]]), int(res.get("combo2t") == v["top2"][0][0]),
+                   int(res["combo3t"].split("-")[0] == str(fav))]
+            for g in ("all", key[:2]):
+                a = out.setdefault(g, {}).setdefault(rk, [0, 0, 0, 0])
+                for i, x in enumerate(row):
+                    a[i] += x
+            since = since or date
+    out["since"] = since
+    return out
+
+
+def _record_table(rec):
+    if not rec:
+        return '<p class="sub">まだ記録がありません</p>'
+    rows = ""
+    for rk, _, word, hist in RANKS:
+        a = rec.get(rk)
+        if not a or not a[0]:
+            continue
+        n = a[0]
+        rows += (f'<tr><td><span class="rank rank-{rk}" style="width:24px;height:24px;font-size:13px">{rk}</span></td><td>{n}</td>'
+                 f'<td><b>{a[1] / n:.0%}</b> <span class="sub">({hist})</span></td><td>{a[2] / n:.0%}</td><td>{a[3] / n:.0%}</td></tr>')
+    if not rows:
+        return '<p class="sub">まだ記録がありません</p>'
+    return ('<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px;text-align:center;white-space:nowrap">'
+            '<tr class="sub"><th></th><th>レース</th><th>3連単5点</th><th>2連単1点</th><th>本命1着</th></tr>' + rows + '</table></div>'
+            '<p class="sub" style="margin:4px 0 0">( )内は過去データでの見込み。ランクが高いほど当たる、が予想どおりかを見る表です。</p>')
+
+
+def record_page():
+    rec = rank_record()
+    allr = rec.get("all", {})
+    n = sum(a[0] for a in allr.values()) if allr else 0
+    since = jp(rec["since"]) if rec.get("since") else "―"
+    body = ('<h1>的中実績</h1><p class="sub">サイトに出した予想（締切前のオッズを混ぜた確率）を、レース結果と突き合わせた記録です。'
+            f'{since}から {n}レース。毎日自動で更新します。</p>'
+            '<h2>ランク別</h2><div class="card">' + _record_table(allr) + '</div>'
+            '<h2>場ごと</h2><div class="card list">'
+            + "".join(f'<a href="/venue/{SLUG[j]}.html"><span class="rno" style="width:70px">{VENUES[j]}</span>'
+                      f'<span class="sub">{sum(a[0] for a in rec[j].values())}レース・3連単5点 '
+                      f'{sum(a[1] for a in rec[j].values()) / max(1, sum(a[0] for a in rec[j].values())):.0%}</span></a>'
+                      for j in sorted(k for k in rec if k not in ("all", "since")))
+            + '</div>' + ad())
+    return page("的中実績", body, "競艇予想のランク別・場ごとの的中実績。予想した確率どおりに当たっているかを毎日公開。", "/record.html")
+
+
+def _venue_lines(jcd, st):
+    """場の特徴をひとことで(全国平均と比べて)"""
+    allc = _venue_stats().get("_all", {}).get("course", [0.55, 0.13, 0.12, 0.1, 0.06, 0.02])
+    c1 = st["course"][0][0]
+    out = []
+    if c1 >= allc[0] + 0.03:
+        out.append(f"インが強い場（1コースの1着 {c1:.0%}、全国平均 {allc[0]:.0%}）")
+    elif c1 <= allc[0] - 0.03:
+        out.append(f"インが弱めの場（1コースの1着 {c1:.0%}、全国平均 {allc[0]:.0%}）")
+    else:
+        out.append(f"インの強さは全国並み（1コースの1着 {c1:.0%}）")
+    best = max(range(1, 6), key=lambda k: st["course"][k][0] - allc[k])
+    if st["course"][best][0] - allc[best] >= 0.01:
+        out.append(f"{best + 1}コースが全国平均より勝てる（{st['course'][best][0]:.0%}）")
+    km = {k: v for k, v in st["kimarite"].items() if k != "逃げ"}
+    if km:
+        k, v = max(km.items(), key=lambda kv: kv[1])
+        out.append(f"イン以外の決まり手は「{k}」が多い（1着の{v:.0%}）")
+    if st.get("manshu") is not None:
+        out.append(f"万舟（3連単100倍以上）は {st['manshu']:.0%}、3連単の真ん中の配当は {st['pay_median']:,.0f}円")
+    if st.get("lady_in") is not None and st.get("lady_races", 0) >= 50:
+        out.append(f"女子戦ではインの1着 {st['lady_in']:.0%}")
+    return out
+
+
+def venue_home(jcd, date, prog_day, preds, now):
+    """場の常設ページ(/venue/場.html): 今日のレースとランク、場の特徴、この場での的中実績"""
+    v = VENUES[jcd]
+    st = _venue_stats().get(jcd)
+    g = prog_day[prog_day.jcd == jcd].drop_duplicates("race").sort_values("race") if len(prog_day) else prog_day
+    rows = ""
+    for r in g.itertuples():
+        x = _rank_of(date, jcd, int(r.race), preds.get(f"{jcd}-{int(r.race):02d}"))
+        badge = (f'<span class="sub" style="margin-left:auto">本命{x[1]["waku"]}</span>'
+                 f'<span class="rank rank-{x[0][0]}" style="width:26px;height:26px;font-size:14px;margin:0 0 0 8px">{x[0][0]}</span>') if x else             ('<span class="rst s-done">締切</span>' if now >= dl_dt(date, r.deadline) else '<span class="rst s-wait">展示待ち</span>')
+        rows += (f'<a href="/{date}/{jcd}/{int(r.race):02d}.html"><span class="rno">{int(r.race)}R</span>'
+                 f'<span><span class="sub">{r.deadline}</span> {html.escape(r.rtype)}</span>{badge}</a>')
+    today = (f'<h2>{jp(date)}のレース</h2><div class="card list">{rows}</div>' if rows
+             else f'<h2>今日のレース</h2><div class="card"><p class="sub" style="margin:0">{jp(date)}は{v}の開催はありません。</p></div>')
+    feat = ""
+    if st:
+        lines = "".join(f"<li>{html.escape(t)}</li>" for t in _venue_lines(jcd, st))
+        allc = _venue_stats().get("_all", {}).get("course", [0] * 6)
+        bars = "".join(f'<div class="boat" style="padding:5px 0">{chip(k + 1)}<span style="flex:1;font-size:13px">1着 <b>{st["course"][k][0]:.0%}</b>'
+                       f'<span class="sub">（全国{allc[k]:.0%}）・2着以内 {st["course"][k][1]:.0%}</span></span>'
+                       f'<span class="bar" style="width:90px"><i style="width:{st["course"][k][0] * 100 / 0.7:.0f}%"></i></span></div>'
+                       for k in range(6))
+        feat = (f'<h2>{v}の特徴</h2><div class="card"><ul style="margin:0;padding-left:18px;font-size:14px">{lines}</ul></div>'
+                f'<h2>コース別の成績 <span class="sub">{st["since"][:4]}年〜・{st["races"]:,}レース</span></h2><div class="card">{bars}</div>')
+    rec = rank_record().get(jcd)
+    record = f'<h2>{v}での的中実績</h2><div class="card">{_record_table(rec)}</div>' if rec else ""
+    body = (f'<h1>{v}の競艇予想</h1><p class="sub">ボートレース{v}の今日のレースの予想（堅さのランクと本命）と、'
+            f'コース別の成績などの特徴をまとめています。</p>' + today + feat + record
+            + '<p class="sub"><a href="/venue/" style="color:var(--ac)">ほかの場を見る</a>・<a href="/record.html" style="color:var(--ac)">全体の的中実績</a></p>' + ad())
+    return page(f"{v}の競艇予想・特徴", body, f"ボートレース{v}の今日の予想と、コース別の勝率・決まり手・万舟率などの特徴。", f"/venue/{SLUG[jcd]}.html")
+
+
+def venue_index():
+    st = _venue_stats()
+    items = "".join(f'<a href="/venue/{SLUG[j]}.html"><span class="rno" style="width:70px">{VENUES[j]}</span>'
+                    + (f'<span class="sub">イン1着 {st[j]["course"][0][0]:.0%}・万舟 {st[j]["manshu"]:.0%}</span>' if j in st and st[j].get("manshu") is not None else "")
+                    + '</a>' for j in sorted(SLUG))
+    return page("全24場の特徴", f'<h1>全24場の特徴と予想</h1><div class="card list">{items}</div>{ad()}',
+                "ボートレース全24場のインの強さ・万舟率と、今日の予想。", "/venue/")
+
+
 def grid_page(date, dates, prog_day, preds, now, path, payouts=None):
     tiles = ""
     hot_list = []
@@ -2234,6 +2387,7 @@ def grid_page(date, dates, prog_day, preds, now, path, payouts=None):
             + _next_races_html(date, prog_day, preds, now)
             + f'<h2>開催場 <span class="sub">場を選ぶと全レース</span></h2><div class="grid">{tiles}</div>'
             + (f'<details class="help"><summary>本日の高配当（万舟以上）を見る</summary>{_payout_html(date, payouts, preds)}</details>' if payouts else "")
+            + '<div class="btnrow"><a href="/record.html">的中実績</a><a href="/venue/">場ごとの特徴</a></div>'
             + f'{ad()}{NUDGE_UPDATE}')
     return page(f"{jp(date)} 全24場の展開予想", body, "全24場のスタートスリット・1マーク展開予想を展示後に公開", path)
 
@@ -2377,6 +2531,15 @@ def main():
                                                     _with_live_payouts(stats.big_payouts(top), top)))
     else:
         (OUT / "index.html").write_text(page("準備中", "<h1>準備中です</h1>", "", "/"))
+    (OUT / "venue").mkdir(exist_ok=True)
+    vday = prog[prog.date == top] if top else prog.iloc[0:0]
+    vpreds = json.loads((DATA / "predictions" / f"{top}.json").read_text())["races"] if top and (DATA / "predictions" / f"{top}.json").exists() else {}
+    for j in SLUG:
+        (OUT / "venue" / f"{SLUG[j]}.html").write_text(venue_home(j, top or today, vday, vpreds, now))
+        urls.append(f"/venue/{SLUG[j]}.html")
+    (OUT / "venue" / "index.html").write_text(venue_index())
+    (OUT / "record.html").write_text(record_page())
+    urls += ["/venue/", "/record.html"]
     (OUT / "bets-data.json").write_text(json.dumps(bets_records(), ensure_ascii=False, separators=(",", ":")))
     (OUT / "bets-upcoming.json").write_text(json.dumps(bets_upcoming(), ensure_ascii=False, separators=(",", ":")))
     (OUT / "nige-data.json").write_text(json.dumps(nige_records(), ensure_ascii=False, separators=(",", ":")))
