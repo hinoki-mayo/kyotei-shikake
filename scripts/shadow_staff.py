@@ -52,7 +52,7 @@ OUTW_RATIO = 1.5   # 外の1着専門: 1着専門の1着確率÷市場の1着確
 OUTW_UNITS = 40    # 頭1艇につき4,000円(2着5艇をオッズの逆数で配分=単勝と同じ形)
 
 
-def out_win(pred, o2, live=None):
+def out_win(pred, o2, live=None, courses=(2, 3), ratio=OUTW_RATIO):
     """外の1着専門(10/19に見つけた): 3・4コースの艇で、1着専門の1着確率が市場の1.5倍以上の時、その艇を頭に単勝と同じ形で買う。
     1着専門を片方の年で学んでもう片方で確かめて、2025年151%・2026年159%(確定オッズ・1日約3レース・的中約10%)。
     2コースは同じ条件で85%・119%と不安定なので入れない"""
@@ -69,9 +69,9 @@ def out_win(pred, o2, live=None):
             inv[a] = inv.get(a, 0) + 1 / o
     tot = sum(inv.values())
     out = []
-    for i in (2, 3):
+    for i in courses:
         a = waku[i] - 1
-        if a not in inv or w[i] / (inv[a] / tot) < OUTW_RATIO:
+        if a not in inv or w[i] / (inv[a] / tot) < ratio:
             continue
         legs = [(waku[j], o2.get((a, waku[j] - 1))) for j in range(6) if j != i]
         if any(not o for _, o in legs):
@@ -82,3 +82,12 @@ def out_win(pred, o2, live=None):
             if u:
                 out.append(dict(combo=f"{waku[i]}-{wj}", units=u, odds=o, bet="2t"))
     return out
+
+
+INW_RATIO = 1.7   # インの1着専門: インの1着確率を1着専門が市場の1.7倍以上と見る時
+
+
+def in_win(pred, o2, live=None):
+    """インの1着専門(10/19に見つけた): 1着専門がインの1着確率を市場の1.7倍以上と見る時(市場がインを嫌っている時)、
+    インを頭に単勝と同じ形で買う。年をまたいだ確かめ(確定オッズ)で2025年259%・2026年191%(1年に約180レース、単勝相当は中央5〜7倍)"""
+    return out_win(pred, o2, live, courses=(0,), ratio=INW_RATIO)
