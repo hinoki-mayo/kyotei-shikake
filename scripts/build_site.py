@@ -763,6 +763,23 @@ def _flow(pred, result):
     return 100 * len(pts), (int(result["payout3t"]) if result["combo3t"] in pts else 0)
 
 
+def _kessai_plans(date, key, pred, b, plans):
+    """決裁者A r2(10/19から): 締切45秒前のオッズが記録されていれば、見込みの確定オッズに直して社員の買い目を作り直す。
+    まだ45秒前より前なら、渡された(2分前に決めた)買い目のまま"""
+    s45 = (b.get("stages") or {}).get("直前")
+    if not (date >= KESSAI_R2_SINCE and s45 and s45.get("o2") and s45.get("o3")):
+        return plans
+    o2f, o3f = flex.expected_final(pred, {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s45["o2"]) if v},
+                                   {c: v for c, v in zip(bet_mod.ODDS_ORDER, s45["o3"]) if v})
+    lv = _entries(date).get(key)
+    try:
+        made = bet_mod.make_bet(pred, o3f, o2f, date, lv if isinstance(lv, dict) else None)["plans"]
+        return {n: pl for n, pl in made.items() if n in org_tree.ORG_PLANS and not pl.get("skip")}
+    except Exception as e:
+        print(f"決裁者Aの作り直しに失敗({date} {key}): {e!r}")
+        return plans
+
+
 def bets_upcoming(now=None):
     """運用プランの「これから」: 今日、締切前に買い目を決めたがまだ結果が出ていないレース(締切順)"""
     now = now or now_jst()
@@ -784,10 +801,12 @@ def bets_upcoming(now=None):
         for n, pl in plans.items():
             out.append(dict(base, p=n, tk=[[t["combo"], t["units"], t.get("role"), t.get("odds")] for t in pl["tickets"]]))
         pred = preds.get(key)
-        if pred and plans:   # 最終決裁者が採用した提案(1提案4,000円にそろえたもの)
-            for c in org_tree.decide(org_tree.proposals(plans, pred), conf_for(date), adopt=org_tree.adopt_for(date)):
+        if pred and plans:   # 決裁者Aが採用した提案(1提案4,000円)。45秒前の判断があればそちら(記録と同じ買い目)
+            kp = _kessai_plans(date, key, pred, b, plans)
+            st45 = "最終(45秒前)" if kp is not plans else base["st"]
+            for c in org_tree.decide(org_tree.proposals(kp, pred), conf_for(date), adopt=org_tree.adopt_for(date)):
                 lab = f'{ALL_PLAN_LABELS.get(c["plan"], c["plan"])}・自信度{c["conf"]:.0%}'
-                out.append(dict(base, p="kessai", tk=[[t["combo"], t["units"], lab, t.get("odds")] for t in c["tickets"]]))
+                out.append(dict(base, p="kessai", st=st45, tk=[[t["combo"], t["units"], lab, t.get("odds")] for t in c["tickets"]]))
     return sorted(out, key=lambda x: (x["t"], x["v"]))
 
 
@@ -908,17 +927,7 @@ def bets_records():
             st_ka = None
             if pred and date >= ORG_SINCE:   # 予想組織: 頭ごとの提案の記録と、決裁者A(自信度型)の判断
                 live_plans = {n: pl for n, pl in plans.items() if isinstance(st.get(n), list)}
-                s45 = (b.get("stages") or {}).get("直前")
-                if date >= KESSAI_R2_SINCE and s45 and s45.get("o2") and s45.get("o3"):
-                    # 決裁者A r2: 締切45秒前のオッズを見込みの確定オッズに直して、社員の買い目を作り直す
-                    o2f, o3f = flex.expected_final(pred, {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s45["o2"]) if v},
-                                                   {c: v for c, v in zip(bet_mod.ODDS_ORDER, s45["o3"]) if v})
-                    lv2 = _entries(date).get(key)
-                    try:
-                        made = bet_mod.make_bet(pred, o3f, o2f, date, lv2 if isinstance(lv2, dict) else None)["plans"]
-                        live_plans = {n: pl for n, pl in made.items() if n in org_tree.ORG_PLANS and not pl.get("skip")}
-                    except Exception as e:
-                        print(f"決裁者Aの作り直しに失敗({date} {key}): {e!r}")
+                live_plans = _kessai_plans(date, key, pred, b, live_plans)
                 props = org_tree.proposals(live_plans, pred)
                 pp = []
                 for pr in props:
