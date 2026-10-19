@@ -2621,6 +2621,8 @@ def main():
         urls.append("/" + name)
     (OUT / "sitemap.xml").write_text('<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
                                      + "".join(f"<url><loc>{CFG['base_url']}{u}</loc></url>" for u in urls) + "</urlset>")
+    for name in CFG.get("gsc_files", []):   # Search Console の所有権の確認ファイル(消さない)
+        (OUT / name).write_text(f"google-site-verification: {name}")
     (OUT / "robots.txt").write_text(f"User-agent: *\nAllow: /\nSitemap: {CFG['base_url']}/sitemap.xml\n")
     if CFG.get("ads_txt"):
         (OUT / "ads.txt").write_text(CFG["ads_txt"] + "\n")
