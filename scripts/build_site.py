@@ -1062,12 +1062,19 @@ def bets_upcoming(now=None):
         for n, pl in plans.items():
             out.append(dict(base, p=n, tk=[[t["combo"], t["units"], t.get("role"), t.get("odds")] for t in pl["tickets"]]))
         pred = preds.get(key)
-        if pred and plans:   # 決裁者Aが採用した提案(1提案4,000円)。45秒前の判断があればそちら(記録と同じ買い目)
+        if pred and plans:   # 決裁者Aの判断(1提案4,000円)。締切45秒前のオッズで最終決定(記録と同じ買い目)。それまでは「検討中」
             kp = _kessai_plans(date, key, pred, b, plans)
-            st45 = "最終(45秒前)" if kp is not plans else base["st"]
-            for c in org_tree.decide(org_tree.proposals(kp, pred), conf_for(date), adopt=org_tree.adopt_for(date)):
+            final = kp is not plans
+            dec = lambda pl: org_tree.decide(org_tree.proposals(pl, pred), conf_for(date), adopt=org_tree.adopt_for(date))
+            got = dec(kp)
+            for c in got:
                 lab = f'{ALL_PLAN_LABELS.get(c["plan"], c["plan"])}・自信度{c["conf"]:.0%}'
-                out.append(dict(base, p="kessai", st=st45, tk=[[t["combo"], t["units"], lab, t.get("odds")] for t in c["tickets"]]))
+                out.append(dict(base, p="kessai", st="買う" if final else "検討中",
+                                tk=[[t["combo"], t["units"], lab, t.get("odds")] for t in c["tickets"]]))
+            if final and not got:   # 2分前には採用の見込みだったのに、45秒前のオッズで見送ったもの
+                for c in dec(plans):
+                    lab = f'{ALL_PLAN_LABELS.get(c["plan"], c["plan"])}・45秒前のオッズで見送り'
+                    out.append(dict(base, p="kessai", st="見送り", tk=[[t["combo"], t["units"], lab, t.get("odds")] for t in c["tickets"]]))
     return sorted(out, key=lambda x: (x["t"], x["v"]))
 
 
@@ -1098,6 +1105,19 @@ def quick_bet_pages(now, keys):
             print(f"試験買い目ページを作れませんでした({key}): {e!r}")
 
 
+def quick_bets_data(now=None):
+    """購入係用: 集計データ(bets-data.json)のうち今日の分だけ作り直して差し替える(結果が出たらすぐ部屋の成績に出す)"""
+    now = now or now_jst()
+    date = f"{now:%Y%m%d}"
+    p = OUT / "bets-data.json"
+    try:
+        old = json.loads(p.read_text()) if p.exists() else []
+        new = [x for x in old if x.get("d") != date] + bets_records(only=date)
+        p.write_text(json.dumps(new, ensure_ascii=False, separators=(",", ":")))
+    except Exception as e:
+        print(f"今日の集計の作り直しに失敗: {e!r}")
+
+
 def quick_upcoming(now=None):
     """購入係用: 「これから」のデータだけ作り直す(サイト全体は作り直さない)"""
     (OUT / "bets-upcoming.json").write_text(json.dumps(bets_upcoming(now), ensure_ascii=False, separators=(",", ":")))
@@ -1120,9 +1140,9 @@ def conf_for(date):
     return org_tree.load_confidence(date)
 
 
-def bets_records():
-    """集計画面用に、結果が出たレースごとの記録を作る(買い方ごとの投資・払戻と、絞り込み用の条件)"""
-    files = sorted((DATA / "bets").glob("*.json"))
+def bets_records(only=None):
+    """集計画面用に、結果が出たレースごとの記録を作る(買い方ごとの投資・払戻と、絞り込み用の条件)。only: その日だけ作る"""
+    files = sorted(f for f in (DATA / "bets").glob("*.json") if only is None or f.stem == only)
     if not files:
         return []
     res = load_results(files[0].stem)
@@ -1567,11 +1587,11 @@ function renderUpcoming(el, U, PL, VN, only){
   if(!rows.length){ el.innerHTML='<div class="card"><b>これから</b><p class="sub" style="margin:4px 0 0">締切前に決めた買い目はまだありません(締切5分前に候補、2分前に確定します)。</p></div>'; return; }
   el.innerHTML='<div class="card"><b>これから</b> <span class="sub">締切前に決めた買い目・結果待ち</span>'+rows.map(x=>
     `<div class="boat" style="flex-direction:column;align-items:flex-start;gap:2px"><div><b>${x.t} ${VN[x.v]} ${x.r}R</b>`+
-    (x.st?` <span class="lab" style="background:${x.st==='確定'?'#7A5AE0':'#9aa0a8'}">${x.st}</span>`:'')+
+    (x.st?` <span class="lab" style="background:${x.st==='買う'?'#1E9E6A':x.st==='確定'?'#7A5AE0':x.st==='見送り'?'#C0504D':'#9aa0a8'}">${x.st}</span>`:'')+
     ((only&&!Array.isArray(only))?'':` <span class="sub">${PL[x.p]||x.p}</span>`)+`</div><div>`+
     x.tk.map(([c,u,role,o])=>{const mk=(role||'').includes('【');   // 絞り込み候補の印がある頭は目立たせる
       return `<span style="${mk?'background:var(--mark);border-radius:6px;padding:1px 4px':''}"><span class="tri-chip" style="font-size:15px">${c}</span> <span class="sub">${mk?'★':''}${role?role+' ':''}${(u*100).toLocaleString()}円${o?'・'+o+'倍':''}</span></span>`;}).join('　')+
-    `</div></div>`).join('')+'<p class="sub" style="margin:6px 0 0">締切5分前に「候補」、2分前にその時のオッズで「確定」。オッズは決めた時点のもの。</p></div>';
+    `</div></div>`).join('')+'<p class="sub" style="margin:6px 0 0">社員は締切5分前に「候補」、2分前に「確定」。決裁者Aは締切45秒前のオッズで「買う」か「見送り」を決める(それまでは「検討中」)。30秒ごとに自動で更新。</p></div>';
 }
 """
 
@@ -1705,8 +1725,8 @@ def _org_page(title, path, body, upcoming=None):
     js = UPCOMING_JS + CHART_JS + js
     if upcoming is not None:
         only = upcoming or list(bet_mod.OPS_PLANS)
-        js += (f"fetch('/bets-upcoming.json').then(r=>r.json()).then(u=>renderUpcoming($('up'),u,ORG.labels,VN,"
-               f"{json.dumps(only)})).catch(()=>{{}});")
+        js += (f"const loadUp=()=>fetch('/bets-upcoming.json',{{cache:'no-store'}}).then(r=>r.json()).then(u=>renderUpcoming($('up'),u,ORG.labels,VN,"
+               f"{json.dumps(only)})).catch(()=>{{}});loadUp();setInterval(loadUp,30000);")
     return page(title, body + f'<script>{js}</script>', "", path, noindex=True)
 
 
@@ -1823,18 +1843,18 @@ function kessaiTypes(){
     return `<div class="boat" style="padding:4px 0"><div style="flex:1"><b>${t}</b> <span class="sub">${a.n}件・的中${a.hit}</span></div><b style="color:${a.ret>=a.st?'var(--green)':'var(--red)'}">${sg(a.ret-a.st)}</b></div>`;}).join('');
 }
 // 決裁者が採用したレースの一覧(新しい順)。当たりだけ/全部を切り替え
-let KR_ALL=false, KR_N=30;
+let KR_ALL=true, KR_N=30;
 function kessaiRaces(){
   const rows=D.filter(x=>x.ka&&x.ka.length&&(KR_ALL||x.ka.some(k=>k[4]>0)))
     .sort((a,b)=>(b.d+b.t).localeCompare(a.d+a.t));
-  const tg=`<div class="sub" style="margin-bottom:6px"><a href="#" data-kr="hit" style="${KR_ALL?'':'font-weight:700'}">当たりだけ</a>｜<a href="#" data-kr="all" style="${KR_ALL?'font-weight:700':''}">全部</a>　${rows.length}レース</div>`;
+  const tg=`<div class="sub" style="margin-bottom:6px"><a href="#" data-kr="all" style="${KR_ALL?'font-weight:700':''}">全部</a>｜<a href="#" data-kr="hit" style="${KR_ALL?'':'font-weight:700'}">当たりだけ</a>　${rows.length}レース</div>`;
   if(!rows.length) return tg+'<span class="sub">まだありません</span>';
   return tg+rows.slice(0,KR_N).map(x=>{
     const rr=String(x.r).padStart(2,'0'), st=x.ka.reduce((a,k)=>a+k[3],0), rt=x.ka.reduce((a,k)=>a+k[4],0);
     return `<div style="border-top:1px solid var(--bd);padding:6px 0"><div style="display:flex;justify-content:space-between">`+
       `<a href="/${x.d}/${x.v}/${rr}-bet.html"><b>${+x.d.slice(4,6)}/${+x.d.slice(6)} ${VN[x.v]||x.v} ${x.r}R</b></a>`+
       `<b style="color:${rt>=st?'var(--green)':'var(--red)'}">${sg(rt-st)}</b></div>`+
-      `<div class="sub">結果 ${x.res}（3連単 ${yen(x.pay)}円${x.r2?`・2連単 ${x.r2} ${yen(x.p2)}円`:''}）</div>`+
+      `<div class="sub"><b>買った ${yen(st)}円 → 払戻 ${yen(rt)}円</b>｜結果 ${x.res}（3連単 ${yen(x.pay)}円${x.r2?`・2連単 ${x.r2} ${yen(x.p2)}円`:''}）</div>`+
       x.ka.map(k=>`<div class="sub">${k[4]>0?'✅':'・'} ${typeOf(k[0],[])} ${ORG.labels[k[0].split('.').pop()]||k[0]}｜${k[2]}${k[4]>0?`｜払戻 ${yen(k[4])}円`:''}</div>`).join('')+
       `</div>`;}).join('')+
     (rows.length>KR_N?`<div style="text-align:center;margin-top:6px"><a href="#" data-kr="more">もっと見る</a></div>`:'');
@@ -1870,7 +1890,8 @@ function fill(){
     pnlCharts(el, (k.startsWith('node:')?aggNode(k.slice(5)):aggPlans(k.split(','))).days);
   });
 }
-fetch('/bets-data.json').then(r=>r.json()).then(j=>{D=j;fill()});
+const loadD=()=>fetch('/bets-data.json',{cache:'no-store'}).then(r=>r.json()).then(j=>{D=j;fill()}).catch(()=>{});
+loadD(); setInterval(loadD,60000);   // 結果が出たら1分以内に成績へ反映
 """
 
 
