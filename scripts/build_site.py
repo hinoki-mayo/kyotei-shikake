@@ -20,6 +20,7 @@ import bet as bet_mod
 import flex
 import org_tree
 import race_view
+import yoso
 import shadow_staff
 import live_result
 import share
@@ -381,7 +382,7 @@ def predict_page(date, info, pred, races, result_ready=False):
                 f'<span class="sub">本命 {fav["waku"]}号艇 {html.escape(fav["name"])}（1着{_pct(fav["p1"])}）</span></div></div>')
         if rk in ("S", "A"):
             picks = "".join(f'<span>{c}<small>{_pct(p)}</small></span>' for c, p in vw["top3"][:5])
-            mid = (f'<div class="sub" style="margin-top:10px">3連単 おすすめ5点（どれかが来る見込み <b style="color:var(--tx)">{p5:.0%}</b>）</div>'
+            mid = (f'<div class="sub" style="margin-top:10px">3連単 確率の上位5点（どれかが来る見込み <b style="color:var(--tx)">{p5:.0%}</b>）</div>'
                    f'<div class="big5">{picks}</div>')
         else:
             cands = "".join(f'<span>{b["waku"]}号艇<small>{_pct(b["p1"])}</small></span>' for b in bs[:3] if b["p1"] >= 0.07)
@@ -397,6 +398,7 @@ def predict_page(date, info, pred, races, result_ready=False):
         hero = (f'<div class="hero"><div class="hl">{html.escape(hl)}</div>' + (f'<div class="hs">{html.escape(hs)}</div>' if hs else "")
                 + stack_bar(vw) + '<div class="cap">1着の確率（色＝艇の色）</div></div>')
         summary = hero + f'<div class="card sum">{head}{mid}<div class="sub" style="margin-top:8px">2連単の上位　<b style="color:var(--tx)">{t2}</b></div></div>'
+        summary += yoso_card(date, info, vw)
         rows = ""
         for b in sorted(vw["boats"], key=lambda b: b["waku"]):
             heat = "🔥" if b["heat"] > 0 else ("🧊" if b["heat"] < 0 else "")
@@ -468,6 +470,37 @@ def stack_bar(vw):
         lab = f'{w}' if b["p1"] >= 0.06 else ""
         seg += f'<span style="width:{b["p1"] * 100:.1f}%;background:{BC[w - 1]};color:{TC[w - 1]}">{lab}</span>'
     return f'<div class="stack">{seg}</div>'
+
+
+TIER_COLOR = {"本線": "var(--red)", "抑え": "#2F6BD8", "穴": "#3C8C4E"}
+
+
+def yoso_card(date, info, vw):
+    """予想(予算4,000円): 本線・抑え・穴に分けた3連単。オッズが取れるまでは出さない"""
+    o3 = (_odds_live(date).get(f'{info["jcd"]}-{info["race"]:02d}') or {}).get("o3") or {}
+    if not o3:
+        return ('<div class="card"><b>予想（4,000円）</b><p class="sub" style="margin:4px 0 0">'
+                'オッズが入ったら、本線・抑え・穴に分けた買い目を出します（締切の約20分前〜）。</p></div>')
+    odds = {f"{a + 1}-{b + 1}-{c + 1}": x for (a, b, c), x in o3.items()}
+    pl = yoso.make(vw["top3_all"], odds)
+    if not pl:
+        return ""
+    ph = sum(t["p"] for t in pl)
+    rows = ""
+    for tier in yoso.TIERS:
+        ts = [t for t in pl if t["tier"] == tier]
+        if not ts:
+            continue
+        rows += (f'<div style="margin-top:8px"><span class="lab" style="background:{TIER_COLOR[tier]}">{tier}</span> '
+                 f'<span class="sub">{sum(t["yen"] for t in ts):,}円・{len(ts)}点</span></div>'
+                 + "".join(f'<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid var(--bd)">'
+                           f'<span><b style="font-size:16px">{t["combo"]}</b> <span class="sub">{t["yen"]:,}円</span></span>'
+                           f'<span class="sub">{t["odds"]:.1f}倍 → <b style="color:var(--tx)">{t["pay"]:,}円</b></span></div>' for t in ts))
+    only = "　本線が抜けて強いので本線だけ。" if all(t["tier"] == "本線" for t in pl) else ""
+    return (f'<div class="card"><b>予想（4,000円）</b> <span class="sub">どれかが来る見込み <b style="color:var(--tx)">{ph:.0%}</b>・{len(pl)}点</span>'
+            + rows
+            + f'<p class="sub" style="margin:8px 0 0">{vw["at"]}時点のオッズで、どの目が当たっても4,000円以上戻る配分（トリガミなし）。{only}'
+              'オッズは締切まで動くので目安です。過去のレースでの的中率は約47%。</p></div>')
 
 
 def race_view_of(date, info, pred):
