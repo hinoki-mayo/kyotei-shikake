@@ -133,6 +133,8 @@ h2{font-size:16px;font-weight:700;margin:20px 0 8px}
 .orow{display:flex;align-items:center;gap:3px;padding:3px 0;border-bottom:1px solid var(--bd)}.orow:last-child{border:0}
 .oc{width:17px;height:17px;border-radius:3px;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex:none;border:1px solid var(--bd)}
 .ov{flex:1;text-align:right;font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;padding-right:2px}.ov.hot{background:rgba(15,110,86,.18);border-radius:3px}
+.otabs>input{display:none}.otabs>label{display:inline-block;padding:7px 18px;margin:10px 6px 0 0;border:1px solid var(--bd);border-radius:18px;font-weight:700;font-size:14px;color:var(--sub);background:var(--card);cursor:pointer}
+.otabs>input:checked+label{background:var(--hot);border-color:var(--hot);color:#fff}.op{display:none}#ot3:checked~.op3,#ot2:checked~.op2{display:block}
 .o3{border-bottom:1px solid var(--bd);padding:4px 0}.o3:last-child{border:0}.o3>summary{cursor:pointer;padding:6px 0;font-weight:700;list-style:none}.o3>summary::-webkit-details-marker{display:none}
 footer{max-width:760px;margin:24px auto;padding:12px;font-size:12px;color:var(--sub)}footer a{color:var(--ac)}svg{display:block;color:var(--tx)}
 """
@@ -684,10 +686,10 @@ def odds_page(date, info, pred, races, result_ready=False):
             t3 += (f'<div class="boat" style="padding:6px 0"><b style="width:70px">{c}</b><span class="sub" style="width:48px">{_pct(p)}</span>'
                    f'<b style="margin-left:auto">{o:.1f}倍</b>' + (' <span class="ok" style="margin-left:6px">割安</span>' if mark(p, o) else '') + '</div>')
         content = (f'<p class="sub" style="margin:6px 0">{od.get("t", "")}時点のオッズ。締切の約2分前まで、約2分ごとに更新します（締切までに変わります）。緑＝割安</p>'
-                   '<h2>2連単 <span class="sub">列＝1着の艇、中＝2着の艇</span></h2>'
-                   f'<div class="card" style="padding:8px"><div class="ogrid">{cols2}</div></div>'
-                   '<h2>3連単 <span class="sub">1着の艇を選ぶと開きます</span></h2>'
-                   f'<div class="card" style="padding:4px 8px">{sec3}</div>'
+                   '<div class="otabs"><input type="radio" name="ot" id="ot3" checked><label for="ot3">3連単</label>'
+                   '<input type="radio" name="ot" id="ot2"><label for="ot2">2連単</label>'
+                   f'<div class="op op3"><p class="sub" style="margin:6px 0 4px">1着の艇を選ぶと開きます(列＝2着の艇、中＝3着の艇)</p><div class="card" style="padding:4px 8px;margin-top:0">{sec3}</div></div>'
+                   f'<div class="op op2"><p class="sub" style="margin:6px 0 4px">列＝1着の艇、中＝2着の艇</p><div class="card" style="padding:8px;margin-top:0"><div class="ogrid">{cols2}</div></div></div></div>'
                    '<h2>予想の上位 <span class="sub">確率が高い順の3連単</span></h2>'
                    f'<div class="card" style="padding:2px 12px">{t3}</div>'
                    '<details class="help"><summary>？ 割安の印について</summary><p>予想の確率×オッズが、締切直前に下がりやすい分を割り引いても1.1以上ある目に付けています。'
