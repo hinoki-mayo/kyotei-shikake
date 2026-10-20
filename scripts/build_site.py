@@ -165,7 +165,7 @@ def chip(w):
 
 
 # ---------- 集計(今期勝率・節間成績) ----------
-RES_COLS = ["date", "jcd", "race", "rank", "toban", "waku", "kimarite", "combo3t", "payout3t"]
+RES_COLS = ["date", "jcd", "race", "rank", "toban", "waku", "kimarite", "combo3t", "payout3t", "course", "st"]
 
 
 def _read_results_year(p):
@@ -173,8 +173,8 @@ def _read_results_year(p):
     try:
         return pd.read_parquet(p, columns=RES_COLS)
     except Exception:
-        df = pd.read_parquet(p, columns=[c for c in RES_COLS if c not in ("combo3t", "payout3t")])
-        df["combo3t"], df["payout3t"] = None, None
+        df = pd.read_parquet(p, columns=[c for c in RES_COLS if c not in ("combo3t", "payout3t", "course", "st")])
+        df["combo3t"], df["payout3t"], df["course"], df["st"] = None, None, None, None
         return df
 
 
@@ -233,8 +233,11 @@ class Stats:
         r = self.res[(self.res.jcd == jcd) & (self.res.date == date) & (self.res.race == race)]
         if len(r) != 6:
             return None
+        det = {}
+        for x in r.itertuples():   # 進入コースとスタート(成績ファイルにある時だけ)
+            det[int(x.waku)] = dict(course=getattr(x, "course", None), st=getattr(x, "st", None))
         return dict(by_waku=dict(zip(r.waku.astype(int), r["rank"])), kimarite=r.kimarite.iloc[0],
-                    combo3t=r.combo3t.iloc[0], payout3t=r.payout3t.iloc[0])
+                    combo3t=r.combo3t.iloc[0], payout3t=r.payout3t.iloc[0], det=det)
 
     def big_payouts(self, date, thr=10000):
         """その日の万舟以上(3連単)を配当が高い順に返す"""
@@ -348,7 +351,12 @@ def predict_page(date, info, pred, races, result_ready=False):
             cands = "".join(f'<span>{b["waku"]}号艇<small>{_pct(b["p1"])}</small></span>' for b in bs[:3] if b["p1"] >= 0.07)
             mid = ('<div class="sub" style="margin-top:10px">混戦なので5点に絞りにくいレース。頭の候補（1着の確率）</div>'
                    f'<div class="big5">{cands}</div><div class="sub">見送るのもアリ。展開タブで勝ち方ごとの並びを確認できます。</div>')
-        t2 = "　".join(f'{c} <span class="sub">{_pct(p)}</span>' for c, p in vw["top2"][:3])
+        o2l = (_odds_live(date).get(f'{info["jcd"]}-{info["race"]:02d}') or {}).get("o2") or {}
+
+        def od2(c):
+            x = o2l.get(tuple(int(a) - 1 for a in c.split("-")))
+            return f"・{x:.1f}倍" if x else ""
+        t2 = "　".join(f'{c} <span class="sub">{_pct(p)}{od2(c)}</span>' for c, p in vw["top2"][:3])
         hl, hs = hook(vw)
         hero = (f'<div class="hero"><div class="hl">{html.escape(hl)}</div>' + (f'<div class="hs">{html.escape(hs)}</div>' if hs else "")
                 + stack_bar(vw) + '<div class="cap">1着の確率（色＝艇の色）</div></div>')
@@ -593,24 +601,89 @@ def _verdict_card(pred, by_waku):
     return f'<h2>展開予想の答え合わせ</h2><div class="card">{items}</div>'
 
 
-def result_page(date, info, pred, races, result):
+def _popularity(date, key, kind, combo):
+    """その組の人気(オッズの低い順)。確定オッズがあればそれ、無ければ締切前に取ったオッズ。(人気, 何のオッズか)"""
+    try:
+        fin = json.loads((DATA / "odds_final" / f"{date}.json").read_text()).get(key) if (DATA / "odds_final" / f"{date}.json").exists() else None
+    except Exception:
+        fin = None
+    order = bet_mod.ODDS_ORDER if kind == "3t" else bet_mod.ODDS2_ORDER
+    src, vals = None, None
+    if fin and fin.get(f"o{kind[0]}"):
+        v = fin[f"o{kind[0]}"]
+        vals, src = (json.loads(v) if isinstance(v, str) else v), "確定オッズ"
+    else:
+        lv = _odds_live(date).get(key)
+        if lv and lv.get(f"o{kind[0]}"):
+            d = lv[f"o{kind[0]}"]
+            vals, src = [d.get(c) for c in order], "締切前のオッズ"
+    if not vals:
+        return None, None
+    want = tuple(int(x) - 1 for x in combo.split("-"))
+    od = {c: v for c, v in zip(order, vals) if v}
+    if want not in od:
+        return None, None
+    return 1 + sum(1 for v in od.values() if v < od[want]), src
+
+
+def result_page(date, info, pred, races, result, boats=None):
     v = VENUES[info["jcd"]]
     base = f'{info["race"]:02d}'
+    key = f'{info["jcd"]}-{base}'
     locked = not (pred and pred.get("version") == "final")
     if result is None:
         content = ('<div class="card lock"><b>結果はまだ発表されていません</b><br>'
                    '<span class="sub">レース終了後、しばらくしてから反映されます</span></div>')
     else:
         by_waku, kimarite = result["by_waku"], result["kimarite"]
+        det = result.get("det") or {}
+        who = {int(b["waku"]): b for b in (boats or [])}
+        crs = {b["waku"]: i + 1 for i, b in enumerate(pred["boats"])} if pred else {}
         order = sorted(by_waku.items(), key=lambda kv: kv[1])
-        rows = "".join(f'<div class="boat">{chip(w)}<div><b>{r.lstrip("0") if r.isdigit() else r}着</b></div></div>'
-                       for w, r in order)
-        content = f'<h2>着順（決まり手：{html.escape(kimarite) or "―"}）</h2><div class="card">{rows}</div>'
+
+        def nm(w):
+            return html.escape(str(who.get(w, {}).get("name", "")).replace("\u3000", " "))
+
+        def stv(w):
+            x = det.get(w, {}).get("st")
+            if x is None or (isinstance(x, float) and x != x):
+                return ""
+            try:
+                return f"{float(x):.2f}".lstrip("0")
+            except (TypeError, ValueError):
+                return html.escape(str(x))   # F・Lなど
+
+        def crs_of(w):
+            c = det.get(w, {}).get("course")
+            return int(c) if isinstance(c, (int, float)) and c == c else crs.get(w)
+        podium = ""
+        for w, r in order[:3]:
+            tb = who.get(w, {}).get("toban")
+            face = (f'<img class="face" src="https://www.boatrace.jp/racerphoto/{tb}.jpg" loading="lazy" alt="" '
+                    'onerror="this.style.visibility=\'hidden\'">') if tb else ""
+            meta = "・".join(x for x in (f"{crs_of(w)}コース" if crs_of(w) else "", f"ST {stv(w)}" if stv(w) else "") if x)
+            podium += (f'<div class="boat" style="align-items:center"><b style="width:34px;font-size:18px">{int(r)}着</b>{chip(w)}{face}'
+                       f'<div style="min-width:0"><b>{nm(w)}</b><br><span class="sub">{meta}</span></div></div>')
+        rest = "".join(f'<tr><td>{int(r) if str(r).isdigit() else html.escape(str(r))}</td><td>{chip(w)}</td><td style="text-align:left">{nm(w)}</td>'
+                       f'<td>{crs_of(w) or ""}</td><td>{stv(w)}</td></tr>' for w, r in order)
+        pays = ""
+        for kind, lab in (("3t", "3連単"), ("2t", "2連単")):
+            c, y = result.get(f"combo{kind}"), result.get(f"payout{kind}")
+            if c and y is not None and not pd.isna(y):
+                pop, src = _popularity(date, key, kind, c)
+                pays += (f'<div class="boat" style="padding:6px 0"><b style="width:56px">{lab}</b><b>{html.escape(c)}</b>'
+                         f'<span style="margin-left:auto"><b>{int(y):,}円</b>' + (f' <span class="sub">{pop}番人気</span>' if pop else "") + '</span></div>')
+        src_note = '<p class="sub" style="margin:4px 0 0">人気は確定オッズ(無ければ締切前のオッズ)で数えたもの。進入・STは公式の成績ファイルが出てから入ります。</p>'
+        st_note = "" if any(stv(w) for w, _ in order) else ""
+        content = (f'<h2>結果（決まり手：{html.escape(kimarite) or "―"}）</h2><div class="card">{podium}</div>'
+                   + (f'<div class="card"><b>払戻</b>{pays}{src_note}</div>' if pays else "")
+                   + '<div class="card"><b>着順</b><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13.5px;text-align:center;margin-top:6px">'
+                     '<tr class="sub"><th>着</th><th>艇</th><th style="text-align:left">選手</th><th>進入</th><th>ST</th></tr>' + rest + '</table></div></div>')
         if pred and not locked:
             content += _verdict_card(pred, by_waku)
     body = race_head(date, v, info, "result", locked, base, result is not None) + content + ad() \
         + rnav(date, info["jcd"], info["race"], races, "-result")
-    return page(f"{v}{info['race']}R 結果 {jp(date)}", body, f"{v}{info['race']}Rの結果と展開予想の答え合わせ",
+    return page(f"{v}{info['race']}R 結果 {jp(date)}", body, f"{v}{info['race']}Rの結果・払戻と展開予想の答え合わせ",
                 f"/{date}/{info['jcd']}/{base}-result.html")
 
 
@@ -2851,7 +2924,7 @@ def main():
                 (d / f"{base}-entry.html").write_text(entry_page(date, info, boats, season, series, n_series, pred, races, ready))
                 (d / f"{base}-slit.html").write_text(redirect_page(f"/{date}/{jcd}/{base}-turn.html"))   # スリットは展開タブに入れた
                 (d / f"{base}-turn.html").write_text(turn_page(date, info, pred, races, ready))
-                (d / f"{base}-result.html").write_text(result_page(date, info, pred, races, result))
+                (d / f"{base}-result.html").write_text(result_page(date, info, pred, races, result, boats))
                 (d / f"{base}-bet.html").write_text(bet_page(date, info, pred, races, result, bets.get(f"{jcd}-{base}")))
                 urls += [f"/{date}/{jcd}/{base}{s}.html" for s in ("", "-entry", "-turn", "-result")]
                 ent = pick_entry(date, jcd, info, pred, now)
