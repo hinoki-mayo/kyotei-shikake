@@ -294,6 +294,49 @@ def labels(pred):
             f'<p class="sub" style="margin:4px 2px 0">展開不向き＝1着になりにくい、という意味です（2・3着まで否定するものではありません）。</p>')
 
 
+def tenji_card(date, info):
+    """出走表タブの直前情報: スタート展示の図(進入の並び×展示ST)と、展示タイム・風・波"""
+    lv = _entries(date).get(f'{info["jcd"]}-{info["race"]:02d}')
+    if not isinstance(lv, dict) or not lv.get("order"):
+        return ""
+    order, tj, est = lv["order"], lv.get("tenji") or [], lv.get("est") or []
+    W, L, R, rowh = 340, 40, 300, 30
+    svg = ""
+    for c, w in enumerate(order):
+        y = 16 + c * rowh
+        st = est[w - 1] if len(est) >= w else None
+        svg += f'<line x1="{L}" y1="{y + 10}" x2="{R}" y2="{y + 10}" stroke="currentColor" stroke-opacity=".12"/>'
+        svg += f'<text x="4" y="{y + 15}" font-size="11" fill="currentColor" fill-opacity=".6">{c + 1}C</text>'
+        if st is None:
+            x, lab = L + 10, "-"
+        else:
+            x = R - max(-0.05, min(0.35, st)) / 0.35 * (R - L)   # STが小さいほど右(スタートラインに近い)
+            lab = f"F{abs(st):.2f}".replace("0.", ".") if st < 0 else f"{st:.2f}".lstrip("0")
+        svg += (f'<rect x="{x - 26}" y="{y}" width="26" height="20" rx="4" fill="{BC[w - 1]}" stroke="currentColor" stroke-opacity=".25"/>'
+                f'<text x="{x - 13}" y="{y + 15}" font-size="13" font-weight="700" text-anchor="middle" fill="{TC[w - 1]}">{w}</text>'
+                f'<text x="{min(x + 4, W - 30)}" y="{y + 15}" font-size="12" font-weight="700" fill="{"#C7443A" if st is not None and st < 0 else "currentColor"}">{lab}</text>')
+    svg = (f'<svg viewBox="0 0 {W} {16 + 6 * rowh}" width="100%" style="max-width:420px">{svg}'
+           f'<line x1="{R}" y1="8" x2="{R}" y2="{12 + 6 * rowh}" stroke="#E8742E" stroke-width="2"/>'
+           f'<text x="{R - 2}" y="{14 + 6 * rowh}" font-size="10" text-anchor="end" fill="#E8742E">スタートライン</text></svg>')
+    rk = sorted(x for x in tj if x)
+    cells = "".join(
+        f'<div style="text-align:center">{chip(w)}<b style="display:block;font-size:14px;margin-top:2px;'
+        f'{"color:var(--red)" if (tj[w - 1] if len(tj) >= w else None) == (rk[0] if rk else -1) else ""}">'
+        f'{(f"{tj[w - 1]:.2f}" if len(tj) >= w and tj[w - 1] else "-")}</b>'
+        f'<span class="sub" style="font-size:10.5px">{(str(rk.index(tj[w - 1]) + 1) + "位") if len(tj) >= w and tj[w - 1] in rk else ""}</span></div>'
+        for w in range(1, 7))
+    wx = "・".join(x for x in (f'{lv.get("wind_dir", "")}の風 {lv["wind"]:.0f}m' if lv.get("wind") is not None else "",
+                               f'波 {lv["wave"]:.0f}cm' if lv.get("wave") is not None else "") if x)
+    if not any(x is not None for x in est):   # 展示STが無い(取り込む前の)レースは、進入の並びだけ
+        svg = ('<div style="display:flex;gap:4px;align-items:center;margin:6px 0"><span class="sub">進入</span>'
+               + "".join(chip(w) for w in order) + '</div>')
+    return ('<h2>展示（直前情報）</h2><div class="card">'
+            '<b style="font-size:14px">スタート展示</b> <span class="sub">上から1コース。右ほど早いスタート</span>' + svg
+            + '<b style="font-size:14px;display:block;margin-top:8px">展示タイム</b> <span class="sub">赤＝一番速い</span>'
+            + f'<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:6px">{cells}</div>'
+            + (f'<p class="sub" style="margin:8px 0 0">{html.escape(wx)}</p>' if wx else "") + '</div>')
+
+
 def entry_page(date, info, boats, season, series, n_series, pred, races, result_ready=False):
     """出走表タブ: 選手の顔・級・勝率・モーター・節間成績"""
     v = VENUES[info["jcd"]]
@@ -318,7 +361,7 @@ def entry_page(date, info, boats, season, series, n_series, pred, races, result_
                  f'モ{b["motor_2r"]:.1f}%｜{ser_s}</div></div></div>')
     entry = ("展示の進入：" + " ".join(str(w) for w in order)) if order else "展示の進入が出たら、予想と展開を公開します（締切の約20分前）。"
     body = (race_head(date, v, info, "entry", locked, base, result_ready)
-            + f'<div class="card">{rows}</div><p class="sub">{entry}</p>'
+            + tenji_card(date, info) + f'<h2>出走表</h2><div class="card">{rows}</div><p class="sub">{entry}</p>'
             + ad() + rnav(date, info["jcd"], info["race"], races, "-entry"))
     return page(f"{v}{info['race']}R 出走表 {jp(date)}", body,
                 f"{v}{info['race']}Rの出走表。今期勝率・節間成績つき。", f"/{date}/{info['jcd']}/{base}-entry.html")
