@@ -258,7 +258,8 @@ def tabs(base, cur, locked, result_ready):
     lk = '<span class="lk">展示後</span>' if locked else ""
     rlk = "" if result_ready else '<span class="lk">レース後</span>'
     items = [("予想", f"{base}.html", "pred", lk), ("展開", f"{base}-turn.html", "turn", lk),
-             ("出走表", f"{base}-entry.html", "entry", ""), ("結果", f"{base}-result.html", "result", rlk)]
+             ("オッズ", f"{base}-odds.html", "odds", lk), ("出走表", f"{base}-entry.html", "entry", ""),
+             ("結果", f"{base}-result.html", "result", rlk)]
     return '<nav class="tabs">' + "".join(
         f'<a class="{"on" if k == cur else ""}" href="{u}">{t}{x}</a>' for t, u, k, x in items) + "</nav>"
 
@@ -624,6 +625,58 @@ def _popularity(date, key, kind, combo):
     if want not in od:
         return None, None
     return 1 + sum(1 for v in od.values() if v < od[want]), src
+
+
+def odds_page(date, info, pred, races, result_ready=False):
+    """オッズタブ: 購入係が締切25分前〜2分前に約2分ごとに取ったオッズ(2連単の表・3連単の上位)と、予想の確率"""
+    v = VENUES[info["jcd"]]
+    base = f'{info["race"]:02d}'
+    key = f'{info["jcd"]}-{base}'
+    locked = not (pred and pred.get("version") == "final")
+    od = _odds_live(date).get(key)
+    vw = None if locked or not od else race_view_of(date, info, pred)
+    if not od or not vw:
+        content = ('<div class="card lock"><b>オッズは締切の約25分前から表示します</b><br>'
+                   '<span class="sub">展示のあと、約2分ごとに取り込みます</span></div>')
+    else:
+        o2, o3 = od.get("o2") or {}, od.get("o3") or {}
+        p2 = vw.get("all2") or {}
+
+        def mark(p, o):
+            e = p * o * flex.drift2(p * o)   # 最後に下がる分を割り引いた見込み
+            return e >= 1.1
+        head = "".join(f'<th>{chip(j)}</th>' for j in range(1, 7))
+        rows = ""
+        for i in range(1, 7):
+            cells = ""
+            for j in range(1, 7):
+                if i == j:
+                    cells += '<td style="background:var(--off)"></td>'
+                    continue
+                o = o2.get((i - 1, j - 1))
+                p = p2.get(f"{i}-{j}", 0)
+                hot = o and mark(p, o)
+                cells += (f'<td style="{"background:rgba(15,110,86,.15);" if hot else ""}padding:4px 2px">'
+                          f'<b>{o:.1f}</b><br><span class="sub" style="font-size:10.5px">{_pct(p)}</span></td>' if o else '<td>-</td>')
+            rows += f'<tr><th>{chip(i)}</th>{cells}</tr>'
+        t3 = ""
+        for c, p in vw.get("top3_20") or []:
+            o = o3.get(tuple(int(x) - 1 for x in c.split("-")))
+            if not o:
+                continue
+            t3 += (f'<div class="boat" style="padding:6px 0"><b style="width:70px">{c}</b><span class="sub" style="width:48px">{_pct(p)}</span>'
+                   f'<b style="margin-left:auto">{o:.1f}倍</b>' + (' <span class="ok" style="margin-left:6px">割安</span>' if mark(p, o) else '') + '</div>')
+        content = (f'<p class="sub" style="margin:6px 0">{od.get("t", "")}時点のオッズ。締切の約2分前まで、約2分ごとに更新します（締切までに変わります）。</p>'
+                   '<h2>2連単 <span class="sub">縦＝1着・横＝2着。上が倍率、下が予想の確率。緑＝割安</span></h2>'
+                   '<div class="card" style="padding:8px 6px;overflow-x:auto"><table style="width:100%;border-collapse:collapse;text-align:center;font-size:13px">'
+                   f'<tr><th></th>{head}</tr>{rows}</table></div>'
+                   '<h2>3連単 <span class="sub">予想の確率が高い順</span></h2>'
+                   f'<div class="card" style="padding:2px 12px">{t3}</div>'
+                   '<details class="help"><summary>？ 割安の印について</summary><p>予想の確率×オッズが、締切直前に下がりやすい分を割り引いても1.1以上ある目に付けています。'
+                   '当たりやすさではなく、オッズに対してお得かどうかの目安です。</p></details>')
+    body = race_head(date, v, info, "odds", locked, base, result_ready) + content + ad() + rnav(date, info["jcd"], info["race"], races, "-odds")
+    return page(f"{v}{info['race']}R オッズ {jp(date)}", body, f"{v}{info['race']}Rの2連単・3連単オッズと予想の確率",
+                f"/{date}/{info['jcd']}/{base}-odds.html")
 
 
 def result_page(date, info, pred, races, result, boats=None):
@@ -2924,6 +2977,7 @@ def main():
                 (d / f"{base}-entry.html").write_text(entry_page(date, info, boats, season, series, n_series, pred, races, ready))
                 (d / f"{base}-slit.html").write_text(redirect_page(f"/{date}/{jcd}/{base}-turn.html"))   # スリットは展開タブに入れた
                 (d / f"{base}-turn.html").write_text(turn_page(date, info, pred, races, ready))
+                (d / f"{base}-odds.html").write_text(odds_page(date, info, pred, races, ready))
                 (d / f"{base}-result.html").write_text(result_page(date, info, pred, races, result, boats))
                 (d / f"{base}-bet.html").write_text(bet_page(date, info, pred, races, result, bets.get(f"{jcd}-{base}")))
                 urls += [f"/{date}/{jcd}/{base}{s}.html" for s in ("", "-entry", "-turn", "-result")]
