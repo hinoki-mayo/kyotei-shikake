@@ -2,6 +2,7 @@
 例: python scripts/buyer.py --max-minutes 300
 
 ・15秒おきに見回り、締切5分前に「候補」、2分前に「確定」、45秒前にオッズだけ記録する(bet.STAGES)
+・結果(30秒おき)とオッズ(2分おき)は、見回りとは別の係が自分の間隔で取りに行く
 ・決めたら「これから」とそのレースの試験買い目ページだけ作り直してサイトに出す(公開は裏で動かし、見回りは止めない。
   サイト全体は展示反映の5分おきの更新で作り直す)
 ・買い目は data/bets に書き、こまめにコミットする。展示反映の更新が作る予想を取り込むため、毎回 git pull する
@@ -108,51 +109,77 @@ def rebuild():
     return swapped
 
 
-_res = {"th": None, "at": 0.0, "new": []}
+_res = {"new": [], "lock": threading.Lock(), "on": False}
 
 
-def results_bg(now):
-    """締切を過ぎたレースの結果を裏で取りに行く(見回りは止めない)。前の回で取れたレースを返す"""
-    th = _res["th"]
-    if th is not None and th.is_alive():
-        return []
-    got, _res["new"] = _res["new"], []
-    if time.time() - _res["at"] >= RESULT_EVERY:
-        _res["at"] = time.time()
-        p = DATA / "predictions" / f"{now:%Y%m%d}.json"
-        races = {k: x.get("deadline") for k, x in json.loads(p.read_text())["races"].items()} if p.exists() else {}
-
-        def work():
+def _loop(every, fn, name):
+    """見回りとは別に、every秒おきに fn を回し続ける(見回りが重くても結果やオッズの取り込みが遅れないように)"""
+    def run():
+        while True:
+            t0 = time.time()
             try:
-                _res["new"] = live_result.run_fast(f"{now:%Y%m%d}", races, now)
+                fn(now_jst())
             except Exception as e:
-                print("結果の取り込みで失敗:", repr(e), file=sys.stderr)
-        _res["th"] = threading.Thread(target=work, daemon=True)
-        _res["th"].start()
-    return got
+                print(f"{name}で失敗:", repr(e), file=sys.stderr)
+            time.sleep(max(1.0, every - (time.time() - t0)))
+    threading.Thread(target=run, daemon=True).start()
 
 
-_odds = {"th": None, "at": 0.0}
-
-
-def odds_bg(now):
-    """サイトの予想用に、展示が出たレースのオッズを裏で取りに行く(見回りは止めない)"""
-    th = _odds["th"]
-    if (th is not None and th.is_alive()) or time.time() - _odds["at"] < ODDS_EVERY:
-        return
-    _odds["at"] = time.time()
+def _results_once(now):
     p = DATA / "predictions" / f"{now:%Y%m%d}.json"
     if not p.exists():
         return
-    preds = json.loads(p.read_text())["races"]
+    races = {k: x.get("deadline") for k, x in json.loads(p.read_text())["races"].items()}
+    t0 = time.time()
+    new = live_result.run_fast(f"{now:%Y%m%d}", races, now)
+    if new:
+        print(f"{now:%H:%M:%S} 結果 {' '.join(new)}({time.time() - t0:.0f}秒)", flush=True)
+        with _res["lock"]:
+            _res["new"] += new
+
+
+def results_bg(now):
+    """締切を過ぎたレースの結果は裏の係が30秒おきに取りに行く。取れたレースを返す"""
+    if not _res["on"]:
+        _res["on"] = True
+        _loop(RESULT_EVERY, _results_once, "結果の取り込み")
+    with _res["lock"]:
+        got, _res["new"] = _res["new"], []
+    return got
+
+
+def _odds_once(now):
+    p = DATA / "predictions" / f"{now:%Y%m%d}.json"
+    if p.exists():
+        race_view.fetch_live(f"{now:%Y%m%d}", json.loads(p.read_text())["races"], now)
+
+
+_odds = {"on": False}
+
+
+def odds_bg(now):
+    """サイトの予想用に、展示が出たレースのオッズを裏の係が2分おきに取りに行く"""
+    if not _odds["on"]:
+        _odds["on"] = True
+        _loop(ODDS_EVERY, _odds_once, "オッズの取り込み")
+
+
+_bd = {"th": None, "again": False, "done": False}
+
+
+def bets_data_bg(now):
+    """今日の集計(部屋の成績・採用したレースの一覧)を裏で作り直す(10〜20秒かかるので見回りは止めない)。出来たら次の見回りで出す"""
+    th = _bd["th"]
+    if th is not None and th.is_alive():
+        _bd["again"] = True
+        return
+    _bd["again"] = False
 
     def work():
-        try:
-            race_view.fetch_live(f"{now:%Y%m%d}", preds, now)
-        except Exception as e:
-            print("オッズの取り込みで失敗:", repr(e), file=sys.stderr)
-    _odds["th"] = threading.Thread(target=work, daemon=True)
-    _odds["th"].start()
+        build_site.quick_bets_data(now)
+        _bd["done"] = True
+    _bd["th"] = threading.Thread(target=work, daemon=True)
+    _bd["th"].start()
 
 
 def code_version():
@@ -184,6 +211,7 @@ def main():
     _rebuild["at"] = time.time()
     pending, last_push = [], time.time()
     while time.time() < end:
+        t_tick = time.time()
         now = now_jst()
         ld = last_deadline(now)
         if ld is not None and now > ld + dt.timedelta(minutes=10):   # 最後のレースの結果まで取ってから終わる
@@ -200,17 +228,26 @@ def main():
             pending += [f"結果 {k}" for k in got]
             build_site.quick_upcoming(now)   # 結果が出たレースを「これから」から外す
             build_site.quick_bet_pages(now, got)
+            bets_data_bg(now)   # 部屋の成績・採用したレースの一覧にもすぐ出す
             deploy()
-            _rebuild["at"] = 0.0
+            _rebuild["at"] = 0.0   # 結果ページなどサイト全体の作り直しも早める
         if rebuild():   # 裏で作り直したサイト全体に差し替えた(成績が新しくなる)
             build_site.quick_upcoming(now)
+            bets_data_bg(now)   # 作り始めた後に出た結果も入れ直す
             deploy()
         if done:
             pending += done
             build_site.quick_upcoming(now)
             build_site.quick_bet_pages(now, sorted({x.split(":")[0] for x in done}))
             deploy()
+        if _bd["done"]:
+            _bd["done"] = False
+            deploy()
+        if _bd["again"] and not (_bd["th"] and _bd["th"].is_alive()):
+            bets_data_bg(now)
         deploy_pending()
+        if time.time() - t_tick > 30:
+            print(f"{now:%H:%M:%S} 見回りに{time.time() - t_tick:.0f}秒かかった", flush=True)
         if time.time() - last_push >= PUSH_EVERY:
             sync(f"購入係 {now:%H:%M} {len(pending)}件" if pending else None)
             pending, last_push = [], time.time()

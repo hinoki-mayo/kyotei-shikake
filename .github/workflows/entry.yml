@@ -20,6 +20,7 @@ jobs:
         with:
           ref: main
       - name: 購入係が止まっていたら起こす(GitHubの定時起動は抜けることがあるため。7:00〜20:30)
+        id: buyer
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
@@ -27,6 +28,7 @@ jobs:
           if [ $h -ge 700 ] && [ $h -le 2030 ]; then
             n=$(gh run list --repo ${{ github.repository }} --workflow buyer.yml --limit 5 --json status -q '[.[]|select(.status!="completed")]|length' || echo 1)
             if [ "$n" = "0" ]; then gh workflow run buyer.yml --repo ${{ github.repository }} --ref main && echo "購入係を起動"; fi
+            if [ "$n" != "0" ]; then echo "running=1" >> $GITHUB_OUTPUT; fi   # 購入係が動いている
           fi
       - uses: actions/setup-python@v5
         with:
@@ -44,10 +46,12 @@ jobs:
           git pull --rebase
           git push
       # サイト作りが失敗しても、取り込んだ展示・買い目のデータは先に保存しておく
-      - run: python scripts/build_site.py
+      # 購入係がいる時間は、購入係が最新のデータでサイトを作って出す(こちらが古いサイトで上書きしないよう、作らない)
+      - if: steps.buyer.outputs.running != '1'
+        run: python scripts/build_site.py
         env:
           SHARE_KEY: ${{ secrets.SHARE_KEY }}
-      - if: vars.CF_PROJECT != ''
+      - if: vars.CF_PROJECT != '' && steps.buyer.outputs.running != '1'
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
