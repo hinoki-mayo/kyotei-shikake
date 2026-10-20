@@ -23,7 +23,7 @@ import race_view
 import shadow_staff
 import live_result
 import share
-from common import DATA, ROOT, now_jst
+from common import DATA, JST, ROOT, now_jst
 from draw import slit_svg, turn_svg
 from parse import VENUES
 
@@ -1118,9 +1118,80 @@ def quick_bets_data(now=None):
         print(f"今日の集計の作り直しに失敗: {e!r}")
 
 
+_FLOW_A = {}   # (日, レース, 45秒前の記録があるか) → 決裁者Aの買い目。見回りのたびに作り直さないように
+
+
+def _flow_a(date, key, pred, b):
+    """決裁者Aの判断: (最終か, 買い目[[組, 単位]], 採用見込みの社員)。最終=45秒前のオッズで決めた後"""
+    has45 = bool((b.get("stages") or {}).get("直前"))
+    ck = (date, key, has45)
+    if ck not in _FLOW_A:
+        plans = {n: pl for n, pl in plans_of(b).items()
+                 if n in bet_mod.OPS_PLANS + bet_mod.SHADOW_PLANS and pl.get("logic") == bet_mod.OPS_LOGIC and not pl.get("skip")}
+        kp = _kessai_plans(date, key, pred, b, plans) if plans else plans
+        got = org_tree.decide(org_tree.proposals(kp, pred), conf_for(date), adopt=org_tree.adopt_for(date)) if kp else []
+        _FLOW_A[ck] = (kp is not plans, [[t["combo"], t["units"]] for c in got for t in c["tickets"]],
+                       [ALL_PLAN_LABELS.get(c["plan"], c["plan"]) for c in got])
+    return _FLOW_A[ck]
+
+
+def flow_data(now=None):
+    """運用の流れ図: 今日のレースが今どの段階にいるか(展示・予想 → 社員の提案 → 決裁中 → 決定 → 結果)"""
+    now = now or now_jst()
+    date = f"{now:%Y%m%d}"
+    pp = DATA / "predictions" / f"{date}.json"
+    if not pp.exists():
+        return {"at": f"{now:%H:%M}", "races": []}
+    preds = json.loads(pp.read_text())["races"]
+    bp = DATA / "bets" / f"{date}.json"
+    bets = json.loads(bp.read_text()) if bp.exists() else {}
+    live = live_result.load(date)
+    out = []
+    for key, pred in preds.items():
+        dl = pred.get("deadline")
+        if not dl:
+            continue
+        mins = (dt.datetime.strptime(date + dl, "%Y%m%d%H:%M").replace(tzinfo=JST) - now).total_seconds() / 60
+        if mins > 30 or mins < -60:
+            continue
+        jcd, race = key.split("-")
+        x = dict(v=jcd, r=int(race), t=dl)
+        b = bets.get(key)
+        res = live.get(key) or {}
+        try:
+            final, tk, who = _flow_a(date, key, pred, b) if b else (False, [], [])
+        except Exception as e:
+            print(f"流れ図でAの判断を作れませんでした({key}): {e!r}")
+            final, tk, who = False, [], []
+        if res.get("combo2t"):
+            if not tk:
+                continue   # 見送ったレースの結果は出さない(数だけ数える)
+            ret = sum(u * (res.get("payout2t") or 0) if c == res["combo2t"] else u * (res.get("payout3t") or 0) if c == res.get("combo3t") else 0
+                      for c, u in tk)
+            x.update(ph="result", res=res.get("combo3t"), st=sum(u for _, u in tk) * 100, ret=round(ret), who=who)
+        elif mins < 0:
+            if not tk and mins < -10:
+                continue   # 見送ったレースは締切10分後まで出せば十分
+            x.update(ph="decided", buy=bool(tk), st=sum(u for _, u in tk) * 100, who=who, race=1)
+        elif not b:
+            x.update(ph="pre", ex=pred.get("version") == "final")
+        elif final:
+            x.update(ph="decided", buy=bool(tk), st=sum(u for _, u in tk) * 100, who=who)
+        elif b.get("stage") == "候補":
+            x.update(ph="prop", lean=bool(tk))
+        else:
+            x.update(ph="kessai", lean=bool(tk))
+        out.append(x)
+    return {"d": date, "at": f"{now:%H:%M}", "races": sorted(out, key=lambda x: x["t"])}
+
+
 def quick_upcoming(now=None):
-    """購入係用: 「これから」のデータだけ作り直す(サイト全体は作り直さない)"""
+    """購入係用: 「これから」と流れ図のデータだけ作り直す(サイト全体は作り直さない)"""
     (OUT / "bets-upcoming.json").write_text(json.dumps(bets_upcoming(now), ensure_ascii=False, separators=(",", ":")))
+    try:
+        (OUT / "flow.json").write_text(json.dumps(flow_data(now), ensure_ascii=False, separators=(",", ":")))
+    except Exception as e:
+        print(f"流れ図のデータを作れませんでした: {e!r}")
 
 
 ORG_CONF = org_tree.load_confidence()
@@ -1595,6 +1666,36 @@ function renderUpcoming(el, U, PL, VN, only){
 }
 """
 
+FLOW_JS = r"""
+// 運用の流れ図: 今日のレースが今どの段階にいるか
+function renderFlow(el, F, VN){
+  const D=F.races||[];
+  const steps=[
+    ['pre','① 展示・予想','締切30分前から。展示が出ると予想が確定する'],
+    ['prop','② 社員が提案','締切5分前。社員が買い目の候補を出す'],
+    ['kessai','③ 決裁中','締切2分前に社員が確定 → 決裁者Aが45秒前のオッズを待って判断'],
+    ['decided','④ 決定','締切45秒前。決裁者Aが「買う」か「見送り」を決めた'],
+    ['result','⑤ 結果','買ったレースの当たり・はずれ(直近1時間)']];
+  const chip=x=>{
+    const rr=String(x.r).padStart(2,'0'), href=`/${F.d}/${x.v}/${rr}-bet.html`;
+    let tag='', bg='var(--card)', bd='var(--bd)';
+    if(x.ph==='pre') tag=x.ex?'展示済':'展示待ち';
+    if((x.ph==='prop'||x.ph==='kessai')&&x.lean){ tag='Aが買いそう'; bd='#7A5AE0'; }
+    if(x.ph==='decided'){ if(x.buy){ tag=`買う ${x.st.toLocaleString()}円`+(x.race?'・レース中':''); bg='rgba(30,158,106,.14)'; bd='#1E9E6A'; }
+                          else { tag='見送り'+(x.race?'・レース中':''); } }
+    if(x.ph==='result'){ const w=x.ret>0, d=x.ret-x.st; tag=(w?'✅ 的中 ':'❌ ')+(d>=0?'+':'')+d.toLocaleString()+'円'; bg=w?'rgba(30,158,106,.14)':'transparent'; bd=w?'#1E9E6A':'var(--bd)'; }
+    return `<a href="${href}" style="display:inline-flex;flex-direction:column;margin:3px;padding:4px 8px;border:1.5px solid ${bd};background:${bg};border-radius:8px;text-decoration:none;color:var(--tx);line-height:1.3">`+
+      `<span style="font-size:13px"><b>${VN[x.v]||x.v}${x.r}R</b> <span class="sub">${x.t}</span></span>`+(tag?`<span class="sub" style="font-size:11.5px">${tag}</span>`:'')+`</a>`;
+  };
+  el.innerHTML='<div class="card"><b>いまの流れ</b> <span class="sub">'+F.at+'時点・30秒ごとに更新。レースを押すと買い目</span>'+
+    steps.map(([k,t,d],i)=>{const xs=D.filter(x=>x.ph===k), on=xs.length>0;
+      return (i?'<div style="text-align:center;color:var(--sub);line-height:1;margin:2px 0">▼</div>':'')+
+        `<div style="border:1.5px solid ${on?'var(--tx)':'var(--bd)'};border-radius:10px;padding:6px 8px;opacity:${on?1:.55}">`+
+        `<div><b>${t}</b> <span class="sub">${xs.length}レース</span></div><div class="sub" style="font-size:11.5px">${d}</div>`+
+        (on?`<div style="margin-top:2px">${xs.map(chip).join('')}</div>`:'')+`</div>`;}).join('')+'</div>';
+}
+"""
+
 CHART_JS = r"""
 // 日ごとの損益: 累積の折れ線 + 日別の棒(0を境に上下) + タップで日の詳細 + 表
 const WD='日月火水木金土';
@@ -1722,7 +1823,10 @@ def _org_page(title, path, body, upcoming=None):
     """組織図系のページ。upcoming: 「これから」に出すプラン(Noneなら出さない、[]なら全運用プラン)"""
     js = (ORG_JS.replace("__ORG__", json.dumps(_org_json(), ensure_ascii=False))
                 .replace("__VENUES__", json.dumps(VENUES, ensure_ascii=False)))
-    js = UPCOMING_JS + CHART_JS + js
+    js = UPCOMING_JS + FLOW_JS + CHART_JS + js
+    if 'id="flow"' in body:
+        js += ("const loadFlow=()=>fetch('/flow.json',{cache:'no-store'}).then(r=>r.json()).then(f=>renderFlow($('flow'),f,VN)).catch(()=>{});"
+               "loadFlow();setInterval(loadFlow,30000);")
     if upcoming is not None:
         only = upcoming or list(bet_mod.OPS_PLANS)
         js += (f"const loadUp=()=>fetch('/bets-upcoming.json',{{cache:'no-store'}}).then(r=>r.json()).then(u=>renderUpcoming($('up'),u,ORG.labels,VN,"
@@ -1991,6 +2095,7 @@ def monitor_room():
             + '<div class="card"><b>見張っている決裁者</b><p class="sub" style="margin:4px 0 6px">どれもお金は使わず記録だけ。'
               '同じレースでそれぞれ判断し、成績を並べる。r1・r2…は同じ決裁者の中で買い方を直した版。</p>'
             + _kessai_tiles() + '</div>'
+            + '<div id="flow"></div>'
             + '<div class="card"><b>決裁者Aの成績</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>決裁者Cの成績</b><div data-stat="plan:kessaiC"></div><div data-pnl="kessaiC" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>判定の予定</b><p class="sub" style="margin:4px 0 0">10/31(14日)と11/17(30日)に、A・Cの成績と社員候補を比べて、'
@@ -2025,6 +2130,7 @@ def monitor_room():
 def kessai_room():
     k = ORG_KESSAI
     body = (_room_head(k["color"], k["acc"], "決裁者A(自信度型)", "社員の提案を自信度で選んで採用する", back="/org/monitor.html", back_label="モニターの部屋に戻る")
+            + '<div id="flow"></div>'
             + '<h2>決裁者A(自信度型)</h2>'
             + '<div class="card"><b>決め方</b><p class="sub" style="margin:4px 0 0">'
               '① 各社員の買い目を頭の艇ごとの「提案」に分け、入った箱の自信度(確定オッズの過去データでの推定回収率)を付ける。印があれば一番細かい印の箱の自信度。<br>'
@@ -3076,7 +3182,7 @@ def main():
     (OUT / "today.html").write_text(today_page(top or today, vday, vpreds, now))
     urls += ["/venue/", "/record.html", "/today.html"]
     (OUT / "bets-data.json").write_text(json.dumps(bets_records(), ensure_ascii=False, separators=(",", ":")))
-    (OUT / "bets-upcoming.json").write_text(json.dumps(bets_upcoming(), ensure_ascii=False, separators=(",", ":")))
+    quick_upcoming()
     (OUT / "nige-data.json").write_text(json.dumps(nige_records(), ensure_ascii=False, separators=(",", ":")))
     # 自分用(試験用買い目)のページは予想組織図にまとめた。サイトマップには入れない
     (OUT / "ops.html").write_text(org_home())
