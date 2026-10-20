@@ -10,6 +10,7 @@ VENUES = {"01": "桐生", "02": "戸田", "03": "江戸川", "04": "平和島", 
 K_HDR = re.compile(r"\s+(\d+)R\s+(\S+)\s+H(\d+)m\s+(\S+)\s+風\s+(\S+)\s+(\d+)m\s+波\s+(\d+)cm")
 PAYOUT_RE = re.compile(r"(\d+)R\s+(\d-\d-\d)\s+(\d+)")
 K_BOAT = re.compile(r"\s+(\S\S|\S )\s*(\d)\s+(\d{4})\s+(.{8})\s*(\d+)\s+(\d+)\s+([\d.]+)\s+(\d)\s+(\S+)")
+B_HEAD = re.compile(r"^([1-6]) (\d{4})(.{4})(\d{2})(.{2})(\d{2})([AB][12])(.*)$")   # 数字の欄が崩れた時の予備(新モーターで2連率が空欄など)
 B_BOAT = re.compile(r"^([1-6]) (\d{4})(.{4})(\d{2})(.{2})(\d{2})([AB][12])"
                     r"\s*(\d+\.\d{2})\s*(\d+\.\d{2})\s*(\d+\.\d{2})\s*(\d+\.\d{2})"  # 全国勝率・2率・当地勝率・2率
                     r"\s*(\d{1,3})\s*(\d+\.\d{2})\s*(\d{1,3})\s*(\d+\.\d{2})")  # モーター・2率・ボート・2率(桁が詰まることがある)
@@ -60,10 +61,33 @@ def parse_results(text: str, date: str):
     return rows
 
 
+def _loose_boat(line):
+    """B_BOATで読めない行を、欄を数字の並びとして読み直す。勝率4つ・モーター番号・ボート番号は必須、2連率は無ければ0"""
+    m = B_HEAD.match(line)
+    if not m:
+        return None
+    nums = re.findall(r"\d+\.\d{2}|\d+", m.group(8))
+    if len(nums) < 6:
+        return None
+    rates, rest = nums[:4], nums[4:]
+    if not all("." in x for x in rates):
+        return None
+    motor = rest[0]
+    i = 1
+    motor_2r = rest[i] if i < len(rest) and "." in rest[i] else "0.00"
+    i += 1 if motor_2r != "0.00" or (i < len(rest) and "." in rest[i]) else 0
+    boat = rest[i] if i < len(rest) else "0"
+    boat_2r = rest[i + 1] if i + 1 < len(rest) and "." in rest[i + 1] else "0.00"
+    if "." in motor or "." in boat:
+        return None
+    return m.groups()[:7] + tuple(rates) + (motor, motor_2r, boat, boat_2r)
+
+
 def parse_program(text: str, date: str):
     """番組表 → 1行=1艇"""
     rows = []
     for jcd, body in re.findall(r"(\d\d)BBGN(.*?)\d\dBEND", text, re.S):
+        n0 = len(rows)
         race = None
         rtype = ""
         deadline = ""
@@ -88,12 +112,15 @@ def parse_program(text: str, date: str):
                 deadline = f"{int(dl.group(1)):02d}:{dl.group(2)}" if dl else ""
                 continue
             m = B_BOAT.match(line)
-            if m and race:
-                g = m.groups()
+            g = m.groups() if m else _loose_boat(line)
+            if g and race:
                 rows.append(dict(date=date, jcd=jcd, venue=VENUES.get(jcd, jcd), race=race, rtype=rtype,
                                  deadline=deadline, day=day, title=title, waku=int(g[0]), toban=g[1], name=g[2].replace("　", ""), age=int(g[3]),
                                  branch=g[4].replace("　", ""), weight=int(g[5]), grade=g[6],
                                  nat_win=float(g[7]), nat_2r=float(g[8]), loc_win=float(g[9]),
                                  loc_2r=float(g[10]), motor=int(g[11]), motor_2r=float(g[12]),
                                  boat=int(g[13]), boat_2r=float(g[14])))
+        if len(rows) == n0:   # 場がまるごと読めなかった時は、どんな行か分かるように少し出す
+            samp = [unicodedata.normalize("NFKC", x) for x in body.splitlines() if re.match(r"^[1-6] \d{4}", x)][:3]
+            print(f"番組表: {date} 場{jcd}が読めませんでした。選手の行の例: {samp}")
     return rows
