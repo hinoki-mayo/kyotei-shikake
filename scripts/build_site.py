@@ -300,24 +300,8 @@ def tenji_card(date, info):
     if not isinstance(lv, dict) or not lv.get("order"):
         return ""
     order, tj, est = lv["order"], lv.get("tenji") or [], lv.get("est") or []
-    W, L, R, rowh = 340, 40, 300, 30
-    svg = ""
-    for c, w in enumerate(order):
-        y = 16 + c * rowh
-        st = est[w - 1] if len(est) >= w else None
-        svg += f'<line x1="{L}" y1="{y + 10}" x2="{R}" y2="{y + 10}" stroke="currentColor" stroke-opacity=".12"/>'
-        svg += f'<text x="4" y="{y + 15}" font-size="11" fill="currentColor" fill-opacity=".6">{c + 1}C</text>'
-        if st is None:
-            x, lab = L + 10, "-"
-        else:
-            x = R - max(-0.05, min(0.35, st)) / 0.35 * (R - L)   # STが小さいほど右(スタートラインに近い)
-            lab = f"F{abs(st):.2f}".replace("0.", ".") if st < 0 else f"{st:.2f}".lstrip("0")
-        svg += (f'<rect x="{x - 26}" y="{y}" width="26" height="20" rx="4" fill="{BC[w - 1]}" stroke="currentColor" stroke-opacity=".25"/>'
-                f'<text x="{x - 13}" y="{y + 15}" font-size="13" font-weight="700" text-anchor="middle" fill="{TC[w - 1]}">{w}</text>'
-                f'<text x="{min(x + 4, W - 30)}" y="{y + 15}" font-size="12" font-weight="700" fill="{"#C7443A" if st is not None and st < 0 else "currentColor"}">{lab}</text>')
-    svg = (f'<svg viewBox="0 0 {W} {16 + 6 * rowh}" width="100%" style="max-width:420px">{svg}'
-           f'<line x1="{R}" y1="8" x2="{R}" y2="{12 + 6 * rowh}" stroke="#E8742E" stroke-width="2"/>'
-           f'<text x="{R - 2}" y="{14 + 6 * rowh}" font-size="10" text-anchor="end" fill="#E8742E">スタートライン</text></svg>')
+    stc = [est[w - 1] if len(est) >= w else None for w in order]   # コース順の展示ST
+    svg = slit_svg(stc, order, {}, [], st_labels=stc, title="スタート展示")
     rk = sorted(x for x in tj if x)
     cells = "".join(
         f'<div style="text-align:center">{chip(w)}<b style="display:block;font-size:14px;margin-top:2px;'
@@ -331,7 +315,7 @@ def tenji_card(date, info):
         svg = ('<div style="display:flex;gap:4px;align-items:center;margin:6px 0"><span class="sub">進入</span>'
                + "".join(chip(w) for w in order) + '</div>')
     return ('<h2>展示（直前情報）</h2><div class="card">'
-            '<b style="font-size:14px">スタート展示</b> <span class="sub">上から1コース。右ほど早いスタート</span>' + svg
+            '<b style="font-size:14px">スタート展示</b> <span class="sub">上から1コース。右ほど早いスタート（展開タブの図と同じ見方）</span>' + svg
             + '<b style="font-size:14px;display:block;margin-top:8px">展示タイム</b> <span class="sub">赤＝一番速い</span>'
             + f'<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-top:6px">{cells}</div>'
             + (f'<p class="sub" style="margin:8px 0 0">{html.escape(wx)}</p>' if wx else "") + '</div>')
