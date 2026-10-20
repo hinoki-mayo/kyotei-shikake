@@ -98,6 +98,15 @@ def main():
                 tenji = fetch_tenji(h)
                 if tenji:
                     rec["tenji"] = tenji
+                try:   # 展示のスタート(ST)。枠番順、フライングはマイナス、取れなければNone
+                    import math
+                    import fetch_before_hist
+                    est = fetch_before_hist.parse_est(h)
+                    if est:
+                        rec["est"] = [None if (est.get(w) is None or math.isnan(est.get(w))) else round(float(est[w]), 2)
+                                      for w in range(1, 7)]
+                except Exception as e:
+                    print(f"展示STを読めませんでした({key}): {e!r}")
                 weather = fetch_weather(h)
                 if weather:
                     rec.update(weather)
