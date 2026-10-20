@@ -75,9 +75,11 @@ class Labeler:
         return False
 
 
-def slit_svg(st, waku, tags, late):
+def slit_svg(st, waku, tags, late, st_labels=False, title="スリット隊形"):
+    """st: コース順のST(予想または展示)。st_labels=True なら各艇の右にSTの数字を出す(展示用。Noneの艇は線の手前に置く)"""
+    st = [0.15 if x is None else x for x in st] if st_labels else st
     s = [f'<svg viewBox="0 0 380 250" width="100%" role="img" xmlns="http://www.w3.org/2000/svg">'
-         f'<title>スリット隊形</title>', '<rect width="380" height="250" rx="10" fill="#1F4A63"/>',
+         f'<title>{title}</title>', '<rect width="380" height="250" rx="10" fill="#1F4A63"/>',
          '<line x1="250" y1="14" x2="250" y2="222" stroke="#9FC3D8" stroke-dasharray="4 4"/>',
          f'<text x="250" y="240" text-anchor="middle" font-size="12" fill="#9FC3D8" {FONT}>スリット</text>']
     obs = []
@@ -92,6 +94,17 @@ def slit_svg(st, waku, tags, late):
                      f'<text x="{x - 8:.0f}" y="{y}" text-anchor="middle" dominant-baseline="central" font-size="14" '
                      f'font-weight="500" fill="{TC[i]}" {FONT}>{i + 1}</text>')
         obs.append((x - 22, y - 11, x + 9, y + 11))
+    if st_labels:
+        for k in range(6):
+            y = 30 + k * 36
+            x = max(90, min(340, 250 + (0.15 - st[k]) * 700))
+            v = st_labels[k] if isinstance(st_labels, list) else None
+            if v is None:
+                continue
+            txt = f"F{abs(v):.2f}".replace("F0.", "F.") if v < 0 else f"{v:.2f}".lstrip("0")
+            tx = min(x + 12, 350)
+            s.append(f'<text x="{tx:.0f}" y="{y}" dominant-baseline="central" font-size="12" font-weight="700" '
+                     f'fill="{"#FF8A80" if v < 0 else "#E6F1F7"}" {FONT}>{txt}</text>')
     lab = Labeler(obs, 222)
     for k in range(6):
         y = 30 + k * 36
