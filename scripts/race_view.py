@@ -202,5 +202,5 @@ def view(pred, date, odds=None, live=None):
     all2 = {f"{waku[i]}-{waku[j]}": p for i, j, _, p in s2}
     top3_20 = sorted(((f"{waku[i]}-{waku[j]}-{waku[k]}", p) for i, j, k, p in s3), key=lambda x: -x[1])[:20]
     return dict(src="混ぜた" if o2 else "情報部のみ", at=(odds or {}).get("t", ""), boats=boats, top2=top2, top3=top3,
-                all2=all2, top3_20=top3_20,
+                all2=all2, top3_20=top3_20, top3_all=[(f"{waku[i]}-{waku[j]}-{waku[k]}", p) for i, j, k, p in s3],
                 scen=scenarios(pred, s2, s3, p1))
