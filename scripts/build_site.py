@@ -328,7 +328,8 @@ def tenji_card(date, info):
     wx = "・".join(x for x in (f'{lv.get("wind_dir", "")}の風 {lv["wind"]:.0f}m' if lv.get("wind") is not None else "",
                                f'波 {lv["wave"]:.0f}cm' if lv.get("wave") is not None else "") if x)
     if not any(x is not None for x in est):   # 展示STが無い(取り込む前の)レースは、進入の並びだけ
-        svg = '<p style="margin:4px 0">進入 ' + " ".join(chip(w).replace('class="chip"', 'class="chip" style="display:inline-flex;margin-right:3px"', 1) for w in order) + '</p>'
+        svg = ('<div style="display:flex;gap:4px;align-items:center;margin:6px 0"><span class="sub">進入</span>'
+               + "".join(chip(w) for w in order) + '</div>')
     return ('<h2>展示（直前情報）</h2><div class="card">'
             '<b style="font-size:14px">スタート展示</b> <span class="sub">上から1コース。右ほど早いスタート</span>' + svg
             + '<b style="font-size:14px;display:block;margin-top:8px">展示タイム</b> <span class="sub">赤＝一番速い</span>'
