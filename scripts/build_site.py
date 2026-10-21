@@ -1427,9 +1427,11 @@ def bets_records(only=None):
                             ov[pk] = [int(bool(chosen)), int(any(_same(x, y) for x in cs for y in ac)), staff]
                         intern_ov = ov
                     picked = {(c["leaf"], c["head"]) for c in chosen}
-                    for x in pp:   # 6つ目: 決裁者に採用されたか
-                        x.append(int((x[0], x[5]) in picked))
+                    for x in pp:   # 6つ目: 決裁者に採用されたか / 7つ目: 頭の艇(社員同士の被りを見る用)
+                        h = x[5]
+                        x.append(int((x[0], h) in picked))
                         del x[5]
+                        x.append(h)
                     # 採用した提案の中身(当たったレースの一覧用): [箱, 頭, 買い目, 投資, 払戻]
                     st_ka = [[c["leaf"], c["head"], " ".join(f'{t["combo"]} {t["units"] * 100}円' for t in c["tickets"]), c["paid"], round(c["ret"])]
                              for c in chosen]
@@ -1755,7 +1757,7 @@ DASH_PLANS = {"pickura": "B級イン・裏の穴", "pickbin": "B級イン・2連
 SHADOW_LABELS = {"pickoutfav": "外の本命", "pickfav": "イン頭・軽視された2着", "pickgen": "一般職・市場が軽く見る艇", "pickbinc": "B級イン・凪で強敵なし", "pickbint": "B級イン・凪で展示1位",
                  "pickbinx": "B級イン・絞り込み", "pickin": "内・2連単・逆張り", "pick21": "2差し1残し・2連単2-1",
                  "pick21t": "2差し1残し・3連単2-1-□", "pick6a": "6コースだけA級・2連単",
-                 "pick2tan": "外・2連単"}   # 立説中(総合収支に含めない)。並びが優先度(上ほど有望)
+                 "pick2tan": "外・2連単", "pickwin": "外の1着専門", "pickinwin": "インの1着専門"}   # 立説中(総合収支に含めない)。並びが優先度(上ほど有望)
 # 3連単(pick2)は実オッズで良い結果が出てないためダッシュボードには出さない。
 # bet.py側の集計(bets-data.json)は変わらず続けているので、見たくなれば/ops/pick2.htmlで確認できる。
 
@@ -2106,6 +2108,30 @@ function ovTable(p){
     row('全部',g.all)+row('決裁者Aも同じレースを採用',g.arace)+row('決裁者Aと同じ目',g.acombo)+row('決裁者Aは買わない',g.noA)+
     row('社員の誰かと同じ目',g.staff)+tops+row('どの社員とも被らない',g.nostaff)+`</table></div>`;
 }
+// 社員同士の被り: 同じレースで同じ頭を推した社員がほかにもいるか。単独の時と被った時の成績、よく被る組み合わせ
+function staffOv(){
+  const one={}, pair={}, ad=(o,k,s,r,a)=>{const x=(o[k]=o[k]||{n:0,h:0,st:0,ret:0,an:0}); x.n++; x.h+=r>0?1:0; x.st+=s; x.ret+=r; x.an+=a?1:0;};
+  for(const x of D){ if(x.d<ORG.orgSince||!x.pp) continue;
+    const by={}; for(const p of x.pp){ if(p.length<7) continue; (by[p[6]]=by[p[6]]||[]).push(p); }
+    for(const ps of Object.values(by)){ const names=[...new Set(ps.map(p=>p[0].split('.').pop()))];
+      for(const p of ps){ const nm=p[0].split('.').pop(); ad(one,nm+(names.length>1?'|被り':'|単独'),p[2],p[3],p[5]); }
+      if(names.length>1) for(let i=0;i<names.length;i++) for(let j=i+1;j<names.length;j++){
+        const k=[names[i],names[j]].sort().join('+'); const best=ps.reduce((a,p)=>p[3]>a?p[3]:a,0);
+        const st=ps.filter(p=>[names[i],names[j]].includes(p[0].split('.').pop())).reduce((a,p)=>a+p[2],0)/2;
+        ad(pair,k,st,best>0?ps.filter(p=>[names[i],names[j]].includes(p[0].split('.').pop())).reduce((a,p)=>a+p[3],0)/2:0,0); } } }
+  const nm=s=>ORG.labels[s]||s, cell=a=>a?`<td>${a.n}</td><td>${a.h}</td><td style="font-weight:700;color:${a.ret>=a.st?'var(--green)':'var(--red)'}">${pc(a.ret,a.st)}</td>`:'<td colspan="3" class="sub">-</td>';
+  const staff=[...new Set(Object.keys(one).map(k=>k.split('|')[0]))].sort((a,b)=>((one[b+'|被り']||{}).n||0)-((one[a+'|被り']||{}).n||0));
+  if(!staff.length) return '<span class="sub">まだ記録なし</span>';
+  const t1=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px;text-align:right;white-space:nowrap">`+
+    `<tr class="sub"><th></th><th colspan="3" style="text-align:center">単独で推した</th><th colspan="3" style="text-align:center">他の社員も同じ頭</th></tr>`+
+    `<tr class="sub"><th></th><th>提案</th><th>的中</th><th>回収</th><th>提案</th><th>的中</th><th>回収</th></tr>`+
+    staff.map(s=>`<tr><td style="text-align:left">${nm(s)}</td>${cell(one[s+'|単独'])}${cell(one[s+'|被り'])}</tr>`).join('')+`</table></div>`;
+  const tp=Object.entries(pair).sort((a,b)=>b[1].n-a[1].n).slice(0,8);
+  const t2=`<div class="sub" style="margin-top:8px">よく被る組み合わせ(2人の提案の平均)</div><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px;text-align:right;white-space:nowrap">`+
+    `<tr class="sub"><th></th><th>レース</th><th>的中</th><th>回収</th></tr>`+
+    tp.map(([k,a])=>`<tr><td style="text-align:left">${k.split('+').map(nm).join(' × ')}</td>${cell(a)}</tr>`).join('')+`</table></div>`;
+  return t1+t2;
+}
 function boardTable(a){
   if(!a.n) return '<p class="sub">まだ提案なし</p>';
   const row=(lab,n,h,s,r)=>`<tr><td style="text-align:left">${lab}</td><td>${n}</td><td>${h}</td><td>${n?Math.round(h/n*100):0}%</td><td>${yen(s)}</td><td>${yen(r)}</td><td style="font-weight:700;color:${r>=s?'var(--green)':'var(--red)'}">${s?pc(r,s):'-'}</td></tr>`;
@@ -2130,6 +2156,7 @@ function fill(){
     else if(k==='kessai-races') el.innerHTML=kessaiRaces();
     else if(k.startsWith('mq:')) el.innerHTML=mqLine(k.slice(3));
     else if(k==='side') el.innerHTML=sideTable();
+    else if(k==='staff-ov') el.innerHTML=staffOv();
     else if(k.startsWith('ov:')) el.innerHTML=ovTable(k.slice(3));
   });
   document.querySelectorAll('[data-pnl]').forEach(el=>{
@@ -2252,6 +2279,8 @@ def monitor_room():
             + '<div class="card"><b>決裁者Cの成績</b><div data-stat="plan:kessaiC"></div><div data-pnl="kessaiC" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>判定の予定</b><p class="sub" style="margin:4px 0 0">10/31(14日)と11/17(30日)に、A・Cの成績と社員候補を比べて、'
               '本命の決裁者と社員の入れ替えを決める。決め方は運用メモに事前に書いてある。</p></div>'
+            + '<div class="card"><b>社員同士の被り</b> <span class="sub">同じレースで同じ頭を推した社員がほかにもいたか。提案1つ4,000円で、採用されたかどうかに関係なく数える</span>'
+              '<div data-stat="staff-ov" style="margin-top:6px"></div></div>'
             + '<a class="org-tile" href="/org/intern.html" style="margin-bottom:12px"><div><b>有力インターン生の部屋 →</b><span class="sub">説D・インの2着専門・E2・E3など、社員に上がる前の説</span></div></a>'
             + '<div class="card"><b>社員候補(記録だけ)</b><p class="sub" style="margin:2px 0 6px">'
               '事前に決めた条件を別の年で確かめて残った買い方。1点1,000円・締切2分前のオッズで判断。成績がよければ社員にする。</p>'
