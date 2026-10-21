@@ -2142,16 +2142,16 @@ function staffOv(){
 // インターン生の一覧: 件数・的中・回収率・損益・直近3日・Aと被った時
 function internSum(list){
   const days=[...new Set(D.map(x=>x.d))].sort(), last3=new Set(days.slice(-3));
-  const rows=list.map(([p,n])=>{ const a={n:0,h:0,st:0,ret:0}, r3={st:0,ret:0}, ov={st:0,ret:0,n:0};
-    for(const x of D){ const v=x.s&&x.s[p]; if(!v||!v[0]) continue; a.n++; a.h+=v[1]>0?1:0; a.st+=v[0]; a.ret+=v[1];
+  const rows=list.map(([p,n])=>{ const a={n:0,h:0,st:0,ret:0,pl4:0}, r3={st:0,ret:0}, ov={st:0,ret:0,n:0};
+    for(const x of D){ const v=x.s&&x.s[p]; if(!v||!v[0]) continue; a.n++; a.h+=v[1]>0?1:0; a.st+=v[0]; a.ret+=v[1]; a.pl4+=v[1]/v[0]*4000-4000;
       if(last3.has(x.d)){ r3.st+=v[0]; r3.ret+=v[1]; }
       const o=x.ov&&x.ov[p]; if(o&&o[0]){ ov.n++; ov.st+=v[0]; ov.ret+=v[1]; } }
     return {p,n,a,r3,ov}; }).sort((x,y)=>(y.a.st?y.a.ret/y.a.st:-1)-(x.a.st?x.a.ret/x.a.st:-1));
   const col=(r,s)=>s?`<b style="color:${r>=s?'var(--green)':'var(--red)'}">${pc(r,s)}</b>`:'<span class="sub">-</span>';
   return `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:right;white-space:nowrap">`+
-    `<tr class="sub"><th style="text-align:left">インターン生</th><th>レース</th><th>的中</th><th>回収率</th><th>損益</th><th>直近3日</th><th>Aと被った時</th></tr>`+
+    `<tr class="sub"><th style="text-align:left">インターン生</th><th>レース</th><th>的中</th><th>回収率</th><th>4,000円なら</th><th>直近3日</th><th>Aと被った時</th></tr>`+
     rows.map(r=>`<tr style="border-top:1px solid var(--bd)"><td style="text-align:left">${r.n}</td><td>${r.a.n}</td><td>${r.a.h}</td><td>${col(r.a.ret,r.a.st)}</td>`+
-      `<td>${r.a.st?sg(r.a.ret-r.a.st):'-'}</td><td>${col(r.r3.ret,r.r3.st)}</td><td>${r.ov.n?col(r.ov.ret,r.ov.st)+`<span class="sub">(${r.ov.n})</span>`:'<span class="sub">-</span>'}</td></tr>`).join('')+
+      `<td>${r.a.st?sg(Math.round(r.a.pl4)):'-'}</td><td>${col(r.r3.ret,r.r3.st)}</td><td>${r.ov.n?col(r.ov.ret,r.ov.st)+`<span class="sub">(${r.ov.n})</span>`:'<span class="sub">-</span>'}</td></tr>`).join('')+
     `</table></div>`;
 }
 function boardTable(a){
@@ -2398,7 +2398,7 @@ def intern_room():
                     for p, n, d in INTERNS)
     names = json.dumps([[p, n] for p, n, _ in INTERNS], ensure_ascii=False)
     summary = ('<div class="card"><b>インターン生の一覧</b> <span class="sub">記録を始めてから今日まで。回収率の高い順。'
-               '「直近3日」は調子、「Aと被った時」は決裁者Aも同じレースを採用した時の回収率</span>'
+               '「4,000円なら」は1レース4,000円で買った時の損益(決裁者Aとそろえた額)。「直近3日」は調子、「Aと被った時」は決裁者Aも同じレースを採用した時の回収率</span>'
                f'<div data-stat="intern-sum:{html.escape(names)}" style="margin-top:6px"></div></div>')
     body = (_room_head(k["color"], k["acc"], "有力インターン生", "社員に上がる前の、見込みのある説(お金は使わず記録だけ・1点1,000円)",
                        back="/org/monitor.html", back_label="モニターの部屋に戻る")
