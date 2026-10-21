@@ -51,5 +51,9 @@ def run(date, workers=8):
 
 
 if __name__ == "__main__":
-    for d in sys.argv[1:] or [f"{now_jst():%Y%m%d}"]:
-        run(d)
+    # 日付の指定が無ければ、今日と前の3日(GitHubの定時起動は数時間遅れて日付をまたぐことがあるので、
+    # 取り残した日も拾う。済んだレースは飛ばすので何度動いても同じ)
+    days = sys.argv[1:] or [f"{now_jst() - dt.timedelta(days=i):%Y%m%d}" for i in range(3, -1, -1)]
+    for d in days:
+        if (DATA / "predictions" / f"{d}.json").exists():
+            run(d)

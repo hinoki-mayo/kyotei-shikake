@@ -1244,6 +1244,27 @@ def conf_for(date):
     return org_tree.load_confidence(date)
 
 
+def _market_q3(b, fin=None):
+    """3連単オッズから、市場が見る各組の確率 {"1-2-3": 確率}。確定オッズ(レース後に取ったもの)があればそれ、
+    無ければ締切前に記録したオッズ(45秒前、無ければ2分前)。確定の方が最後に入るお金まで含むので公平"""
+    stg = b.get("stages") or {}
+    o3 = (fin or {}).get("o3") or (stg.get("直前") or {}).get("o3") or (stg.get("確定") or {}).get("o3")
+    if not o3:
+        return None
+    inv = {f"{c[0] + 1}-{c[1] + 1}-{c[2] + 1}": 1 / v for c, v in zip(bet_mod.ODDS_ORDER, o3) if v}
+    tot = sum(inv.values())
+    return {c: v / tot for c, v in inv.items()} if tot else None
+
+
+def _prop_q(q3, tickets):
+    """提案(買い目の集まり)のどれかが当たる、市場の見込みの確率。2連単の目は3着を問わない3連単の組に広げて重なりを除く"""
+    cov = set()
+    for t in tickets:
+        a = t["combo"].split("-")
+        cov |= {c for c in q3 if c.split("-")[:len(a)] == a}
+    return sum(q3[c] for c in cov)
+
+
 def bets_records(only=None):
     """集計画面用に、結果が出たレースごとの記録を作る(買い方ごとの投資・払戻と、絞り込み用の条件)。only: その日だけ作る"""
     files = sorted(f for f in (DATA / "bets").glob("*.json") if only is None or f.stem == only)
@@ -1262,6 +1283,8 @@ def bets_records(only=None):
         backfill = json.loads(bf.read_text()) if bf.exists() else {}
         rpf = DATA / "bets_replay" / f"{date}.json"
         replay = json.loads(rpf.read_text()) if rpf.exists() else {}   # 今の方法・確定オッズで作り直したもの(replay_live.py)
+        fof = DATA / "odds_final" / f"{date}.json"
+        ofin = json.loads(fof.read_text()) if fof.exists() else {}   # 確定オッズ(市場以上に当てているかの物差し用)
         day = json.loads(f.read_text())
         for key in backfill.keys() - day.keys():   # 取り逃がして後から作り直したレース
             day[key] = {"plans": backfill[key]}
@@ -1383,6 +1406,15 @@ def bets_records(only=None):
                        t=(preds.get(key) or {}).get("deadline", ""))   # 締切時刻(一覧を時刻順に並べる)
             if st_ka:
                 rec["ka"] = st_ka
+                q3 = _market_q3(b, ofin.get(key))
+                if q3:   # 市場以上に当てているかの物差し: [市場の見込みの当たり回数, そのばらつき, 実際の当たり, 件数]
+                    mq = {}
+                    for nm, cs in (("kessai", chosen), ("kessaiB", sel if date >= KESSAI_C_SINCE else [])):
+                        qs = [_prop_q(q3, c["tickets"]) for c in cs]
+                        if qs:
+                            mq[nm] = [round(sum(qs), 4), round(sum(q * (1 - q) for q in qs), 4), sum(1 for c in cs if c["ret"] > 0), len(qs)]
+                    if mq:
+                        rec["mq"] = mq
                 if result.get("combo2t") and result.get("payout2t") and not pd.isna(result.get("payout2t")):
                     rec["r2"], rec["p2"] = result["combo2t"], int(result["payout2t"])   # 2連単で買った提案の払戻が分かるように
             if fx_rec:
@@ -1999,6 +2031,14 @@ function kessaiRaces(){
 document.addEventListener('click',e=>{const a=e.target.closest('[data-kr]'); if(!a) return; e.preventDefault();
   const k=a.dataset.kr; if(k==='more') KR_N+=30; else {KR_ALL=k==='all'; KR_N=30;}
   document.querySelectorAll('[data-stat="kessai-races"]').forEach(el=>el.innerHTML=kessaiRaces());});
+// 市場以上に当てているか: 採用した提案の、実際の当たり回数 ÷ オッズから見た当たりの見込み回数
+function mqLine(p){
+  let q=0,v=0,h=0,n=0; for(const x of D){ const m=x.mq&&x.mq[p]; if(!m) continue; q+=m[0]; v+=m[1]; h+=m[2]; n+=m[3]; }
+  if(!n) return '<span class="sub">まだ記録なし</span>';
+  const z=v?(h-q)/Math.sqrt(v):0, r=q?h/q:0;
+  const w=z>=2?'偶然では出にくい差':z<=-2?'市場より当てられていない':'まだ偶然の範囲';
+  return `<b style="color:${r>=1?'var(--green)':'var(--red)'}">${r.toFixed(2)}倍</b> <span class="sub">当たり${h}回／市場の見込み${q.toFixed(1)}回（${n}件）・${w}</span>`;
+}
 function boardTable(a){
   if(!a.n) return '<p class="sub">まだ提案なし</p>';
   const row=(lab,n,h,s,r)=>`<tr><td style="text-align:left">${lab}</td><td>${n}</td><td>${h}</td><td>${n?Math.round(h/n*100):0}%</td><td>${yen(s)}</td><td>${yen(r)}</td><td style="font-weight:700;color:${r>=s?'var(--green)':'var(--red)'}">${s?pc(r,s):'-'}</td></tr>`;
@@ -2021,6 +2061,7 @@ function fill(){
     else if(k.startsWith('table:')) el.innerHTML=boardTable(aggNode(k.slice(6)));
     else if(k==='kessai-types') el.innerHTML=kessaiTypes();
     else if(k==='kessai-races') el.innerHTML=kessaiRaces();
+    else if(k.startsWith('mq:')) el.innerHTML=mqLine(k.slice(3));
   });
   document.querySelectorAll('[data-pnl]').forEach(el=>{
     const k=el.dataset.pnl;
@@ -2121,6 +2162,12 @@ def _kessai_tiles():
                    for u, n, st, d in rows)
 
 
+MQ_CARD = ('<div class="card"><b>市場以上に当てているか</b> <span class="sub">採用した買い目の当たり回数 ÷ 締切前のオッズから見た当たりの見込み回数。'
+           '1.0倍なら市場並み。配当の大きさに振られないので、回収率より少ない件数で実力が見える(運用には使わない物差し)</span>'
+           '<div style="margin-top:4px">決裁者A <span data-stat="mq:kessai"></span></div>'
+           '<div>決裁者B <span data-stat="mq:kessaiB"></span></div></div>')
+
+
 def monitor_room():
     body = (f'<a class="back-lk" href="/ops.html">← 組織図に戻る</a>'
             f'<div class="room-head">{_monitor_img(76)}<div><h1 style="margin:0">{MONITOR["name"]}</h1>'
@@ -2130,6 +2177,7 @@ def monitor_room():
             + _kessai_tiles() + '</div>'
             + '<div id="flow"></div>'
             + '<div class="card"><b>決裁者Aの成績</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
+            + MQ_CARD
             + '<div class="card"><b>決裁者Cの成績</b><div data-stat="plan:kessaiC"></div><div data-pnl="kessaiC" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>判定の予定</b><p class="sub" style="margin:4px 0 0">10/31(14日)と11/17(30日)に、A・Cの成績と社員候補を比べて、'
               '本命の決裁者と社員の入れ替えを決める。決め方は運用メモに事前に書いてある。</p></div>'
@@ -2179,6 +2227,7 @@ def kessai_room():
             + '<div class="card"><b>今日の採用の中身</b> <span class="sub">当たり方のタイプ別(🎯本命型=的中25%以上・⚖️中穴型=8〜25%・💣大穴型=8%未満)</span>'
               '<div data-stat="kessai-types" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>決裁者Aの成績</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
+            + MQ_CARD
             + '<div class="card"><b>決裁者Aが採用したレース</b> <span class="sub">新しい順。✅＝当たった提案</span><div data-stat="kessai-races" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>参考: 社員の提案を全部採用した場合</b><div data-stat="ops"></div><div data-pnl="ops" style="margin-top:6px"></div></div>'
             + '<div id="up"></div>')

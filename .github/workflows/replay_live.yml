@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       dates:
-        description: "日付(空白区切り。空なら今日。例 20261014 20261015)"
+        description: "日付(空白区切り。空なら今日と前の3日。例 20261014 20261015)"
         required: false
         default: ""
 
