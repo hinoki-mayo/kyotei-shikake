@@ -1324,6 +1324,8 @@ def bets_records(only=None):
                                 ("hot3", shadow_staff.hot3(pred, o2s, o3s, lv if isinstance(lv, dict) else None))):
                     sp = settle(dict(tickets=tks, stake=len(tks) * shadow_staff.STAKE), result) if tks else None
                     st[pk] = list(sp) if sp else 0
+                    if pk == "hot3" and tks:   # 決裁者Cのイン頭・外頭の分け用
+                        hot3_in = int(tks[0]["combo"].split("-")[0]) == pred["boats"][0]["waku"]
                 if date >= OUTW_SINCE:   # 外の1着専門(記録だけ・4,000円/頭)
                     tks = shadow_staff.out_win(pred, o2s, lv if isinstance(lv, dict) else None)
                     sp = settle(dict(tickets=tks, stake=sum(t["units"] for t in tks) * 100), result) if tks else None
@@ -1347,7 +1349,9 @@ def bets_records(only=None):
                                 t=(pred or {}).get("deadline", "")))
                 continue
             st_ka = None
-            c_a = None   # 決裁者C(重ね型)の、Aの採用を強弱つけて買った分 [投資, 払戻]
+            c_a = None
+            hot3_in = None
+            sides = {}   # 決裁者ごとのイン頭・外頭の分け {決裁者: {"in": [投資, 払戻], "out": [...]}}   # 決裁者C(重ね型)の、Aの採用を強弱つけて買った分 [投資, 払戻]
             if pred and date >= ORG_SINCE:   # 予想組織: 頭ごとの提案の記録と、決裁者A(自信度型)の判断
                 live_plans = {n: pl for n, pl in plans.items() if isinstance(st.get(n), list)}
                 live_plans = _kessai_plans(date, key, pred, b, live_plans)
@@ -1382,6 +1386,11 @@ def bets_records(only=None):
                     if date >= KESSAI_C_SINCE:   # 決裁者B(厳選型・10/20から): Aの採用のうち、1着専門の後押し(比1.2以上)があるものだけ
                         sel = [c for c in chosen if wf and wf[c["course"] - 1] >= 1.2]
                         st["kessaiB"] = [sum(c["paid"] for c in sel), round(sum(c["ret"] for c in sel))] if sel else 0
+                    for nm, cs in (("kessai", chosen), ("kessaiB", sel if date >= KESSAI_C_SINCE else [])):
+                        for c in cs:
+                            a = sides.setdefault(nm, {}).setdefault("in" if c["leaf"].startswith("in.") else "out", [0, 0])
+                            a[0] += c["paid"]
+                            a[1] += c["ret"]
                     if date >= KESSAI_C_SINCE and chosen:
                         # 決裁者C(重ね型): 1着専門の後押し(比1.2以上)が無ければ1/4、あれば等倍、自信度が採用ライン以上の提案が同じ頭に2つ以上なら×2
                         adopt = org_tree.adopt_for(date)
@@ -1392,6 +1401,9 @@ def bets_records(only=None):
                             f *= 2 if gv >= 2 else 1
                             c_a[0] += c["paid"] * f
                             c_a[1] += c["ret"] * f
+                            a = sides.setdefault("kessaiC", {}).setdefault("in" if c["leaf"].startswith("in.") else "out", [0, 0])
+                            a[0] += c["paid"] * f
+                            a[1] += c["ret"] * f
                     picked = {(c["leaf"], c["head"]) for c in chosen}
                     for x in pp:   # 6つ目: 決裁者に採用されたか
                         x.append(int((x[0], x[5]) in picked))
@@ -1402,8 +1414,14 @@ def bets_records(only=None):
             if date >= KESSAI_C_SINCE:   # 決裁者C = Aの採用を強弱つけた分 + 足し買い(熱い一点・外/インの1着専門)
                 parts = ([c_a] if c_a and c_a[0] else []) + [st[k] for k in ("hot3",) if isinstance(st.get(k), list)]   # 外の1着専門は10/20からAの社員(pickwin)なので足し買いにしない
                 st["kessaiC"] = [round(sum(a for a, _ in parts)), round(sum(r for _, r in parts))] if parts else 0
+                if isinstance(st.get("hot3"), list) and hot3_in is not None:
+                    a = sides.setdefault("kessaiC", {}).setdefault("in" if hot3_in else "out", [0, 0])
+                    a[0] += st["hot3"][0]
+                    a[1] += st["hot3"][1]
             rec = dict(d=date, v=jcd, r=int(race), res=result["combo3t"], pay=int(result["payout3t"]), s=st,
                        t=(preds.get(key) or {}).get("deadline", ""))   # 締切時刻(一覧を時刻順に並べる)
+            if sides:
+                rec["sd"] = {nm: {k: [round(v[0]), round(v[1])] for k, v in x.items()} for nm, x in sides.items()}
             if st_ka:
                 rec["ka"] = st_ka
                 q3 = _market_q3(b, ofin.get(key))
@@ -2039,6 +2057,16 @@ function mqLine(p){
   const w=z>=2?'偶然では出にくい差':z<=-2?'市場より当てられていない':'まだ偶然の範囲';
   return `<b style="color:${r>=1?'var(--green)':'var(--red)'}">${r.toFixed(2)}倍</b> <span class="sub">当たり${h}回／市場の見込み${q.toFixed(1)}回（${n}件）・${w}</span>`;
 }
+// 決裁者のイン頭・外頭を分けた成績の表
+function sideTable(){
+  const P=[['kessai','決裁者A'],['kessaiB','決裁者B'],['kessaiC','決裁者C']];
+  const g={}; for(const x of D){ if(!x.sd) continue; for(const [p] of P){ const s=x.sd[p]; if(!s) continue;
+    for(const k of ['in','out']){ const v=s[k]; if(!v||!v[0]) continue; const a=(g[p+k]=g[p+k]||{n:0,h:0,st:0,ret:0}); a.n++; a.h+=v[1]>0?1:0; a.st+=v[0]; a.ret+=v[1]; } } }
+  const cell=a=>a?`<td>${a.n}件・的中${a.h}</td><td style="font-weight:700;color:${a.ret>=a.st?'var(--green)':'var(--red)'}">${pc(a.ret,a.st)}</td><td>${sg(a.ret-a.st)}</td>`:'<td colspan="3" class="sub">まだなし</td>';
+  return `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:right;white-space:nowrap">`+
+    `<tr class="sub"><th></th><th colspan="3" style="text-align:center">イン頭</th><th colspan="3" style="text-align:center">外が頭</th></tr>`+
+    P.map(([p,l])=>`<tr><td style="text-align:left"><b>${l}</b></td>${cell(g[p+'in'])}${cell(g[p+'out'])}</tr>`).join('')+`</table></div>`;
+}
 function boardTable(a){
   if(!a.n) return '<p class="sub">まだ提案なし</p>';
   const row=(lab,n,h,s,r)=>`<tr><td style="text-align:left">${lab}</td><td>${n}</td><td>${h}</td><td>${n?Math.round(h/n*100):0}%</td><td>${yen(s)}</td><td>${yen(r)}</td><td style="font-weight:700;color:${r>=s?'var(--green)':'var(--red)'}">${s?pc(r,s):'-'}</td></tr>`;
@@ -2062,6 +2090,7 @@ function fill(){
     else if(k==='kessai-types') el.innerHTML=kessaiTypes();
     else if(k==='kessai-races') el.innerHTML=kessaiRaces();
     else if(k.startsWith('mq:')) el.innerHTML=mqLine(k.slice(3));
+    else if(k==='side') el.innerHTML=sideTable();
   });
   document.querySelectorAll('[data-pnl]').forEach(el=>{
     const k=el.dataset.pnl;
@@ -2162,6 +2191,8 @@ def _kessai_tiles():
                    for u, n, st, d in rows)
 
 
+SIDE_CARD = ('<div class="card"><b>イン頭と外が頭を分けた成績</b> <span class="sub">当たり方が違うので分けて見る。'
+             'イン頭は数百件、外が頭は千件以上で実力が見える</span><div data-stat="side" style="margin-top:6px"></div></div>')
 MQ_CARD = ('<div class="card"><b>市場以上に当てているか</b> <span class="sub">採用した買い目の当たり回数 ÷ 締切前のオッズから見た当たりの見込み回数。'
            '1.0倍なら市場並み。配当の大きさに振られないので、回収率より少ない件数で実力が見える(運用には使わない物差し)</span>'
            '<div style="margin-top:4px">決裁者A <span data-stat="mq:kessai"></span></div>'
@@ -2177,7 +2208,7 @@ def monitor_room():
             + _kessai_tiles() + '</div>'
             + '<div id="flow"></div>'
             + '<div class="card"><b>決裁者Aの成績</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
-            + MQ_CARD
+            + SIDE_CARD + MQ_CARD
             + '<div class="card"><b>決裁者Cの成績</b><div data-stat="plan:kessaiC"></div><div data-pnl="kessaiC" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>判定の予定</b><p class="sub" style="margin:4px 0 0">10/31(14日)と11/17(30日)に、A・Cの成績と社員候補を比べて、'
               '本命の決裁者と社員の入れ替えを決める。決め方は運用メモに事前に書いてある。</p></div>'
@@ -2227,7 +2258,7 @@ def kessai_room():
             + '<div class="card"><b>今日の採用の中身</b> <span class="sub">当たり方のタイプ別(🎯本命型=的中25%以上・⚖️中穴型=8〜25%・💣大穴型=8%未満)</span>'
               '<div data-stat="kessai-types" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>決裁者Aの成績</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
-            + MQ_CARD
+            + SIDE_CARD + MQ_CARD
             + '<div class="card"><b>決裁者Aが採用したレース</b> <span class="sub">新しい順。✅＝当たった提案</span><div data-stat="kessai-races" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>参考: 社員の提案を全部採用した場合</b><div data-stat="ops"></div><div data-pnl="ops" style="margin-top:6px"></div></div>'
             + '<div id="up"></div>')
@@ -2244,6 +2275,7 @@ def kessai_c_room():
               'そこに足し買いとして、3連単の熱い一点(1点1,000円)を加える(外の1着専門・インの1着専門は10/20からAの社員)。</p>'
               '<p class="sub" style="margin:6px 0 0">過去2年の作り直し(Aの部分): 今のA 114%・123% → 135%・151%、投資は約半分で儲けは多い</p></div>'
             + '<div class="card"><b>決裁者Cの成績</b><div data-stat="plan:kessaiC"></div><div data-pnl="kessaiC" style="margin-top:6px"></div></div>'
+            + SIDE_CARD
             + '<div id="up"></div>')
     return _org_page("決裁者C", "/org/kessai-c.html", body)
 
@@ -2256,6 +2288,7 @@ def kessai_b_room():
               '<p class="sub" style="margin:6px 0 0">過去2年の作り直し: A 114%・123% → B 156%・179%(買う数はAの約3割)。'
               'A=全部買う、C=金額に強弱、B=絞る、の3つを同じ社員で比べる</p></div>'
             + '<div class="card"><b>決裁者Bの成績</b><div data-stat="plan:kessaiB"></div><div data-pnl="kessaiB" style="margin-top:6px"></div></div>'
+            + SIDE_CARD
             + '<h2>旧B(柔軟型・10/17〜19・記録だけ続ける)</h2>'
             + '<div class="card"><b>決め方</b><p class="sub" style="margin:4px 0 0">'
               f'情報部と市場の確率を混ぜて2連単30通りの確率を出し、割安な目を全部買う(頭はいくつでも・{flex.ODDS_MAX:.0f}倍未満・1点{flex.STAKE:,}円)。</p>'
