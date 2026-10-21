@@ -500,7 +500,7 @@ def yoso_card(date, info, vw):
     return (f'<div class="card"><b>予想（4,000円）</b> <span class="sub">どれかが来る見込み <b style="color:var(--tx)">{ph:.0%}</b>・{len(pl)}点</span>'
             + rows
             + f'<p class="sub" style="margin:8px 0 0">{vw["at"]}時点のオッズで、どの目が当たっても4,000円以上戻る配分（トリガミなし）。{only}'
-              'オッズは締切まで動くので目安です。過去のレースでの的中率は約47%。</p></div>')
+              'オッズは締切まで動くので目安です。本命以外の頭も押さえる配分で、過去のレースでの的中率は約44%。</p></div>')
 
 
 def race_view_of(date, info, pred):
@@ -2139,6 +2139,21 @@ function staffOv(){
     tp.map(([k,a])=>`<tr><td style="text-align:left">${k.split('+').map(nm).join(' × ')}</td>${cell(a)}</tr>`).join('')+`</table></div>`;
   return t1+t2;
 }
+// インターン生の一覧: 件数・的中・回収率・損益・直近3日・Aと被った時
+function internSum(list){
+  const days=[...new Set(D.map(x=>x.d))].sort(), last3=new Set(days.slice(-3));
+  const rows=list.map(([p,n])=>{ const a={n:0,h:0,st:0,ret:0}, r3={st:0,ret:0}, ov={st:0,ret:0,n:0};
+    for(const x of D){ const v=x.s&&x.s[p]; if(!v||!v[0]) continue; a.n++; a.h+=v[1]>0?1:0; a.st+=v[0]; a.ret+=v[1];
+      if(last3.has(x.d)){ r3.st+=v[0]; r3.ret+=v[1]; }
+      const o=x.ov&&x.ov[p]; if(o&&o[0]){ ov.n++; ov.st+=v[0]; ov.ret+=v[1]; } }
+    return {p,n,a,r3,ov}; }).sort((x,y)=>(y.a.st?y.a.ret/y.a.st:-1)-(x.a.st?x.a.ret/x.a.st:-1));
+  const col=(r,s)=>s?`<b style="color:${r>=s?'var(--green)':'var(--red)'}">${pc(r,s)}</b>`:'<span class="sub">-</span>';
+  return `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:right;white-space:nowrap">`+
+    `<tr class="sub"><th style="text-align:left">インターン生</th><th>レース</th><th>的中</th><th>回収率</th><th>損益</th><th>直近3日</th><th>Aと被った時</th></tr>`+
+    rows.map(r=>`<tr style="border-top:1px solid var(--bd)"><td style="text-align:left">${r.n}</td><td>${r.a.n}</td><td>${r.a.h}</td><td>${col(r.a.ret,r.a.st)}</td>`+
+      `<td>${r.a.st?sg(r.a.ret-r.a.st):'-'}</td><td>${col(r.r3.ret,r.r3.st)}</td><td>${r.ov.n?col(r.ov.ret,r.ov.st)+`<span class="sub">(${r.ov.n})</span>`:'<span class="sub">-</span>'}</td></tr>`).join('')+
+    `</table></div>`;
+}
 function boardTable(a){
   if(!a.n) return '<p class="sub">まだ提案なし</p>';
   const row=(lab,n,h,s,r)=>`<tr><td style="text-align:left">${lab}</td><td>${n}</td><td>${h}</td><td>${n?Math.round(h/n*100):0}%</td><td>${yen(s)}</td><td>${yen(r)}</td><td style="font-weight:700;color:${r>=s?'var(--green)':'var(--red)'}">${s?pc(r,s):'-'}</td></tr>`;
@@ -2165,6 +2180,7 @@ function fill(){
     else if(k==='side') el.innerHTML=sideTable();
     else if(k==='staff-ov') el.innerHTML=staffOv();
     else if(k.startsWith('ov:')) el.innerHTML=ovTable(k.slice(3));
+    else if(k.startsWith('intern-sum:')) el.innerHTML=internSum(JSON.parse(k.slice(11)));
   });
   document.querySelectorAll('[data-pnl]').forEach(el=>{
     const k=el.dataset.pnl;
@@ -2373,18 +2389,23 @@ INTERNS = (
 
 
 def intern_room():
-    """有力インターン生の部屋: 社員に上がる前の、見込みのある説(記録だけ)"""
+    """有力インターン生の部屋: 社員に上がる前の、見込みのある説(記録だけ)。上に全員の一覧、下に一人ずつの詳しい成績(たためる)"""
     k = ORG_KESSAI
-    cards = "".join(f'<div class="card"><b>{n}</b><p class="sub" style="margin:2px 0 6px">{html.escape(d)}</p>'
-                    f'<div data-stat="plan:{p}"></div><div data-pnl="{p}" style="margin-top:6px"></div>'
-                    f'<details style="margin-top:6px"><summary class="sub">社員・決裁者Aとの被り</summary><div data-stat="ov:{p}" style="margin-top:4px"></div></details></div>'
+    cards = "".join(f'<details class="card" style="padding:10px 12px"><summary style="cursor:pointer"><b>{n}</b> <span data-stat="plan:{p}"></span></summary>'
+                    f'<p class="sub" style="margin:6px 0">{html.escape(d)}</p>'
+                    f'<div data-pnl="{p}" style="margin-top:6px"></div>'
+                    f'<div class="sub" style="margin-top:8px">社員・決裁者Aとの被り</div><div data-stat="ov:{p}" style="margin-top:4px"></div></details>'
                     for p, n, d in INTERNS)
+    names = json.dumps([[p, n] for p, n, _ in INTERNS], ensure_ascii=False)
+    summary = ('<div class="card"><b>インターン生の一覧</b> <span class="sub">記録を始めてから今日まで。回収率の高い順。'
+               '「直近3日」は調子、「Aと被った時」は決裁者Aも同じレースを採用した時の回収率</span>'
+               f'<div data-stat="intern-sum:{html.escape(names)}" style="margin-top:6px"></div></div>')
     body = (_room_head(k["color"], k["acc"], "有力インターン生", "社員に上がる前の、見込みのある説(お金は使わず記録だけ・1点1,000円)",
                        back="/org/monitor.html", back_label="モニターの部屋に戻る")
             + '<div class="card"><b>見立て</b><p class="sub" style="margin:4px 0 0">締切45秒前に情報部が市場より高く見ている目ほど、'
               '締切直前にお金が入ってオッズが下がる(後から市場が追いかけてくる)。インの中くらいのオッズの目でそれが強く、'
               'ここを狙う説を集めた。判定(10/31・11/17)で成績がそろえば決裁者Aの社員に上げる。</p></div>'
-            + cards + '<div id="up"></div>')
+            + summary + '<h2>一人ずつ <span class="sub">タップで開く</span></h2>' + cards + '<div id="up"></div>')
     return _org_page("有力インターン生", "/org/intern.html", body)
 
 

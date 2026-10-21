@@ -2,10 +2,10 @@
 
 ・確率は情報部とオッズを混ぜた3連単の確率(race_view)。オッズはその時点で取れたもの
 ・本線: 確率が一番高い目から、1番手の半分以上の確率がある目(最大3点)
-・抑え: 本線の次に確率が高い目(1番手の1/4以上・最大4点)。穴の倍率以上の目は抑えにしない
-・穴: 30倍以上で、混ぜた確率×オッズが0.8以上(平均より割のいい目)の目を、確率が高い順に最大5点
-・過去の確かめ(確定オッズ・2025年の7日おき7,185レース/2026年8〜10月7,106レース):
-  的中率 48%/47%・平均9.6点・回収率79%/77%(市場並み)。当たった時の払戻は中央5,700円ほど、穴が入るのは約85%のレース
+・抑え: 本線の次に確率が高い目(20倍未満・最大4点)。本命と同じ頭は2点まで、残りは本命以外の頭の目(インばかりにしない)
+・穴: 本命以外の頭で20倍以上、混ぜた確率×オッズが0.7以上の目を、確率が高い順に最大5点(同じ頭は2点まで)
+・過去の確かめ(確定オッズ・2025年の7日おき7,185レース): 的中率44%・平均9点・回収率78%(市場並み)。
+  本命以外の頭の目が平均5点入り、当たりの約3割は本命以外の頭(10/21に外の頭を増やす形に変更。前は的中48%・ほぼイン頭)
 ・本線の確率がとても高い(1番手35%以上、または本線の合計50%以上)レースは本線だけで厚く買う
 ・金額: どの目が当たっても払戻が予算以上(トリガミなし)になる最低額をまず置き、
   残りを 本線6:抑え2.5:穴1.5 の目安で配る。同じ段の中は当たった時の払戻がそろうように配る
@@ -18,8 +18,11 @@ UNIT = 100
 HON_MAX, OSA_MAX, ANA_MAX = 3, 4, 5
 HON_REL = 0.5        # 本線: 1番手の確率のこの割合以上
 OSA_REL = 0.25       # 抑え: 1番手の確率のこの割合以上
-ANA_ODDS = 30.0      # 穴: この倍率以上
-ANA_VALUE = 0.8      # 穴: 確率×オッズがこれ以上(平均は控除で約0.75。それより来ると見ている目)
+ANA_ODDS = 20.0      # 穴: この倍率以上
+OSA_FAV = 2          # 抑え: 本命と同じ頭の目はこの点数まで(インばかりにしない)
+OSA_REL_OTHER = 0.15 # 抑え: 本命以外の頭の目は、1番手の確率のこの割合以上
+ANA_PER_HEAD = 2     # 穴: 同じ頭の目はこの点数まで(いろいろな艇の頭を押さえる)
+ANA_VALUE = 0.7      # 穴: 確率×オッズがこれ以上(平均は控除で約0.75。ひどく割高な目だけ外す)
 ANA_PMIN = 0.004     # 穴: 確率がこれ以上
 ONLY_TOP = 0.35      # 1番手がこの確率以上なら本線だけ
 ONLY_SUM = 0.50      # 本線の合計がこの確率以上なら本線だけ
@@ -37,9 +40,24 @@ def _pick(probs, odds):
     if p1 >= ONLY_TOP or sum(r[1] for r in hon) >= ONLY_SUM:
         return {"本線": hon}
     used = {r[0] for r in hon}
-    osa = [r for r in rows if r[0] not in used and r[1] >= OSA_REL * p1 and r[2] < ANA_ODDS][:OSA_MAX]
+    fav = rows[0][0].split("-")[0]   # 本命の頭
+    head = lambda r: r[0].split("-")[0]
+    # 抑え: 本命の頭の目は OSA_FAV 点まで。残りは本命以外の頭の目から(1番手の OSA_REL_OTHER 倍以上)
+    osa_f = [r for r in rows if r[0] not in used and head(r) == fav and r[1] >= OSA_REL * p1 and r[2] < ANA_ODDS][:OSA_FAV]
+    osa_o = [r for r in rows if r[0] not in used and head(r) != fav and r[1] >= OSA_REL_OTHER * p1 and r[2] < ANA_ODDS][:OSA_MAX - len(osa_f)]
+    osa = sorted(osa_f + osa_o, key=lambda x: -x[1])
     used |= {r[0] for r in osa}
-    ana = [r for r in rows if r[0] not in used and r[2] >= ANA_ODDS and r[1] >= ANA_PMIN and r[1] * r[2] >= ANA_VALUE][:ANA_MAX]
+    # 穴: 本命以外の頭だけ。ANA_ODDS 倍以上で割のいい目を、確率が高い順に(同じ頭は ANA_PER_HEAD 点まで)
+    ana, per = [], {}
+    for r in rows:
+        if r[0] in used or head(r) == fav or r[2] < ANA_ODDS or r[1] < ANA_PMIN or r[1] * r[2] < ANA_VALUE:
+            continue
+        if per.get(head(r), 0) >= ANA_PER_HEAD:
+            continue
+        per[head(r)] = per.get(head(r), 0) + 1
+        ana.append(r)
+        if len(ana) >= ANA_MAX:
+            break
     return {t: x for t, x in (("本線", hon), ("抑え", osa), ("穴", ana)) if x}
 
 
