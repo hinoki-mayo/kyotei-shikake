@@ -1233,6 +1233,7 @@ ORG_CONF = org_tree.load_confidence()
 KESSAI_R3_SINCE = "20261020"   # 決裁者A r3: 外の1着専門を社員に入れた日
 KESSAI_C_SINCE = "20261020"   # 決裁者C(重ね型・記録だけ)を始めた日
 OUTW_SINCE = "20261020"   # 外の1着専門の記録を始めた日
+INTERN_SINCE = "20261021"   # 有力インターン生E2・E3・E2の3連単版の答え合わせを始めた日(10/17〜20は探すのに使った)
 URA_M_SINCE = "20261020"   # 裏の穴×来そう一致の記録を始めた日(10/19に過去2年で見つけた)
 KESSAI_R2_SINCE = "20261019"   # 決裁者A r2: 2年分の表・採用103%・45秒前のオッズを見込みの確定オッズに直して判断
 FLEX_WIN_SINCE = "20261019"   # v2 の頭の確率を1着専門で直し、3連単への切り替えも始めた日(前の日は前の形で記録)
@@ -1326,6 +1327,10 @@ def bets_records(only=None):
                     st[pk] = list(sp) if sp else 0
                     if pk == "hot3" and tks:   # 決裁者Cのイン頭・外頭の分け用
                         hot3_in = int(tks[0]["combo"].split("-")[0]) == pred["boats"][0]["waku"]
+                if date >= INTERN_SINCE and stg.get("直前"):   # 有力インターン生(記録だけ・1点1,000円・45秒前のオッズ)
+                    for pk, tks in shadow_staff.late_in(pred, o2s, o3s, lv if isinstance(lv, dict) else None).items():
+                        sp = settle(dict(tickets=tks, stake=len(tks) * shadow_staff.STAKE), result) if tks else None
+                        st[pk] = list(sp) if sp else 0
                 if date >= OUTW_SINCE:   # 外の1着専門(記録だけ・4,000円/頭)
                     tks = shadow_staff.out_win(pred, o2s, lv if isinstance(lv, dict) else None)
                     sp = settle(dict(tickets=tks, stake=sum(t["units"] for t in tks) * 100), result) if tks else None
@@ -1976,8 +1981,8 @@ def _org_json():
         meta = {k: v for k, v in json.loads(org_tree.CONF_P.read_text()).items() if k != "nodes"}
     except Exception:
         pass
-    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE, "outW": OUTW_SINCE, "inW": OUTW_SINCE, "uraF": OUTW_SINCE, "kessaiC": KESSAI_C_SINCE, "inSec": OUTW_SINCE, "kessaiB": KESSAI_C_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
-                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍", "outW": "外の1着専門(3・4コース頭)", "inW": "インの1着専門(嫌われたイン)", "uraF": "裏の穴×1着専門の後押し", "kessaiC": "決裁者C(重ね型・記録だけ)", "kessaiB": "決裁者B(厳選型・記録だけ)", "inSec": "インの2着専門(本命型)"}, nodes=_tree_nodes(), confMeta=meta)
+    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE, "outW": OUTW_SINCE, "inW": OUTW_SINCE, "uraF": OUTW_SINCE, "kessaiC": KESSAI_C_SINCE, "inSec": OUTW_SINCE, "kessaiB": KESSAI_C_SINCE, "lateE2": INTERN_SINCE, "lateE3": INTERN_SINCE, "lateE23": INTERN_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
+                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍", "outW": "外の1着専門(3・4コース頭)", "inW": "インの1着専門(嫌われたイン)", "uraF": "裏の穴×1着専門の後押し", "kessaiC": "決裁者C(重ね型・記録だけ)", "kessaiB": "決裁者B(厳選型・記録だけ)", "inSec": "インの2着専門(本命型)", "lateE2": "インターンE2(2連単)", "lateE3": "インターンE3(2連単・低オッズ)", "lateE23": "インターンE2(3連単)"}, nodes=_tree_nodes(), confMeta=meta)
 
 
 ORG_JS = r"""
@@ -2212,6 +2217,7 @@ def monitor_room():
             + '<div class="card"><b>決裁者Cの成績</b><div data-stat="plan:kessaiC"></div><div data-pnl="kessaiC" style="margin-top:6px"></div></div>'
             + '<div class="card"><b>判定の予定</b><p class="sub" style="margin:4px 0 0">10/31(14日)と11/17(30日)に、A・Cの成績と社員候補を比べて、'
               '本命の決裁者と社員の入れ替えを決める。決め方は運用メモに事前に書いてある。</p></div>'
+            + '<a class="org-tile" href="/org/intern.html" style="margin-bottom:12px"><div><b>有力インターン生の部屋 →</b><span class="sub">説D・インの2着専門・E2・E3など、社員に上がる前の説</span></div></a>'
             + '<div class="card"><b>社員候補(記録だけ)</b><p class="sub" style="margin:2px 0 6px">'
               '事前に決めた条件を別の年で確かめて残った買い方。1点1,000円・締切2分前のオッズで判断。成績がよければ社員にする。</p>'
               '<div><b>説D 1-3/1-4</b> <span class="sub">インが堅い(本予想60%以上)時の、8〜12倍で割安な1-3・1-4(2連単)</span></div>'
@@ -2278,6 +2284,33 @@ def kessai_c_room():
             + SIDE_CARD
             + '<div id="up"></div>')
     return _org_page("決裁者C", "/org/kessai-c.html", body)
+
+
+INTERNS = (
+    ("setsuD", "説D 1-3/1-4", "インが堅い(本予想60%以上)時の、8〜12倍で割安な1-3・1-4(2連単)。締切2分前のオッズ。"
+     "事前に決めた条件を別の年で確かめて残った(2025年108%・2026年105%)"),
+    ("inSec", "インの2着専門", "イン頭の2連単で、1着専門のイン1着確率×2着専門の2着確率×見込みの確定オッズが1.1以上、3〜15倍の目。"
+     "年をまたいだ確かめで120%・130%(的中約20%)"),
+    ("lateE2", "E2(2連単)", "1号艇頭の2連単で、情報部が45秒前の市場の1.3倍以上と見る3〜40倍の目のうち、1着専門も1号艇を市場の1.3倍以上と見る時。"
+     "見つけた4日(10/17〜20)で当たりが確定オッズの見込みの1.83倍・回収率115%。10/21から答え合わせ"),
+    ("lateE3", "E3(2連単・低オッズ)", "E2の元の条件(情報部が市場の1.3倍以上)のうち、45秒前6倍までの目。見つけた4日で1.50倍・120%(日によるばらつき大)。10/21から答え合わせ"),
+    ("lateE23", "E2(3連単)", "E2と同じ条件を3連単で、45秒前3〜40倍の目。見つけた4日で見込みの約2.4倍・回収率約160%(40倍で切ったのは見てから決めた線)。10/21から答え合わせ"),
+    ("hot3", "3連単の熱い一点", "混ぜた2連単確率×3着専門の3着確率×3連単オッズが2.0以上・100倍未満の1点。決裁者Cの足し買い"),
+)
+
+
+def intern_room():
+    """有力インターン生の部屋: 社員に上がる前の、見込みのある説(記録だけ)"""
+    k = ORG_KESSAI
+    cards = "".join(f'<div class="card"><b>{n}</b><p class="sub" style="margin:2px 0 6px">{html.escape(d)}</p>'
+                    f'<div data-stat="plan:{p}"></div><div data-pnl="{p}" style="margin-top:6px"></div></div>' for p, n, d in INTERNS)
+    body = (_room_head(k["color"], k["acc"], "有力インターン生", "社員に上がる前の、見込みのある説(お金は使わず記録だけ・1点1,000円)",
+                       back="/org/monitor.html", back_label="モニターの部屋に戻る")
+            + '<div class="card"><b>見立て</b><p class="sub" style="margin:4px 0 0">締切45秒前に情報部が市場より高く見ている目ほど、'
+              '締切直前にお金が入ってオッズが下がる(後から市場が追いかけてくる)。インの中くらいのオッズの目でそれが強く、'
+              'ここを狙う説を集めた。判定(10/31・11/17)で成績がそろえば決裁者Aの社員に上げる。</p></div>'
+            + cards + '<div id="up"></div>')
+    return _org_page("有力インターン生", "/org/intern.html", body)
 
 
 def kessai_b_room():
@@ -3305,6 +3338,7 @@ def main():
     (OUT / "org" / "kessai.html").write_text(kessai_room())
     (OUT / "org" / "kessai-c.html").write_text(kessai_c_room())
     (OUT / "org" / "kessai-b.html").write_text(kessai_b_room())
+    (OUT / "org" / "intern.html").write_text(intern_room())
     (OUT / "org" / "monitor.html").write_text(monitor_room())
     (OUT / "img").mkdir(exist_ok=True)
     for f in ("monitor.jpg", "monitor_face.jpg"):
