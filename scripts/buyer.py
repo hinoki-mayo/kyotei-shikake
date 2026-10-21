@@ -42,7 +42,7 @@ def git(*args, check=False):
 def sync(commit_msg=None):
     """自分の買い目をコミットして、展示反映の更新が作った予想などを取り込む"""
     if commit_msg:
-        git("add", "data/bets", "data/live_results_fast", "data/odds_live")
+        git("add", "data/bets", "data/live_results_fast", "data/odds_live", "data/odds_live_hist")
         git("commit", "-q", "-m", commit_msg)
     if not git("pull", "-q", "--rebase", "--autostash"):
         git("rebase", "--abort")
