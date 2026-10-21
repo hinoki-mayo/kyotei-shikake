@@ -143,3 +143,51 @@ def in_sec(pred, o2, o3=None, live=None):
         if of and INSEC_ODDS[0] <= of < INSEC_ODDS[1] and w[0] * q * of >= INSEC_EV:
             out.append(dict(combo=f"{waku[0]}-{waku[j]}", units=STAKE // 100, odds=o2.get(c), odds_f=of, bet="2t"))
     return out
+
+
+# 有力インターン生 E2・E3・E2の3連単版(10/21に見つけた・記録だけ・1点1,000円・締切45秒前のオッズで判断)
+# 見立て: 情報部が45秒前の市場より高く見る目ほど、締切直前にお金が入って下がる(=後から市場が追いかけてくる)。
+# 1号艇頭の目で、情報部÷45秒前の市場 ≥1.3 かつ 45秒前のオッズ3〜40倍 = E。
+#   E2 = E かつ 1着専門÷市場(1号艇) ≥1.3 / E3 = E かつ 45秒前6倍まで / E2の3連単版 = 3連単で同じ条件・40倍まで
+# 10/17〜20で探した形(E2: 当たり÷確定の見込み1.83倍・回収率115%)。10/21からが答え合わせ
+LATE_R, LATE_WR, LATE_ODDS, LATE_E3_MAX = 1.3, 1.3, (3.0, 40.0), 6.0
+
+
+def late_in(pred, o2, o3, live=None):
+    """{"lateE2": 買い目, "lateE3": 買い目, "lateE23": 買い目}"""
+    out = {"lateE2": [], "lateE3": [], "lateE23": []}
+    tri = pred.get("tri")
+    if not tri or not o2:
+        return out
+    waku = [b["waku"] for b in pred["boats"]]
+    i1 = waku.index(1) if 1 in waku else None
+    if i1 is None:
+        return out
+    inv2 = sum(1 / v for v in o2.values() if v)
+    wr = win_ratio(pred, o2, live)
+    wr1 = wr[i1] if wr else 0
+    p2 = {}
+    for (i, j, k), ix in PI.items():
+        p2[(i, j)] = p2.get((i, j), 0) + tri[ix]
+    for j in range(6):
+        if j == i1:
+            continue
+        o = o2.get((0, waku[j] - 1))
+        if not o or not (LATE_ODDS[0] <= o <= LATE_ODDS[1]):
+            continue
+        if p2[(i1, j)] / ((1 / o) / inv2) < LATE_R:
+            continue
+        t = dict(combo=f"1-{waku[j]}", units=STAKE // 100, odds=o, bet="2t")
+        if wr1 >= LATE_WR:
+            out["lateE2"].append(t)
+        if o <= LATE_E3_MAX:
+            out["lateE3"].append(t)
+    if o3 and wr1 >= LATE_WR:
+        inv3 = sum(1 / v for v in o3.values() if v)
+        for (i, j, k), ix in PI.items():
+            if i != i1:
+                continue
+            o = o3.get((0, waku[j] - 1, waku[k] - 1))
+            if o and LATE_ODDS[0] <= o <= LATE_ODDS[1] and tri[ix] / ((1 / o) / inv3) >= LATE_R:
+                out["lateE23"].append(dict(combo=f"1-{waku[j]}-{waku[k]}", units=STAKE // 100, odds=o, bet="3t"))
+    return out
