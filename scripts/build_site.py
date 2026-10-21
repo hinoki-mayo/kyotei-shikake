@@ -1309,6 +1309,8 @@ def bets_records(only=None):
             pred = preds.get(key)
             fx_rec = None
             new = date >= FLEX_WIN_SINCE   # 10/19から: 45秒前のオッズ・見込みの確定オッズ・1着専門・3連単への切り替え
+            intern_ov = None
+            itk = {}   # インターン生の買い目 {説: [組]}(社員との被りを見る用)
             stg = b.get("stages") or {}
             s2 = (stg.get("直前") or stg.get("確定")) if new else stg.get("確定")   # 決裁者v2(柔軟型・記録だけ)
             if pred and s2 and s2.get("o2") and date >= ORG_SINCE:
@@ -1325,12 +1327,16 @@ def bets_records(only=None):
                                 ("hot3", shadow_staff.hot3(pred, o2s, o3s, lv if isinstance(lv, dict) else None))):
                     sp = settle(dict(tickets=tks, stake=len(tks) * shadow_staff.STAKE), result) if tks else None
                     st[pk] = list(sp) if sp else 0
+                    if tks:
+                        itk[pk] = [t["combo"] for t in tks]
                     if pk == "hot3" and tks:   # 決裁者Cのイン頭・外頭の分け用
                         hot3_in = int(tks[0]["combo"].split("-")[0]) == pred["boats"][0]["waku"]
                 if date >= INTERN_SINCE and stg.get("直前"):   # 有力インターン生(記録だけ・1点1,000円・45秒前のオッズ)
                     for pk, tks in shadow_staff.late_in(pred, o2s, o3s, lv if isinstance(lv, dict) else None).items():
                         sp = settle(dict(tickets=tks, stake=len(tks) * shadow_staff.STAKE), result) if tks else None
                         st[pk] = list(sp) if sp else 0
+                        if tks:
+                            itk[pk] = [t["combo"] for t in tks]
                 if date >= OUTW_SINCE:   # 外の1着専門(記録だけ・4,000円/頭)
                     tks = shadow_staff.out_win(pred, o2s, lv if isinstance(lv, dict) else None)
                     sp = settle(dict(tickets=tks, stake=sum(t["units"] for t in tks) * 100), result) if tks else None
@@ -1338,6 +1344,8 @@ def bets_records(only=None):
                     tks = shadow_staff.in_sec(pred, o2s, o3s, lv if isinstance(lv, dict) else None)
                     sp = settle(dict(tickets=tks, stake=sum(t["units"] for t in tks) * 100), result) if tks else None
                     st["inSec"] = list(sp) if sp else 0
+                    if tks:
+                        itk["inSec"] = [t["combo"] for t in tks]
                     tks = shadow_staff.in_win(pred, o2s, lv if isinstance(lv, dict) else None)
                     sp = settle(dict(tickets=tks, stake=sum(t["units"] for t in tks) * 100), result) if tks else None
                     st["inW"] = list(sp) if sp else 0
@@ -1409,6 +1417,15 @@ def bets_records(only=None):
                             a = sides.setdefault("kessaiC", {}).setdefault("in" if c["leaf"].startswith("in.") else "out", [0, 0])
                             a[0] += c["paid"] * f
                             a[1] += c["ret"] * f
+                    if itk:   # インターン生と社員・決裁者Aの被り: {説: [Aが同じレースを採用, Aと同じ目, [同じ目を推した社員]]}
+                        def _same(a, b):
+                            return a == b or a.startswith(b + "-") or b.startswith(a + "-")
+                        ac = [t["combo"] for c in chosen for t in c["tickets"]]
+                        ov = {}
+                        for pk, cs in itk.items():
+                            staff = sorted({pr["plan"] for pr in props if any(_same(x, t["combo"]) for x in cs for t in pr["tickets"])})
+                            ov[pk] = [int(bool(chosen)), int(any(_same(x, y) for x in cs for y in ac)), staff]
+                        intern_ov = ov
                     picked = {(c["leaf"], c["head"]) for c in chosen}
                     for x in pp:   # 6つ目: 決裁者に採用されたか
                         x.append(int((x[0], x[5]) in picked))
@@ -1425,6 +1442,8 @@ def bets_records(only=None):
                     a[1] += st["hot3"][1]
             rec = dict(d=date, v=jcd, r=int(race), res=result["combo3t"], pay=int(result["payout3t"]), s=st,
                        t=(preds.get(key) or {}).get("deadline", ""))   # 締切時刻(一覧を時刻順に並べる)
+            if intern_ov:
+                rec["ov"] = intern_ov
             if sides:
                 rec["sd"] = {nm: {k: [round(v[0]), round(v[1])] for k, v in x.items()} for nm, x in sides.items()}
             if st_ka:
@@ -2072,6 +2091,21 @@ function sideTable(){
     `<tr class="sub"><th></th><th colspan="3" style="text-align:center">イン頭</th><th colspan="3" style="text-align:center">外が頭</th></tr>`+
     P.map(([p,l])=>`<tr><td style="text-align:left"><b>${l}</b></td>${cell(g[p+'in'])}${cell(g[p+'out'])}</tr>`).join('')+`</table></div>`;
 }
+// インターン生と社員の被り: 被った時・被らない時の成績
+function ovTable(p){
+  const g={}, add=(k,v)=>{const a=(g[k]=g[k]||{n:0,h:0,st:0,ret:0}); a.n++; a.h+=v[1]>0?1:0; a.st+=v[0]; a.ret+=v[1];};
+  const sf={};
+  for(const x of D){ const v=x.s&&x.s[p]; if(!v||!v[0]) continue; add('all',v); const o=x.ov&&x.ov[p]; if(!o) continue;
+    add(o[0]?'arace':'noA',v); if(o[1]) add('acombo',v);
+    if(o[2].length){ add('staff',v); for(const s of o[2]){ const a=(sf[s]=sf[s]||{n:0,h:0,st:0,ret:0}); a.n++; a.h+=v[1]>0?1:0; a.st+=v[0]; a.ret+=v[1]; } } else add('nostaff',v); }
+  if(!g.all) return '<span class="sub">まだ記録なし</span>';
+  const row=(l,a)=>a?`<tr><td style="text-align:left">${l}</td><td>${a.n}</td><td>${a.h}</td><td style="font-weight:700;color:${a.ret>=a.st?'var(--green)':'var(--red)'}">${pc(a.ret,a.st)}</td><td>${sg(a.ret-a.st)}</td></tr>`:'';
+  const tops=Object.entries(sf).sort((a,b)=>b[1].n-a[1].n).slice(0,4).map(([s,a])=>row('　└ '+(ORG.labels[s]||s)+'と同じ目',a)).join('');
+  return `<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12px;text-align:right;white-space:nowrap">`+
+    `<tr class="sub"><th style="text-align:left"></th><th>レース</th><th>的中</th><th>回収率</th><th>損益</th></tr>`+
+    row('全部',g.all)+row('決裁者Aも同じレースを採用',g.arace)+row('決裁者Aと同じ目',g.acombo)+row('決裁者Aは買わない',g.noA)+
+    row('社員の誰かと同じ目',g.staff)+tops+row('どの社員とも被らない',g.nostaff)+`</table></div>`;
+}
 function boardTable(a){
   if(!a.n) return '<p class="sub">まだ提案なし</p>';
   const row=(lab,n,h,s,r)=>`<tr><td style="text-align:left">${lab}</td><td>${n}</td><td>${h}</td><td>${n?Math.round(h/n*100):0}%</td><td>${yen(s)}</td><td>${yen(r)}</td><td style="font-weight:700;color:${r>=s?'var(--green)':'var(--red)'}">${s?pc(r,s):'-'}</td></tr>`;
@@ -2096,6 +2130,7 @@ function fill(){
     else if(k==='kessai-races') el.innerHTML=kessaiRaces();
     else if(k.startsWith('mq:')) el.innerHTML=mqLine(k.slice(3));
     else if(k==='side') el.innerHTML=sideTable();
+    else if(k.startsWith('ov:')) el.innerHTML=ovTable(k.slice(3));
   });
   document.querySelectorAll('[data-pnl]').forEach(el=>{
     const k=el.dataset.pnl;
@@ -2303,7 +2338,9 @@ def intern_room():
     """有力インターン生の部屋: 社員に上がる前の、見込みのある説(記録だけ)"""
     k = ORG_KESSAI
     cards = "".join(f'<div class="card"><b>{n}</b><p class="sub" style="margin:2px 0 6px">{html.escape(d)}</p>'
-                    f'<div data-stat="plan:{p}"></div><div data-pnl="{p}" style="margin-top:6px"></div></div>' for p, n, d in INTERNS)
+                    f'<div data-stat="plan:{p}"></div><div data-pnl="{p}" style="margin-top:6px"></div>'
+                    f'<details style="margin-top:6px"><summary class="sub">社員・決裁者Aとの被り</summary><div data-stat="ov:{p}" style="margin-top:4px"></div></details></div>'
+                    for p, n, d in INTERNS)
     body = (_room_head(k["color"], k["acc"], "有力インターン生", "社員に上がる前の、見込みのある説(お金は使わず記録だけ・1点1,000円)",
                        back="/org/monitor.html", back_label="モニターの部屋に戻る")
             + '<div class="card"><b>見立て</b><p class="sub" style="margin:4px 0 0">締切45秒前に情報部が市場より高く見ている目ほど、'
