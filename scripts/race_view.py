@@ -58,6 +58,13 @@ def fetch_live(date, preds, now, workers=6):
             done.append(k)
     if done:
         p.write_text(json.dumps(saved, ensure_ascii=False, separators=(",", ":")))
+        # 締切前のオッズの動きを調べるため、取るたびの分も全部残す {場-R: [[時刻, 2連単30, 3連単120], ...]}(サイト・運用には使わない)
+        hp = DATA / "odds_live_hist" / f"{date}.json"
+        hp.parent.mkdir(parents=True, exist_ok=True)
+        hist = json.loads(hp.read_text()) if hp.exists() else {}
+        for k in done:
+            hist.setdefault(k, []).append([f"{now:%H:%M:%S}", saved[k]["o2"], saved[k]["o3"]])
+        hp.write_text(json.dumps(hist, separators=(",", ":")))
     return done
 
 
