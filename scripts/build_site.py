@@ -528,11 +528,13 @@ def yoso_record():
             if not pl:
                 continue
             ret = sum(t["yen"] / 100 * r["payout3t"] for t in pl if t["combo"] == r["combo3t"])
-            for t in pl:   # 段ごと(本線・抑え・穴): [その段を買ったレース, 当たり, 投資, 払戻, [当たった時の払戻]]
-                a = out.setdefault("段:" + t["tier"], {}).setdefault(key + date, [0, 0, 0, 0])
-                a[1] += t["yen"]
-                if t["combo"] == r["combo3t"]:
-                    a[0], a[2] = 1, t["yen"] / 100 * r["payout3t"]
+            rk0 = _rank_of_vw(vw)
+            for t in pl:   # 段ごと(本線・抑え・穴)、ランク×段ごと: {レース: [当たり, 投資, 払戻]}
+                for k2 in ("段:" + t["tier"], f"段:{rk0}:{t['tier']}"):
+                    a = out.setdefault(k2, {}).setdefault(key + date, [0, 0, 0, 0])
+                    a[1] += t["yen"]
+                    if t["combo"] == r["combo3t"]:
+                        a[0], a[2] = 1, t["yen"] / 100 * r["payout3t"]
             for rk in (_rank_of_vw(vw), "all"):
                 a = out.setdefault(rk, [0, 0, 0, 0, []])
                 a[0] += 1
@@ -542,6 +544,25 @@ def yoso_record():
                 if ret > 0:
                     a[4].append(ret)
     return out
+
+
+def _yoso_cross_table(rec):
+    """ランク×段: そのランクのレースのうち、本線・抑え・穴それぞれで当たった割合と、その段の回収率"""
+    def cell(rk, t):
+        d = rec.get(f"段:{rk}:{t}" if rk != "all" else f"段:{t}") or {}
+        n = (rec.get(rk) or [0])[0]
+        if not d or not n:
+            return '<td class="sub">-</td>'
+        h = sum(v[0] for v in d.values())
+        st = sum(v[1] for v in d.values())
+        rt = sum(v[2] for v in d.values())
+        return f'<td><b>{h / n:.0%}</b><br><span class="sub" style="font-size:11px">回収{rt / st:.0%}</span></td>'
+    rows = "".join(f'<tr style="border-top:1px solid var(--bd)"><td style="text-align:left">{"全体" if rk == "all" else rk}</td>'
+                   + "".join(cell(rk, t) for t in yoso.TIERS) + '</tr>' for rk in ("S", "A", "B", "C", "all") if rec.get(rk))
+    return ('<div style="overflow-x:auto;margin-top:10px"><table style="width:100%;border-collapse:collapse;font-size:13px;text-align:center">'
+            '<tr class="sub"><th></th><th>本線で的中</th><th>抑えで的中</th><th>穴で的中</th></tr>' + rows + '</table></div>'
+            '<p class="sub" style="margin:6px 0 0">ランクのレースのうち、本線・抑え・穴それぞれで当たった割合。下の小さい数字はその段に置いたお金の回収率。'
+            '日がたつほど、ランクごとにどの段で当たりやすいかが見えてきます</p>')
 
 
 def _yoso_tier_table(rec):
@@ -581,7 +602,7 @@ def _yoso_record_table():
     return ('<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px;text-align:right;white-space:nowrap">'
             '<tr class="sub"><th></th><th>レース</th><th>的中率</th><th>当たり</th><th>回収率</th><th></th></tr>' + rows + '</table></div>'
             '<p class="sub" style="margin:6px 0 0">当たり＝当たった時の払戻の真ん中。( )内は過去データでの的中率の目安。S＝ガチガチ〜C＝混戦</p>'
-            + _yoso_tier_table(rec))
+            + _yoso_cross_table(rec))
 
 
 def yoso_card(date, info, vw):
