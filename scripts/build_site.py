@@ -1187,6 +1187,53 @@ def _flow(pred, result):
 
 
 _KESSAI_MEMO = {}
+_REC_MEMO = {}   # (日, レース) → (材料, 記録)
+_CACHE = ROOT / ".cache" / "build_site.pkl"   # 上の2つをファイルにも残す(購入係が4分おきに裏で作るサイト全体でも使い回す。前は毎回2分以上かかっていた)
+_CACHE_N = [0]
+
+
+def _cache_ver():
+    """コード・モデル・自信度の表が変わったら、残したものは使わない"""
+    import hashlib
+    h = hashlib.sha1()
+    for f in sorted((ROOT / "scripts").glob("*.py")):
+        h.update(f.name.encode() + f.read_bytes())
+    for d in (DATA / "models", DATA / "org"):
+        for f in sorted(d.rglob("*")) if d.exists() else []:
+            if f.is_file():
+                st = f.stat()
+                h.update(f"{f}:{st.st_size}:{st.st_mtime_ns}".encode())
+    return h.hexdigest()
+
+
+def _cache_load():
+    import pickle
+    try:
+        ver, km, rm = pickle.loads(_CACHE.read_bytes())
+        if ver == _cache_ver():
+            _KESSAI_MEMO.update(km)
+            _REC_MEMO.update(rm)
+            _CACHE_N[0] = len(km) + len(rm)
+    except Exception:
+        pass
+
+
+def _cache_save():
+    import pickle
+    n = len(_KESSAI_MEMO) + len(_REC_MEMO)
+    if n == _CACHE_N[0]:
+        return
+    try:
+        _CACHE.parent.mkdir(exist_ok=True)
+        tmp = _CACHE.with_suffix(f".{os.getpid()}.tmp")
+        tmp.write_bytes(pickle.dumps((_cache_ver(), dict(_KESSAI_MEMO), dict(_REC_MEMO))))
+        tmp.replace(_CACHE)
+        _CACHE_N[0] = n
+    except Exception as e:
+        print(f"作り直し用の控えを残せなかった: {e!r}")
+
+
+_cache_load()
 
 
 def _kessai_plans(date, key, pred, b, plans):
@@ -1408,9 +1455,6 @@ def _prop_q(q3, tickets):
         a = t["combo"].split("-")
         cov |= {c for c in q3 if c.split("-")[:len(a)] == a}
     return sum(q3[c] for c in cov)
-
-
-_REC_MEMO = {}   # (日, レース) → (材料, 記録)
 
 
 def bets_records(only=None):
@@ -1668,6 +1712,7 @@ def bets_records(only=None):
             k2 = f'{rec["v"]}-{rec["r"]:02d}'
             if k2 in sigs:
                 _REC_MEMO[(date, k2)] = (sigs[k2], copy.deepcopy(rec))
+    _cache_save()
     return out
 
 
@@ -3638,6 +3683,7 @@ def main():
     if CFG.get("ads_txt"):
         (OUT / "ads.txt").write_text(CFG["ads_txt"] + "\n")
     print(f"{len(urls)}ページ生成")
+    _cache_save()
 
 
 if __name__ == "__main__":
