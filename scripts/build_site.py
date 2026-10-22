@@ -492,6 +492,73 @@ def stack_bar(vw):
 TIER_COLOR = {"本線": "var(--red)", "抑え": "#2F6BD8", "穴": "#3C8C4E"}
 
 
+YOSO_SINCE = "20261022"   # 予想(4,000円)を本命以外の頭も買う形にした日。成績はここから数える
+# ランク別の過去の目安(確定オッズ・2025年の7日おき約7,200レース/2026年8〜10月約7,100レースで確かめた): (的中率, 当たった時の払戻の真ん中, 回収率)
+YOSO_REF = {"S": (0.58, 5000, 0.79), "A": (0.50, 6000, 0.78), "B": (0.44, 7200, 0.78), "C": (0.30, 9300, 0.75)}
+
+
+def _rank_of_vw(vw):
+    p5 = sum(p for _, p in vw["top3"][:5])
+    return next(x for x in RANKS if p5 >= x[1])[0]
+
+
+def yoso_record():
+    """サイトの予想(4,000円)を結果と突き合わせた記録(YOSO_SINCE から)。{ランク: [レース, 的中, 投資, 払戻, [当たった時の払戻]]}"""
+    out = {}
+    for f in sorted((DATA / "odds_live").glob("*.json")):
+        date = f.stem
+        if date < YOSO_SINCE:
+            continue
+        pp = DATA / "predictions" / f"{date}.json"
+        if not pp.exists():
+            continue
+        preds = json.loads(pp.read_text())["races"]
+        odds = _odds_live(date)
+        live = live_result.load(date)
+        for key, pred in preds.items():
+            o, r = odds.get(key), live.get(key)
+            if pred.get("version") != "final" or not o or not o.get("o3") or not r or not r.get("combo3t") or not r.get("payout3t"):
+                continue
+            lv = _entries(date).get(key)
+            try:
+                vw = race_view.view(pred, date, o, lv if isinstance(lv, dict) else None)
+                pl = yoso.make(vw["top3_all"], {f"{a + 1}-{b + 1}-{c + 1}": x for (a, b, c), x in o["o3"].items()}) if vw else []
+            except Exception:
+                continue
+            if not pl:
+                continue
+            ret = sum(t["yen"] / 100 * r["payout3t"] for t in pl if t["combo"] == r["combo3t"])
+            for rk in (_rank_of_vw(vw), "all"):
+                a = out.setdefault(rk, [0, 0, 0, 0, []])
+                a[0] += 1
+                a[1] += int(ret > 0)
+                a[2] += sum(t["yen"] for t in pl)
+                a[3] += ret
+                if ret > 0:
+                    a[4].append(ret)
+    return out
+
+
+def _yoso_record_table():
+    rec = yoso_record()
+    if not rec:
+        return '<p class="sub">まだ記録がありません。</p>'
+    med = lambda xs: sorted(xs)[len(xs) // 2] if xs else 0
+    rows = ""
+    for rk in ("S", "A", "B", "C", "all"):
+        a = rec.get(rk)
+        ref = YOSO_REF.get(rk)
+        lab = "全体" if rk == "all" else rk
+        if not a:
+            rows += f'<tr><td style="text-align:left">{lab}</td><td colspan="4" class="sub">まだなし</td><td class="sub">{f"({ref[0]:.0%})" if ref else ""}</td></tr>'
+            continue
+        rows += (f'<tr><td style="text-align:left">{lab}</td><td>{a[0]}</td><td>{a[1] / a[0]:.0%}</td><td>{med(a[4]):,.0f}円</td>'
+                 f'<td>{a[3] / a[2]:.0%}</td><td class="sub">({ref[0] if ref else 0.44:.0%})</td></tr>')
+    return ('<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px;text-align:right;white-space:nowrap">'
+            '<tr class="sub"><th></th><th>レース</th><th>的中率</th><th>当たり</th><th>回収率</th><th></th></tr>' + rows + '</table></div>'
+            '<p class="sub" style="margin:6px 0 0">当たり＝当たった時の払戻の真ん中。( )内は過去データでの的中率の目安。S＝ガチガチ〜C＝混戦</p>')
+
+
 def yoso_card(date, info, vw):
     """予想(予算4,000円): 本線・抑え・穴に分けた3連単。オッズが取れるまでは出さない"""
     o3 = (_odds_live(date).get(f'{info["jcd"]}-{info["race"]:02d}') or {}).get("o3") or {}
@@ -514,10 +581,14 @@ def yoso_card(date, info, vw):
                            f'<span><b style="font-size:16px">{t["combo"]}</b> <span class="sub">{t["yen"]:,}円</span></span>'
                            f'<span class="sub">{t["odds"]:.1f}倍 → <b style="color:var(--tx)">{t["pay"]:,}円</b></span></div>' for t in ts))
     only = "　本線が抜けて強いので本線だけ。" if all(t["tier"] == "本線" for t in pl) else ""
+    rk = _rank_of_vw(vw)
+    ref = YOSO_REF[rk]
+    refline = (f'<p class="sub" style="margin:6px 0 0">このランク（{rk}）のレースの過去の目安: 的中 約{ref[0]:.0%}・'
+               f'当たった時の払戻は真ん中で約{ref[1]:,}円。<a href="/record.html">実績を見る</a></p>')
     return (f'<div class="card"><b>予想（4,000円）</b> <span class="sub">どれかが来る見込み <b style="color:var(--tx)">{ph:.0%}</b>・{len(pl)}点</span>'
             + rows
             + f'<p class="sub" style="margin:8px 0 0">{vw["at"]}時点のオッズで、どの目が当たっても4,000円以上戻る配分（トリガミなし）。{only}'
-              'オッズは締切まで動くので目安です。本命以外の頭も押さえる配分で、過去のレースでの的中率は約44%。</p></div>')
+              'オッズは締切まで動くので目安です。本命以外の頭も押さえる配分で、過去のレースでの的中率は約44%。</p>' + refline + '</div>')
 
 
 def race_view_of(date, info, pred):
@@ -3106,7 +3177,10 @@ def record_page():
     since = jp(rec["since"]) if rec.get("since") else "―"
     body = ('<h1>的中実績</h1><p class="sub">サイトに出した予想（締切前のオッズを混ぜた確率）を、レース結果と突き合わせた記録です。'
             f'{since}から {n}レース。毎日自動で更新します。</p>'
-            '<h2>ランク別</h2><div class="card">' + _record_table(allr) + '</div>'
+            '<h2>予想（4,000円）の成績 <span class="sub">ランク別</span></h2><div class="card">'
+            '<p class="sub" style="margin:0 0 6px">予想タブの「予想（4,000円）」を、そのときのオッズのまま結果と突き合わせた記録です'
+            f'（{jp(YOSO_SINCE)}から）。堅いランクほどよく当たり、混戦ほど当たった時の払戻が大きくなります。</p>' + _yoso_record_table() + '</div>'
+            '<h2>ランク別 <span class="sub">確率の上位5点</span></h2><div class="card">' + _record_table(allr) + '</div>'
             '<h2>場ごと</h2><div class="card list">'
             + "".join(f'<a href="/venue/{SLUG[j]}.html"><span class="rno" style="width:70px">{VENUES[j]}</span>'
                       f'<span class="sub">{sum(a[0] for a in rec[j].values())}レース・3連単5点 '
