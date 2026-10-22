@@ -29541,5 +29541,213 @@
 "bet": "2t",
 "logic": "2026-10-14c"
 }
+},
+"20-03": {
+"pickura": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbin": {
+"skip": false,
+"bet": "2t",
+"head": 1,
+"himo": null,
+"ev": 1.152,
+"hit": 0.2721,
+"stake": 4000,
+"scenario": "1号艇(1コース・B1・勝率4.56)が逃げて2・3号艇が続く展開(1コースの1着確率52%。市場はB級のインを割り引きがち)",
+"tickets": [
+{
+"combo": "1-2",
+"units": 16,
+"odds": 11.7,
+"prob": 0.1369,
+"role": "2着1位"
+},
+{
+"combo": "1-3",
+"units": 24,
+"odds": 6.3,
+"prob": 0.1352,
+"role": "2着2位"
+}
+],
+"logic": "2026-10-14c"
+},
+"pickbinc": {
+"skip": false,
+"bet": "2t",
+"head": 1,
+"himo": null,
+"stake": 4000,
+"scenario": "1号艇(1コース・B1・勝率4.56)が逃げる展開(風1m、他に強い艇なし)",
+"tickets": [
+{
+"combo": "1-5",
+"units": 15,
+"odds": 5.3,
+"role": "人気1位"
+},
+{
+"combo": "1-4",
+"units": 13,
+"odds": 5.8,
+"role": "人気2位"
+},
+{
+"combo": "1-3",
+"units": 12,
+"odds": 6.3,
+"role": "人気3位"
+}
+],
+"logic": "2026-10-14c"
+},
+"pickbint": {
+"skip": false,
+"bet": "2t",
+"head": 1,
+"himo": null,
+"stake": 4000,
+"scenario": "1号艇(1コース・B1・勝率4.56)が逃げる展開(風1m、展示タイム1位)",
+"tickets": [
+{
+"combo": "1-5",
+"units": 15,
+"odds": 5.3,
+"role": "人気1位"
+},
+{
+"combo": "1-4",
+"units": 13,
+"odds": 5.8,
+"role": "人気2位"
+},
+{
+"combo": "1-3",
+"units": 12,
+"odds": 6.3,
+"role": "人気3位"
+}
+],
+"logic": "2026-10-14c"
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickgen": {
+"skip": false,
+"bet": "2t",
+"head": 2,
+"himo": null,
+"stake": 4000,
+"heads": [
+{
+"head": 2,
+"p": 0.0876,
+"q": 0.0657,
+"win_odds": 12.5,
+"tags": [
+"比1.2〜1.5×インB"
+]
+}
+],
+"scenario": "実績から見て市場が軽く見ている2号艇が勝つ展開",
+"tickets": [
+{
+"combo": "2-1",
+"units": 15,
+"odds": 34.7,
+"role": "頭2号艇(予想9%・市場7%)【比1.2〜1.5×インB】",
+"bet": "2t"
+},
+{
+"combo": "2-3",
+"units": 7,
+"odds": 74.5,
+"role": "頭2号艇(予想9%・市場7%)【比1.2〜1.5×インB】",
+"bet": "2t"
+},
+{
+"combo": "2-4-1",
+"units": 3,
+"odds": 164.1,
+"role": "頭2号艇(予想9%・市場7%)【比1.2〜1.5×インB】",
+"bet": "3t"
+},
+{
+"combo": "2-4-3",
+"units": 2,
+"odds": 254.7,
+"role": "頭2号艇(予想9%・市場7%)【比1.2〜1.5×インB】",
+"bet": "3t"
+},
+{
+"combo": "2-4-5",
+"units": 3,
+"odds": 152.7,
+"role": "頭2号艇(予想9%・市場7%)【比1.2〜1.5×インB】",
+"bet": "3t"
+},
+{
+"combo": "2-4-6",
+"units": 1,
+"odds": 927.8,
+"role": "頭2号艇(予想9%・市場7%)【比1.2〜1.5×インB】",
+"bet": "3t"
+},
+{
+"combo": "2-5",
+"units": 9,
+"odds": 54.6,
+"role": "頭2号艇(予想9%・市場7%)【比1.2〜1.5×インB】",
+"bet": "2t"
+}
+],
+"logic": "2026-10-14c"
+},
+"pickfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickoutfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickinwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankabin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankagap": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+}
 }
 }
