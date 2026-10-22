@@ -1157,7 +1157,7 @@ _FLOW_A = {}   # (日, レース, 45秒前の記録があるか) → 決裁者A�
 def _flow_a(date, key, pred, b):
     """決裁者Aの判断: (最終か, 買い目[[組, 単位]], 採用見込みの社員)。最終=45秒前のオッズで決めた後"""
     has45 = bool((b.get("stages") or {}).get("直前"))
-    ck = (date, key, has45)
+    ck = (date, key, has45, b.get("stage"), b.get("odds_at"))   # 段階が進んで買い目が変わったら作り直す(前は古い判断が残ることがあった)
     if ck not in _FLOW_A:
         plans = {n: pl for n, pl in plans_of(b).items()
                  if n in bet_mod.OPS_PLANS + bet_mod.SHADOW_PLANS and pl.get("logic") == bet_mod.OPS_LOGIC and not pl.get("skip")}
@@ -1796,7 +1796,7 @@ function renderFlow(el, F, VN){
     const rr=String(x.r).padStart(2,'0'), href=`/${F.d}/${x.v}/${rr}-bet.html`;
     let tag='', bg='var(--card)', bd='var(--bd)';
     if(x.ph==='pre') tag=x.ex?'展示済':'展示待ち';
-    if((x.ph==='prop'||x.ph==='kessai')&&x.lean){ tag='Aが買いそう'; bd='#7A5AE0'; }
+    if((x.ph==='prop'||x.ph==='kessai')&&x.lean){ tag='Aが買いそう(まだ決定前)'; bd='#7A5AE0'; }
     if(x.ph==='decided'){ if(x.buy){ tag=`買う ${x.st.toLocaleString()}円`+(x.race?'・レース中':''); bg='rgba(30,158,106,.14)'; bd='#1E9E6A'; }
                           else { tag='見送り'+(x.race?'・レース中':''); } }
     if(x.ph==='result'){ const w=x.ret>0, d=x.ret-x.st; tag=(w?'✅ 的中 ':'❌ ')+(d>=0?'+':'')+d.toLocaleString()+'円'; bg=w?'rgba(30,158,106,.14)':'transparent'; bd=w?'#1E9E6A':'var(--bd)'; }
