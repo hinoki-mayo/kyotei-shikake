@@ -6,6 +6,7 @@
 ・レースページ       : 出走表 ／ スタートスリット ／ 1マーク の3タブ(それぞれ別ページ)
 広告は ads/ フォルダのタグを決まった位置に差し込む(図の上や途中には置かない)
 """
+import copy
 import datetime as dt
 import functools
 import html
@@ -1185,6 +1186,9 @@ def _flow(pred, result):
     return 100 * len(pts), (int(result["payout3t"]) if result["combo3t"] in pts else 0)
 
 
+_KESSAI_MEMO = {}
+
+
 def _kessai_plans(date, key, pred, b, plans):
     """決裁者A r2(10/19から): 締切45秒前のオッズが記録されていれば、見込みの確定オッズに直して社員の買い目を作り直す。
     まだ45秒前より前なら、渡された(2分前に決めた)買い目のまま"""
@@ -1193,6 +1197,9 @@ def _kessai_plans(date, key, pred, b, plans):
         return plans
     o2f, o3f = flex.expected_final(pred, {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s45["o2"]) if v},
                                    {c: v for c, v in zip(bet_mod.ODDS_ORDER, s45["o3"]) if v})
+    ck = (date, key, s45.get("t"), pred.get("predicted_at"))   # 45秒前の判断は後から変わらないので覚えておく(毎回作り直すと1日分で20秒以上かかり、購入係が遅れた)
+    if ck in _KESSAI_MEMO:
+        return dict(_KESSAI_MEMO[ck])
     lv = _entries(date).get(key)
     try:
         made = bet_mod.make_bet(pred, o3f, o2f, date, lv if isinstance(lv, dict) else None)["plans"]
@@ -1202,7 +1209,8 @@ def _kessai_plans(date, key, pred, b, plans):
         made["pickwin"]["logic"] = bet_mod.OPS_LOGIC
         if date < KESSAI_R3_SINCE:
             made["pickinwin"] = dict(skip=True, bet="2t")
-        return {n: pl for n, pl in made.items() if n in org_tree.ORG_PLANS and not pl.get("skip")}
+        _KESSAI_MEMO[ck] = {n: pl for n, pl in made.items() if n in org_tree.ORG_PLANS and not pl.get("skip")}
+        return dict(_KESSAI_MEMO[ck])
     except Exception as e:
         print(f"決裁者Aの作り直しに失敗({date} {key}): {e!r}")
         return plans
@@ -1402,6 +1410,9 @@ def _prop_q(q3, tickets):
     return sum(q3[c] for c in cov)
 
 
+_REC_MEMO = {}   # (日, レース) → (材料, 記録)
+
+
 def bets_records(only=None):
     """集計画面用に、結果が出たレースごとの記録を作る(買い方ごとの投資・払戻と、絞り込み用の条件)。only: その日だけ作る"""
     files = sorted(f for f in (DATA / "bets").glob("*.json") if only is None or f.stem == only)
@@ -1427,6 +1438,7 @@ def bets_records(only=None):
             day[key] = {"plans": backfill[key]}
         for key in replay.keys() - day.keys():     # 実戦で決められなかったレースも、再生の方には数える
             day[key] = {"plans": {}, "replay_only": True}
+        sigs, n0 = {}, len(out)
         for key, b in day.items():
             jcd, race = key.split("-")
             result = {**live.get(key, {}), **(keyed.get((date, jcd, int(race))) or {})}   # 2連単は結果ページの記録から
@@ -1434,6 +1446,12 @@ def bets_records(only=None):
                 continue
             if b.get("stage") == "候補" and "確定" not in b.get("stages", {}):
                 continue   # 締切2分前の確定まで行かなかったレースは数えない
+            sig = repr([b, result, backfill.get(key), replay.get(key), ofin.get(key), (preds.get(key) or {}).get("predicted_at"),
+                        _entries(date).get(key), _odds_live(date).get(key)])
+            sigs[key] = sig
+            if (date, key) in _REC_MEMO and _REC_MEMO[(date, key)][0] == sig:   # 前と同じ材料なら作り直さない(購入係が何度も呼ぶので)
+                out.append(copy.deepcopy(_REC_MEMO[(date, key)][1]))
+                continue
             plans = plans_of(b)
             fill = backfill.get(key, {})   # 切り替え前の買い目を今のロジックで作り直したもの(backfill_ops.py)
             plans = {**plans, **{n: pl for n, pl in fill.items() if plans.get(n, {}).get("logic") != bet_mod.OPS_LOGIC}}
@@ -1646,6 +1664,10 @@ def bets_records(only=None):
             if pred and date >= ORG_SINCE:
                 rec["pp"] = pp
             out.append(rec)
+        for rec in out[n0:]:
+            k2 = f'{rec["v"]}-{rec["r"]:02d}'
+            if k2 in sigs:
+                _REC_MEMO[(date, k2)] = (sigs[k2], copy.deepcopy(rec))
     return out
 
 
