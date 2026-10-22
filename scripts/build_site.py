@@ -528,6 +528,11 @@ def yoso_record():
             if not pl:
                 continue
             ret = sum(t["yen"] / 100 * r["payout3t"] for t in pl if t["combo"] == r["combo3t"])
+            for t in pl:   # 段ごと(本線・抑え・穴): [その段を買ったレース, 当たり, 投資, 払戻, [当たった時の払戻]]
+                a = out.setdefault("段:" + t["tier"], {}).setdefault(key + date, [0, 0, 0, 0])
+                a[1] += t["yen"]
+                if t["combo"] == r["combo3t"]:
+                    a[0], a[2] = 1, t["yen"] / 100 * r["payout3t"]
             for rk in (_rank_of_vw(vw), "all"):
                 a = out.setdefault(rk, [0, 0, 0, 0, []])
                 a[0] += 1
@@ -537,6 +542,25 @@ def yoso_record():
                 if ret > 0:
                     a[4].append(ret)
     return out
+
+
+def _yoso_tier_table(rec):
+    """本線・抑え・穴のどこで当たったか"""
+    med = lambda xs: sorted(xs)[len(xs) // 2] if xs else 0
+    n = rec.get("all", [0])[0] or 1
+    rows = ""
+    for t in yoso.TIERS:
+        d = rec.get("段:" + t) or {}
+        if not d:
+            continue
+        hits = [v[2] for v in d.values() if v[0]]
+        st = sum(v[1] for v in d.values())
+        rows += (f'<tr><td style="text-align:left">{t}</td><td>{len(d)}</td><td>{len(hits)}</td><td>{len(hits) / n:.0%}</td>'
+                 f'<td>{med(hits):,.0f}円</td><td>{sum(hits) / st:.0%}</td></tr>')
+    return ('<div style="overflow-x:auto;margin-top:10px"><table style="width:100%;border-collapse:collapse;font-size:13px;text-align:right;white-space:nowrap">'
+            '<tr class="sub"><th></th><th>買った</th><th>的中</th><th>全体の</th><th>払戻</th><th>回収率</th></tr>' + rows + '</table></div>'
+            '<p class="sub" style="margin:6px 0 0">本線・抑え・穴のどこで当たったか。「買った」はその段の目を買ったレース数、'
+            '「全体の」は全レースのうちその段で当たった割合、「払戻」は当たった時の払戻の真ん中。回収率はその段に置いたお金に対して</p>')
 
 
 def _yoso_record_table():
@@ -556,7 +580,8 @@ def _yoso_record_table():
                  f'<td>{a[3] / a[2]:.0%}</td><td class="sub">({ref[0] if ref else 0.44:.0%})</td></tr>')
     return ('<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px;text-align:right;white-space:nowrap">'
             '<tr class="sub"><th></th><th>レース</th><th>的中率</th><th>当たり</th><th>回収率</th><th></th></tr>' + rows + '</table></div>'
-            '<p class="sub" style="margin:6px 0 0">当たり＝当たった時の払戻の真ん中。( )内は過去データでの的中率の目安。S＝ガチガチ〜C＝混戦</p>')
+            '<p class="sub" style="margin:6px 0 0">当たり＝当たった時の払戻の真ん中。( )内は過去データでの的中率の目安。S＝ガチガチ〜C＝混戦</p>'
+            + _yoso_tier_table(rec))
 
 
 def yoso_card(date, info, vw):
