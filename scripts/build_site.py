@@ -425,13 +425,30 @@ def predict_page(date, info, pred, races, result_ready=False):
                 f"{v}{info['race']}Rの予想。1着・2着・3着の確率と堅さのランク、おすすめの目。", f"/{date}/{info['jcd']}/{base}.html")
 
 
-@functools.lru_cache(maxsize=4)
+def _mtime(p):
+    try:
+        return p.stat().st_mtime
+    except OSError:
+        return 0
+
+
 def _odds_live(date):
+    """締切前に取ったオッズ。購入係は常駐するので、ファイルが新しくなったら読み直す(前は古いまま残っていた)"""
+    return _odds_live_at(date, _mtime(DATA / "odds_live" / f"{date}.json"))
+
+
+@functools.lru_cache(maxsize=4)
+def _odds_live_at(date, _m):
     return race_view.load_odds(date)
 
 
-@functools.lru_cache(maxsize=4)
 def _entries(date):
+    """展示の情報(進入・展示タイム・スタート展示など)。ファイルが新しくなったら読み直す"""
+    return _entries_at(date, _mtime(DATA / "entries" / f"{date}.json"))
+
+
+@functools.lru_cache(maxsize=4)
+def _entries_at(date, _m):
     p = DATA / "entries" / f"{date}.json"
     return json.loads(p.read_text()) if p.exists() else {}
 
