@@ -503,6 +503,7 @@ def _rank_of_vw(vw):
     return next(x for x in RANKS if p5 >= x[1])[0]
 
 
+@functools.lru_cache(maxsize=1)
 def yoso_record():
     """サイトの予想(4,000円)を結果と突き合わせた記録(YOSO_SINCE から)。{ランク: [レース, 的中, 投資, 払戻, [当たった時の払戻]]}"""
     out = {}
@@ -536,7 +537,7 @@ def yoso_record():
                     a[1] += t["yen"]
                     if t["combo"] == r["combo3t"]:
                         a[0], a[2] = 1, t["yen"] / 100 * r["payout3t"]
-            for rk in (_rank_of_vw(vw), "all"):
+            for rk in (_rank_of_vw(vw), "all", "場:" + key.split("-")[0]):
                 a = out.setdefault(rk, [0, 0, 0, 0, []])
                 a[0] += 1
                 a[1] += int(ret > 0)
@@ -3283,23 +3284,31 @@ def _record_table(rec):
             '<p class="sub" style="margin:4px 0 0">( )内は過去データでの見込み。ランクが高いほど当たる、が予想どおりかを見る表です。</p>')
 
 
+def _yoso_line(a):
+    """予想(4,000円)の短い成績: レース・的中率・回収率"""
+    return f'{a[0]}レース・的中{a[1] / a[0]:.0%}・回収率{a[3] / a[2]:.0%}' if a and a[0] else "まだなし"
+
+
 def record_page():
     rec = rank_record()
     allr = rec.get("all", {})
-    n = sum(a[0] for a in allr.values()) if allr else 0
+    n5 = sum(a[0] for a in allr.values()) if allr else 0
     since = jp(rec["since"]) if rec.get("since") else "―"
-    body = ('<h1>的中実績</h1><p class="sub">サイトに出した予想（締切前のオッズを混ぜた確率）を、レース結果と突き合わせた記録です。'
-            f'{since}から {n}レース。毎日自動で更新します。</p>'
+    yr = yoso_record()
+    ya = yr.get("all")
+    venues = sorted(k[2:] for k in yr if k.startswith("場:"))
+    body = ('<h1>的中実績</h1><p class="sub">各レースの「予想（4,000円）」（本線・抑え・穴）を、そのときのオッズのまま'
+            f'レース結果と突き合わせた記録です。{jp(YOSO_SINCE)}から {_yoso_line(ya)}。毎日自動で更新します。</p>'
             '<h2>予想（4,000円）の成績 <span class="sub">ランク別</span></h2><div class="card">'
-            '<p class="sub" style="margin:0 0 6px">予想タブの「予想（4,000円）」を、そのときのオッズのまま結果と突き合わせた記録です'
-            f'（{jp(YOSO_SINCE)}から）。堅いランクほどよく当たり、混戦ほど当たった時の払戻が大きくなります。</p>' + _yoso_record_table() + '</div>'
-            '<h2>ランク別 <span class="sub">確率の上位5点</span></h2><div class="card">' + _record_table(allr) + '</div>'
-            '<h2>場ごと</h2><div class="card list">'
+            '<p class="sub" style="margin:0 0 6px">堅いランクほどよく当たり、混戦ほど当たった時の払戻が大きくなります。</p>'
+            + _yoso_record_table() + '</div>'
+            '<h2>場ごと <span class="sub">予想（4,000円）</span></h2><div class="card list">'
             + "".join(f'<a href="/venue/{SLUG[j]}.html"><span class="rno" style="width:70px">{VENUES[j]}</span>'
-                      f'<span class="sub">{sum(a[0] for a in rec[j].values())}レース・3連単5点 '
-                      f'{sum(a[1] for a in rec[j].values()) / max(1, sum(a[0] for a in rec[j].values())):.0%}</span></a>'
-                      for j in sorted(k for k in rec if k not in ("all", "since")))
-            + '</div>' + ad())
+                      f'<span class="sub">{_yoso_line(yr["場:" + j])}</span></a>' for j in venues)
+            + '</div>'
+            f'<h2>参考: 確率の上位5点 <span class="sub">{since}から {n5}レース</span></h2><div class="card">'
+            '<p class="sub" style="margin:0 0 6px">予想した確率の高い3連単5点に、そのレースの答えが入っていたか。'
+            '予想の確率そのものの当たり具合を見る表です（買い目ではありません）。</p>' + _record_table(allr) + '</div>' + ad())
     return page("的中実績", body, "競艇予想のランク別・場ごとの的中実績。予想した確率どおりに当たっているかを毎日公開。", "/record.html")
 
 
@@ -3353,7 +3362,11 @@ def venue_home(jcd, date, prog_day, preds, now, recent=None):
         feat = (f'<h2>{v}の特徴</h2><div class="card"><ul style="margin:0;padding-left:18px;font-size:14px">{lines}</ul></div>'
                 f'<h2>コース別の成績 <span class="sub">{st["since"][:4]}年〜・{st["races"]:,}レース</span></h2><div class="card">{bars}</div>')
     rec = rank_record().get(jcd)
-    record = f'<h2>{v}での的中実績</h2><div class="card">{_record_table(rec)}</div>' if rec else ""
+    ya = yoso_record().get("場:" + jcd)
+    record = ((f'<h2>{v}での的中実績</h2><div class="card"><p style="margin:0">予想（4,000円）: <b>{_yoso_line(ya)}</b></p>'
+               + (f'<p class="sub" style="margin:4px 0 0">当たった時の払戻の真ん中 {sorted(ya[4])[len(ya[4]) // 2]:,.0f}円</p>' if ya and ya[4] else "")
+               + (f'<p class="sub" style="margin:10px 0 4px">参考: 確率の上位5点</p>{_record_table(rec)}' if rec else "") + '</div>')
+              if (ya or rec) else "")
     rc = ""
     if recent:
         top = recent["top"]
