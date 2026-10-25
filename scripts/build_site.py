@@ -1425,6 +1425,7 @@ KESSAI_C_SINCE = "20261020"   # 決裁者C(重ね型・記録だけ)を始めた
 OUTW_SINCE = "20261020"   # 外の1着専門の記録を始めた日
 EDU_SINCE = "20261019"   # 一般職(研修後)の記録を始めた日(条件は過去2年だけで決めたので、実戦はすべて答え合わせ)
 EDU_WR = 1.5              # 一般職(研修後): 1着専門が頭を市場のこの倍率以上と見る時だけ(2コース頭は除く)
+SANWARI_SINCE = "20261025"   # インターン「3割4倍」の記録を始めた日(判定は10/26からの分)
 INTERN_SINCE = "20261021"   # 有力インターン生E2・E3・E2の3連単版の答え合わせを始めた日(10/17〜20は探すのに使った)
 URA_M_SINCE = "20261020"   # 裏の穴×来そう一致の記録を始めた日(10/19に過去2年で見つけた)
 KESSAI_R2_SINCE = "20261019"   # 決裁者A r2: 2年分の表・採用103%・45秒前のオッズを見込みの確定オッズに直して判断
@@ -1548,6 +1549,14 @@ def bets_records(only=None):
                     tks = shadow_staff.in_win(pred, o2s, lv if isinstance(lv, dict) else None)
                     sp = settle(dict(tickets=tks, stake=sum(t["units"] for t in tks) * 100), result) if tks else None
                     st["inW"] = list(sp) if sp else 0
+            s2m = stg.get("確定")
+            if pred and s2m and s2m.get("o2") and s2m.get("o3") and date >= SANWARI_SINCE:   # インターン「3割4倍」(2分前のオッズ・1,000円)
+                tks = shadow_staff.sanwari(pred, {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s2m["o2"]) if v},
+                                           {c: v for c, v in zip(bet_mod.ODDS_ORDER, s2m["o3"]) if v})
+                sp = settle(dict(tickets=tks, stake=sum(t["units"] for t in tks) * 100, bet="2t"), result) if tks else None
+                st["sanwari"] = list(sp) if sp else 0
+                if tks:
+                    itk["sanwari"] = [t["combo"] for t in tks]
             rp = replay.get(key)
             if rp and pred and date >= ORG_SINCE:   # 今の方法で再生(確定オッズ)した時の、最終決裁者の採用
                 ch = []
@@ -2211,8 +2220,8 @@ def _org_json():
         meta = {k: v for k, v in json.loads(org_tree.CONF_P.read_text()).items() if k != "nodes"}
     except Exception:
         pass
-    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE, "outW": OUTW_SINCE, "inW": OUTW_SINCE, "uraF": OUTW_SINCE, "kessaiC": KESSAI_C_SINCE, "inSec": OUTW_SINCE, "kessaiB": KESSAI_C_SINCE, "lateE2": INTERN_SINCE, "lateE3": INTERN_SINCE, "lateE23": INTERN_SINCE, "pickgenE": EDU_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
-                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍", "outW": "外の1着専門(3・4コース頭)", "inW": "インの1着専門(嫌われたイン)", "uraF": "裏の穴×1着専門の後押し", "kessaiC": "決裁者C(重ね型・記録だけ)", "kessaiB": "決裁者B(厳選型・記録だけ)", "inSec": "インの2着専門(本命型)", "lateE2": "インターンE2(2連単)", "lateE3": "インターンE3(2連単・低オッズ)", "lateE23": "インターンE2(3連単)", "pickgenE": "一般職(研修後)"}, nodes=_tree_nodes(), confMeta=meta)
+    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE, "outW": OUTW_SINCE, "inW": OUTW_SINCE, "uraF": OUTW_SINCE, "kessaiC": KESSAI_C_SINCE, "inSec": OUTW_SINCE, "kessaiB": KESSAI_C_SINCE, "lateE2": INTERN_SINCE, "lateE3": INTERN_SINCE, "lateE23": INTERN_SINCE, "pickgenE": EDU_SINCE, "sanwari": SANWARI_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
+                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍", "outW": "外の1着専門(3・4コース頭)", "inW": "インの1着専門(嫌われたイン)", "uraF": "裏の穴×1着専門の後押し", "kessaiC": "決裁者C(重ね型・記録だけ)", "kessaiB": "決裁者B(厳選型・記録だけ)", "inSec": "インの2着専門(本命型)", "lateE2": "インターンE2(2連単)", "lateE3": "インターンE3(2連単・低オッズ)", "lateE23": "インターンE2(3連単)", "pickgenE": "一般職(研修後)", "sanwari": "3割4倍"}, nodes=_tree_nodes(), confMeta=meta)
 
 
 ORG_JS = r"""
@@ -2586,6 +2595,8 @@ INTERNS = (
     ("lateE23", "E2(3連単)", "E2と同じ条件を3連単で、45秒前3〜40倍の目。見つけた4日で見込みの約2.4倍・回収率約160%(40倍で切ったのは見てから決めた線)。10/21から答え合わせ"),
     ("pickgenE", "一般職(研修後)", "社員「一般職」に、1着専門が頭を市場の1.5倍以上と見る時だけ提案するよう教えた版(2コース頭は除く・1提案4,000円・45秒前のオッズ)。"
      "過去2年(モデルも自信度の表も別の年で作成)で、Aに採用された分が172%・160%。条件は過去だけで決めたので10/19からの実戦は全部答え合わせ"),
+    ("sanwari", "3割4倍", "本命の頭の2連単を、確率の高い順に見込み30%に届くまで足し、払戻がそろう配分で1,000円。そろえた払戻が3.3〜5倍の時だけ(ランクCは買わない・2分前のオッズ)。"
+     "過去(確定オッズ)で2025年869R・的中32%・回収111%、2026年462R・32%・113%。10/25から記録、判定は10/26から"),
     ("hot3", "3連単の熱い一点", "混ぜた2連単確率×3着専門の3着確率×3連単オッズが2.0以上・100倍未満の1点。決裁者Cの足し買い"),
 )
 

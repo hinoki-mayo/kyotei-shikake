@@ -191,3 +191,40 @@ def late_in(pred, o2, o3, live=None):
             if o and LATE_ODDS[0] <= o <= LATE_ODDS[1] and tri[ix] / ((1 / o) / inv3) >= LATE_R:
                 out["lateE23"].append(dict(combo=f"1-{waku[j]}-{waku[k]}", units=STAKE // 100, odds=o, bet="3t"))
     return out
+
+
+SANWARI_P, SANWARI_ODDS, SANWARI_YEN = 0.30, (3.3, 5.0), 1000
+
+
+def sanwari(pred, o2, o3):
+    """3割4倍(10/25から記録だけ・締切2分前のオッズ): 本命(混ぜた3連単確率の1番手)の頭の2連単を、確率の高い順に
+    見込み30%に届くまで足し、どれが来ても払戻がそろう配分で1,000円。そろえた払戻が3.3〜5倍の時だけ。ランクC(混戦)は買わない。
+    過去(確定オッズ・モデルは別の年): 2025年869R 的中32% 回収111%、2026年2〜10月462R 32% 113%"""
+    import race_view
+    if not o2 or not o3 or not pred.get("tri"):
+        return []
+    s3 = race_view._blend3(pred, o3)
+    if not s3:
+        return []
+    waku = [b["waku"] for b in pred["boats"]]
+    probs = sorted(((f"{waku[i]}-{waku[j]}-{waku[k]}", p) for i, j, k, p in s3), key=lambda x: -x[1])
+    if sum(p for _, p in probs[:5]) < 0.3:   # ランクC
+        return []
+    fh = probs[0][0][0]
+    p2 = {}
+    for c, p in probs:
+        p2[c[:3]] = p2.get(c[:3], 0) + p
+    o2d = {f"{a + 1}-{b + 1}": x for (a, b), x in o2.items() if x}
+    cand = sorted(((c, p, o2d[c]) for c, p in p2.items() if c[0] == fh and o2d.get(c)), key=lambda x: -x[1])
+    pick, ps = [], 0.0
+    for x in cand:
+        pick.append(x)
+        ps += x[1]
+        if ps >= SANWARI_P:
+            break
+    if ps < SANWARI_P:
+        return []
+    inv = sum(1 / o for _, _, o in pick)
+    if not (SANWARI_ODDS[0] <= 1 / inv <= SANWARI_ODDS[1]):
+        return []
+    return [dict(combo=c, units=max(1, round(SANWARI_YEN / 100 * (1 / o) / inv)), odds=o, bet="2t") for c, _, o in pick]
