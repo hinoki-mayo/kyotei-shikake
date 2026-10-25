@@ -2167,6 +2167,7 @@ def _room_head(color, acc, name, role, badge=False, back="/ops.html", back_label
             f'<span class="sub">{role}</span></div></div>')
 
 
+DISPLAY_SINCE = "20261018"   # サイトの成績に出すのはこの日から(決裁者Aを直した日。前の記録は data/ に残すだけ)
 ORG_SINCE = bet_mod.PICKURA_LOGIC_SINCE   # 組織(提案ごとの記録・決裁者)の集計開始日
 GROUP_COLOR = {"in": "#2F6BD8", "in.B": "#2F6BD8", "in.A": "#5B8DEF",
                "out": "#B0457A", "out.c2": "#3C8C4E", "out.c34": "#B0457A", "out.c56": "#8A6A2E"}
@@ -3653,7 +3654,7 @@ def main():
     (OUT / "record.html").write_text(record_page())
     (OUT / "today.html").write_text(today_page(top or today, vday, vpreds, now))
     urls += ["/venue/", "/record.html", "/today.html"]
-    (OUT / "bets-data.json").write_text(json.dumps(bets_records(), ensure_ascii=False, separators=(",", ":")))
+    (OUT / "bets-data.json").write_text(json.dumps([x for x in bets_records() if x["d"] >= DISPLAY_SINCE], ensure_ascii=False, separators=(",", ":")))
     quick_upcoming()
     (OUT / "nige-data.json").write_text(json.dumps(nige_records(), ensure_ascii=False, separators=(",", ":")))
     # 自分用(試験用買い目)のページは予想組織図にまとめた。サイトマップには入れない
