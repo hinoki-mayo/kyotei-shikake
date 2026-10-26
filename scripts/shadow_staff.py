@@ -228,3 +228,28 @@ def sanwari(pred, o2, o3):
     if not (SANWARI_ODDS[0] <= 1 / inv <= SANWARI_ODDS[1]):
         return []
     return [dict(combo=c, units=max(1, round(SANWARI_YEN / 100 * (1 / o) / inv)), odds=o, bet="2t") for c, _, o in pick]
+
+
+E45_RATIO, E45_ODDS, E45_UNITS = 1.3, (5.0, 20.0), 10
+
+
+def e45(pred, o3):
+    """45秒前の先回り(10/27から記録だけ・締切45秒前のオッズ): 情報部の3連単確率(混ぜる前)が、45秒前の市場の確率
+    (1/オッズを全120通りで割り戻したもの)の1.3倍以上で、45秒前のオッズが5倍より上・20倍以下の目を、1点1,000円ずつ全部。
+    見つけた9日分(10/17〜25・約1,300R)で、45秒前で選ぶと当たり106回(確定オッズの見込み78回)・回収94%、
+    確定オッズで選び直すと63回(58回)・73%。条件はこの日に決めて変えない。答え合わせは10/27から"""
+    import bet
+    if not o3 or not pred.get("tri"):
+        return []
+    waku = [b["waku"] for b in pred["boats"]]
+    inv = sum(1 / v for v in o3.values() if v and v > 0)
+    if inv <= 0:
+        return []
+    out = []
+    for n, (i, j, k) in enumerate(bet.PERMS):
+        o = o3.get((waku[i] - 1, waku[j] - 1, waku[k] - 1))
+        if not o or o <= 0:
+            continue
+        if E45_ODDS[0] < o <= E45_ODDS[1] and pred["tri"][n] >= E45_RATIO * (1 / o) / inv:
+            out.append(dict(combo=f"{waku[i]}-{waku[j]}-{waku[k]}", units=E45_UNITS, odds=o))
+    return out
