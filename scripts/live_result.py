@@ -23,8 +23,10 @@ WINDOW = (5, 90)   # 締切の何分後から何分後までのレースを見�
 FAST_FROM = 3      # 購入係は締切の3分後から見に行く(レースは締切の約2分後に始まり、約2分で終わる)
 
 
-def fetch_result(date, jcd, race):
-    """{'by_waku': {枠: '01'..}, 'kimarite', 'combo3t', 'payout3t'} / まだ出ていなければNone"""
+def fetch_result(date, jcd, race, partial=False):
+    """{'by_waku': {枠: '01'..}, 'kimarite', 'combo3t', 'payout3t'} / まだ出ていなければNone
+    partial=True: 公式ページは配当が先に出て、着順の表はその7分ほど後に出る。配当が出た時点で
+    3連単の組から1〜3着だけ入れて返す(partial=True の印付き。全着順は展示反映の更新が後で取る)"""
     try:
         # 公式サイトが「まだ結果なし」のページをしばらく使い回すことがあるので、毎回新しいページをもらう(前は結果が締切の15分後ごろまで入らなかった)
         req = urllib.request.Request(URL.format(race=race, jcd=jcd, date=date) + f"&_={int(time.time())}",
@@ -34,15 +36,19 @@ def fetch_result(date, jcd, race):
     except Exception:
         return None
     ranks = RANK_RE.findall(h)
+    combo, pay = _bet(TRI_RE, h, 3)
+    combo2, pay2 = _bet(EXA_RE, h, 2)
     if len(ranks) < 3:      # 欠場があると6艇そろわない
-        return None
+        if not (partial and combo):
+            return None
+        by_waku = {int(w): f"{i + 1:02d}" for i, w in enumerate(combo.split("-"))}
+        return dict(by_waku=by_waku, kimarite="", combo3t=combo, payout3t=pay, combo2t=combo2, payout2t=pay2,
+                    partial=True)
     by_waku = {}
     for rk, w in ranks:
         rk = unicodedata.normalize("NFKC", rk).strip()
         by_waku[int(w)] = f"{int(rk):02d}" if rk.isdigit() else rk
     km = KIM_RE.search(h)
-    combo, pay = _bet(TRI_RE, h, 3)
-    combo2, pay2 = _bet(EXA_RE, h, 2)
     return dict(by_waku=by_waku, kimarite=km.group(1).strip() if km else "", combo3t=combo, payout3t=pay,
                 combo2t=combo2, payout2t=pay2)
 
@@ -84,7 +90,7 @@ def run_fast(date, races, now, workers=6):
     if not todo:
         return []
     with ThreadPoolExecutor(workers) as ex:
-        got = list(ex.map(lambda k: fetch_result(date, k.split("-")[0], int(k.split("-")[1])), todo))
+        got = list(ex.map(lambda k: fetch_result(date, k.split("-")[0], int(k.split("-")[1]), partial=True), todo))
     new = {k: r for k, r in zip(todo, got) if r and r["combo3t"]}
     if new:
         p = DATA / "live_results_fast" / f"{date}.json"

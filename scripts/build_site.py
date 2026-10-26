@@ -1003,7 +1003,7 @@ def returned_boats(result):
     """返還になった艇の枠番の集合(フライング・出遅れ・欠場。結果に名前が無い艇も欠場とみなす)"""
     bw = result.get("by_waku") or {}
     out = {int(w) for w, r in bw.items() if str(r).strip().startswith(RETURN_MARKS)}
-    if len(bw) >= 3:
+    if len(bw) >= 3 and not result.get("partial"):   # 配当だけ先に取った結果(1〜3着だけ)は、名前の無い艇を欠場とみなさない
         out |= {w for w in range(1, 7) if w not in {int(x) for x in bw}}
     return out
 
