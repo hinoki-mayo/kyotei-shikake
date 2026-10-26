@@ -1431,6 +1431,7 @@ KESSAI_C_SINCE = "20261020"   # 決裁者C(重ね型・記録だけ)を始めた
 OUTW_SINCE = "20261020"   # 外の1着専門の記録を始めた日
 EDU_SINCE = "20261019"   # 一般職(研修後)の記録を始めた日(条件は過去2年だけで決めたので、実戦はすべて答え合わせ)
 EDU_WR = 1.5              # 一般職(研修後): 1着専門が頭を市場のこの倍率以上と見る時だけ(2コース頭は除く)
+E45_SINCE = "20261027"   # 見習い「45秒前の先回り」の記録を始めた日(条件は10/26に10/17〜25のデータで決めた。答え合わせは10/27から)
 NOLEAK_SINCE = "20261018"   # 決裁者A(漏れなし版)を記録する日(表は10/13までの過去データだけで作ったので、10/18からの実戦は全部答え合わせ)
 SANWARI_SINCE = "20261025"   # インターン「3割4倍」の記録を始めた日(判定は10/26からの分)
 INTERN_SINCE = "20261021"   # 有力インターン生E2・E3・E2の3連単版の答え合わせを始めた日(10/17〜20は探すのに使った)
@@ -1563,6 +1564,13 @@ def bets_records(only=None):
                 st["sanwari"] = list(sp) if sp else 0
                 if tks:
                     itk["sanwari"] = [t["combo"] for t in tks]
+            s45 = stg.get("直前")
+            if pred and s45 and s45.get("o3") and date >= E45_SINCE:   # 見習い「45秒前の先回り」(45秒前のオッズ・1点1,000円)
+                tks = shadow_staff.e45(pred, {c: v for c, v in zip(bet_mod.ODDS_ORDER, s45["o3"]) if v})
+                sp = settle(dict(tickets=tks, stake=sum(t["units"] for t in tks) * 100), result) if tks else None
+                st["e45"] = list(sp) if sp else 0
+                if tks:
+                    itk["e45"] = [t["combo"] for t in tks]
             rp = replay.get(key)
             if rp and pred and date >= ORG_SINCE:   # 今の方法で再生(確定オッズ)した時の、最終決裁者の採用
                 ch = []
@@ -2234,8 +2242,8 @@ def _org_json():
         meta = {k: v for k, v in json.loads(org_tree.CONF_P.read_text()).items() if k != "nodes"}
     except Exception:
         pass
-    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE, "outW": OUTW_SINCE, "inW": OUTW_SINCE, "uraF": OUTW_SINCE, "kessaiC": KESSAI_C_SINCE, "inSec": OUTW_SINCE, "kessaiB": KESSAI_C_SINCE, "lateE2": INTERN_SINCE, "lateE3": INTERN_SINCE, "lateE23": INTERN_SINCE, "pickgenE": EDU_SINCE, "sanwari": SANWARI_SINCE, "kessaiN": NOLEAK_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
-                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍", "outW": "外の1着専門(3・4コース頭)", "inW": "インの1着専門(嫌われたイン)", "uraF": "裏の穴×1着専門の後押し", "kessaiC": "決裁者C(重ね型・記録だけ)", "kessaiB": "決裁者B(厳選型・記録だけ)", "inSec": "インの2着専門(本命型)", "lateE2": "インターンE2(2連単)", "lateE3": "インターンE3(2連単・低オッズ)", "lateE23": "インターンE2(3連単)", "pickgenE": "一般職(研修後)", "sanwari": "3割4倍", "kessaiN": "決裁者A(漏れなし版・記録だけ)"}, nodes=_tree_nodes(), confMeta=meta)
+    return dict(since={**PLAN_SINCE, "kessai": ORG_SINCE, "kessai_r": ORG_SINCE, "flex": ORG_SINCE, "setsuD": ORG_SINCE, "hot3": ORG_SINCE, "uraM": URA_M_SINCE, "uraM2": URA_M_SINCE, "outW": OUTW_SINCE, "inW": OUTW_SINCE, "uraF": OUTW_SINCE, "kessaiC": KESSAI_C_SINCE, "inSec": OUTW_SINCE, "kessaiB": KESSAI_C_SINCE, "lateE2": INTERN_SINCE, "lateE3": INTERN_SINCE, "lateE23": INTERN_SINCE, "pickgenE": EDU_SINCE, "sanwari": SANWARI_SINCE, "kessaiN": NOLEAK_SINCE, "e45": E45_SINCE}, orgSince=ORG_SINCE, ops=list(bet_mod.OPS_PLANS),
+                labels={**ALL_PLAN_LABELS, "kessai": "決裁者A(自信度型)", "flex": "決裁者B(柔軟型)", "setsuD": "説D 1-3/1-4", "hot3": "3連単の熱い一点", "uraM": "裏の穴×来そう一致", "uraM2": "決裁者A・一致で2倍", "outW": "外の1着専門(3・4コース頭)", "inW": "インの1着専門(嫌われたイン)", "uraF": "裏の穴×1着専門の後押し", "kessaiC": "決裁者C(重ね型・記録だけ)", "kessaiB": "決裁者B(厳選型・記録だけ)", "inSec": "インの2着専門(本命型)", "lateE2": "インターンE2(2連単)", "lateE3": "インターンE3(2連単・低オッズ)", "lateE23": "インターンE2(3連単)", "pickgenE": "一般職(研修後)", "sanwari": "3割4倍", "kessaiN": "決裁者A(漏れなし版・記録だけ)", "e45": "45秒前の先回り"}, nodes=_tree_nodes(), confMeta=meta)
 
 
 ORG_JS = r"""
@@ -2614,6 +2622,9 @@ INTERNS = (
     ("kessaiN", "決裁者A(漏れなし版)", "決裁者Aと同じ社員の提案を、漏れの無い自信度の表で決裁した版(採用線103%・1提案4,000円・45秒前のオッズ)。"
      "前の表は過去の再生で本番の進入(結果)を使っていて、進入が変わったレースの分だけ良く見えていた(10/26に発見)。"
      "展示の進入で作り直すと、Aは2025年95%・2026年91%。表は10/13までの過去だけで作ったので、10/18からの実戦は全部答え合わせ。判定は11/17"),
+    ("e45", "45秒前の先回り", "情報部の3連単確率が、締切45秒前の市場の確率の1.3倍以上で、45秒前のオッズが5倍より上・20倍以下の目を全部(1点1,000円)。"
+     "見つけた9日分(10/17〜25)で、45秒前で選ぶと当たりが確定オッズの見込みの1.36倍・回収94%、確定オッズで選び直すと73%。"
+     "条件は10/26に決めて変えない。10/27から答え合わせ、判定は11/17"),
     ("hot3", "3連単の熱い一点", "混ぜた2連単確率×3着専門の3着確率×3連単オッズが2.0以上・100倍未満の1点。決裁者Cの足し買い"),
 )
 
