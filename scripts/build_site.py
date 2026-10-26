@@ -1395,7 +1395,7 @@ def flow_data(now=None):
         elif mins < 0:
             if not tk and mins < -10:
                 continue   # 見送ったレースは締切10分後まで出せば十分
-            x.update(ph="decided", buy=bool(tk), st=sum(u for _, u in tk) * 100, who=who, race=1)
+            x.update(ph="decided", buy=bool(tk), st=sum(u for _, u in tk) * 100, who=who, race=max(1, int(-mins)))   # 締切から何分たったか
         elif not b:
             x.update(ph="pre", ex=pred.get("version") == "final")
         elif final:
@@ -2008,8 +2008,9 @@ function renderFlow(el, F, VN){
     let tag='', bg='var(--card)', bd='var(--bd)';
     if(x.ph==='pre') tag=x.ex?'展示済':'展示待ち';
     if((x.ph==='prop'||x.ph==='kessai')&&x.lean){ tag='Aが買いそう(まだ決定前)'; bd='#7A5AE0'; }
-    if(x.ph==='decided'){ if(x.buy){ tag=`買う ${x.st.toLocaleString()}円`+(x.race?'・レース中':''); bg='rgba(30,158,106,.14)'; bd='#1E9E6A'; }
-                          else { tag='見送り'+(x.race?'・レース中':''); } }
+    const rs=x.race?(x.race>=5?`・結果待ち(締切から${x.race}分)`:'・レース中'):'';   // 締切5分を過ぎたら結果を取りに行っている最中
+    if(x.ph==='decided'){ if(x.buy){ tag=`買う ${x.st.toLocaleString()}円`+rs; bg='rgba(30,158,106,.14)'; bd='#1E9E6A'; }
+                          else { tag='見送り'+rs; } }
     if(x.ph==='result'){ const w=x.ret>0, d=x.ret-x.st; tag=(w?'✅ 的中 ':'❌ ')+(d>=0?'+':'')+d.toLocaleString()+'円'; bg=w?'rgba(30,158,106,.14)':'transparent'; bd=w?'#1E9E6A':'var(--bd)'; }
     return `<a href="${href}" style="display:inline-flex;flex-direction:column;margin:3px;padding:4px 8px;border:1.5px solid ${bd};background:${bg};border-radius:8px;text-decoration:none;color:var(--tx);line-height:1.3">`+
       `<span style="font-size:13px"><b>${VN[x.v]||x.v}${x.r}R</b> <span class="sub">${x.t}</span></span>`+(tag?`<span class="sub" style="font-size:11.5px">${tag}</span>`:'')+`</a>`;

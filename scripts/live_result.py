@@ -26,7 +26,9 @@ FAST_FROM = 3      # 購入係は締切の3分後から見に行く(レースは
 def fetch_result(date, jcd, race):
     """{'by_waku': {枠: '01'..}, 'kimarite', 'combo3t', 'payout3t'} / まだ出ていなければNone"""
     try:
-        req = urllib.request.Request(URL.format(race=race, jcd=jcd, date=date), headers=UA)
+        # 公式サイトが「まだ結果なし」のページをしばらく使い回すことがあるので、毎回新しいページをもらう(前は結果が締切の15分後ごろまで入らなかった)
+        req = urllib.request.Request(URL.format(race=race, jcd=jcd, date=date) + f"&_={int(time.time())}",
+                                     headers={**UA, "Cache-Control": "no-cache", "Pragma": "no-cache"})
         with urllib.request.urlopen(req, timeout=40) as r:
             h = r.read().decode("utf-8", errors="replace")
     except Exception:
