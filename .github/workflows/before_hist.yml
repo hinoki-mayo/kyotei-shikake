@@ -19,12 +19,16 @@ on:
         description: "前の回の取り残し日数(自動。減らなくなったら止める)"
         required: false
         default: "99999"
+      dir:
+        description: "保存先(before_hist / before_extra=選手欄の直前情報も込みで取り直す)"
+        required: false
+        default: "before_hist"
 
 permissions:
   contents: write
 
 concurrency:
-  group: before-hist
+  group: before-hist-${{ inputs.dir }}
   cancel-in-progress: false
 
 jobs:
@@ -43,13 +47,13 @@ jobs:
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
-      - run: python scripts/fetch_before_hist.py --start ${{ inputs.start }} --end ${{ inputs.end }} --max-minutes 330 --shard ${{ matrix.shard }} --shards 4
+      - run: python scripts/fetch_before_hist.py --start ${{ inputs.start }} --end ${{ inputs.end }} --max-minutes 330 --shard ${{ matrix.shard }} --shards 4 --dir ${{ inputs.dir }}
       - name: 取得した直前情報を保存
         if: always()
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git add data/before_hist 2>/dev/null || true
+          git add data/${{ inputs.dir }} 2>/dev/null || true
           git diff --cached --quiet || git commit -m "直前情報 ${{ inputs.start }}〜${{ inputs.end }} (${{ matrix.shard }}/4)"
           for i in 1 2 3 4 5; do
             git pull --rebase && git push && break
@@ -76,9 +80,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          n=$(cd scripts && python hist_todo.py before_hist ${{ inputs.start }} ${{ inputs.end }})
+          n=$(cd scripts && python hist_todo.py ${{ inputs.dir }} ${{ inputs.start }} ${{ inputs.end }})
           echo "取り残し $n 日(前の回 ${{ inputs.left }} 日・${{ inputs.round }}回目)"
           if [ "$n" -gt 0 ] && [ "$n" -lt "${{ inputs.left }}" ] && [ "${{ inputs.round }}" -lt 60 ]; then
             gh workflow run before_hist.yml --ref main -f start=${{ inputs.start }} -f end=${{ inputs.end }} \
-              -f round=$(( ${{ inputs.round }} + 1 )) -f left=$n
+              -f round=$(( ${{ inputs.round }} + 1 )) -f left=$n -f dir=${{ inputs.dir }}
           fi

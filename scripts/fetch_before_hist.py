@@ -11,6 +11,7 @@
 ・応答が遅い(1ページ約9秒)ので2レースずつ同時に取る。保存済みのレースは飛ばす。20レース続けて取れなければ止める
 """
 import argparse
+import json
 import datetime as dt
 import re
 import time
@@ -68,7 +69,11 @@ def fetch_one(ymd, jcd, race):
     est = parse_est(h)
     tj = entry.fetch_tenji(h) or []
     wx = entry.fetch_weather(h) or {}
-    return dict(date=ymd, jcd=jcd, race=race, order=order or [],
+    try:
+        ex = parse_extra(h)
+    except Exception:
+        ex = None
+    return dict(date=ymd, jcd=jcd, race=race, order=order or [], extra=json.dumps(ex, ensure_ascii=False) if ex else "",
                 est=[float(est.get(w, np.nan)) for w in range(1, 7)],
                 tenji=[float(x) for x in tj] if tj else [],
                 wind=wx.get("wind", np.nan), wave=wx.get("wave", np.nan), wind_dir=wx.get("wind_dir"))
@@ -76,7 +81,10 @@ def fetch_one(ymd, jcd, race):
 
 def load_day(ymd):
     p = OUT / f"{ymd}.parquet"
-    return pd.read_parquet(p).to_dict("records") if p.exists() else []
+    if not p.exists():
+        return []
+    rows = pd.read_parquet(p).to_dict("records")
+    return rows
 
 
 def save_day(ymd, rows):
@@ -91,7 +99,10 @@ def main(argv=None):
     ap.add_argument("--max-minutes", type=float, default=330)
     ap.add_argument("--shard", type=int, default=0)
     ap.add_argument("--shards", type=int, default=1)
+    ap.add_argument("--dir", default="before_hist", help="保存先(data/の下)。before_extra なら直前情報の選手欄(体重・チルト・部品交換など)も込みで別に取り直す")
     a = ap.parse_args(argv)
+    global OUT
+    OUT = DATA / a.dir
     deadline = time.time() + a.max_minutes * 60
     days = list(daterange(dt.date.fromisoformat(a.start), dt.date.fromisoformat(a.end)))
     days = [d for i, d in enumerate(days) if i % a.shards == a.shard]
@@ -136,3 +147,50 @@ def main(argv=None):
 
 if __name__ == "__main__":
     main()
+
+
+_TB_RE = re.compile(r'<tbody class="is-fs12 ">(.*?)</tbody>', re.S)
+
+
+def parse_extra(h):
+    """直前情報の選手ごとの欄(枠番順のリスト、取れなければNone):
+    weight(体重kg), adj(調整重量kg), tilt(チルト), prop(プロペラ新品ならTrue), parts(部品交換の名前のリスト),
+    prev(この節の前走: [コース, ST, 着順] 無ければNone)"""
+    i = h.find("調整重量")
+    if i < 0:
+        return None
+    out = {}
+    for blk in _TB_RE.findall(h[i:]):
+        w = re.search(r'is-boatColor(\d) is-fs14" rowspan="4">(\d)</td>', blk)
+        if not w:
+            continue
+        tds = re.findall(r'<td[^>]*>(.*?)</td>', blk, re.S)
+        txt = [re.sub(r'<[^>]+>', '', t).replace('&nbsp;', '').strip() for t in tds]
+        try:
+            kg = float(re.search(r'([\d.]+)kg', blk).group(1))
+        except Exception:
+            kg = None
+        # 並び: 枠, 写真, 名前, 体重, 展示タイム, チルト, プロペラ, 部品交換, R, 前走コース, 進入, 前走進入, (調整重量), ST, 前走ST, 着順, 前走着順
+        def num(s):
+            try:
+                return float(s)
+            except Exception:
+                return None
+        tilt = num(txt[5]) if len(txt) > 5 else None
+        prop = bool(txt[6]) if len(txt) > 6 else None
+        parts = [re.sub(r'<[^>]+>', '', p).strip() for p in re.findall(r'<li[^>]*>(.*?)</li>', blk, re.S)]
+        parts = [p for p in parts if p]
+        adj = None
+        m = re.search(r'進入</td>\s*<td[^>]*>[^<]*</td>\s*</tr>\s*<tr>\s*<td rowspan="2">([-\d.]+)</td>', blk)
+        if m:
+            adj = num(m.group(1))
+        pc = re.search(r'進入</td>\s*<td[^>]*>([^<]*)</td>', blk)
+        ps = re.search(r'ST</td>\s*<td[^>]*>([^<]*)</td>', blk)
+        pr = re.search(r'着順</td>\s*<td[^>]*>(?:<a[^>]*>)?([^<]*)', blk)
+        prev = None
+        if pc and pc.group(1).strip():
+            prev = [pc.group(1).strip(), ps.group(1).strip() if ps else None, pr.group(1).strip() if pr else None]
+        out[int(w.group(2))] = dict(weight=kg, adj=adj, tilt=tilt, prop=prop, parts=parts, prev=prev)
+    if len(out) != 6:
+        return None
+    return [out[k] for k in range(1, 7)]
