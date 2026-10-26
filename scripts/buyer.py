@@ -18,6 +18,9 @@ import sys
 import time
 
 import threading
+import warnings
+
+warnings.filterwarnings("ignore", message="X does not have valid feature names")   # 学習モデルの警告が何十万行も出て、遅れの記録が読めなくなっていた
 
 import bet
 import build_site
@@ -182,6 +185,22 @@ def bets_data_bg(now):
     _bd["th"].start()
 
 
+def stage_soon(now, within=45):
+    """within秒以内に、どこかのレースの判断の時刻(締切5分前・2分前・45秒前)が来るか。来るならGitHubとのやり取りを後回しにする"""
+    p = DATA / "predictions" / f"{now:%Y%m%d}.json"
+    if not p.exists():
+        return False
+    for x in json.loads(p.read_text())["races"].values():
+        if not x.get("deadline"):
+            continue
+        t = dt.datetime.strptime(f"{now:%Y%m%d}" + x["deadline"], "%Y%m%d%H:%M").replace(tzinfo=JST)
+        for _, m in bet.STAGES:
+            left = (t - dt.timedelta(minutes=m) - now).total_seconds()
+            if -20 <= left <= within:
+                return True
+    return False
+
+
 def code_version():
     """scripts の中身の版(git のツリー)。変わったら購入係を起動し直す"""
     r = subprocess.run(["git", "rev-parse", "HEAD:scripts"], cwd=ROOT, capture_output=True, text=True)
@@ -248,8 +267,12 @@ def main():
         deploy_pending()
         if time.time() - t_tick > 30:
             print(f"{now:%H:%M:%S} 見回りに{time.time() - t_tick:.0f}秒かかった", flush=True)
-        if time.time() - last_push >= PUSH_EVERY:
+        late = time.time() - last_push
+        if late >= PUSH_EVERY and (late >= 240 or not stage_soon(now_jst())):   # 判断の時刻の直前はやり取りしない(長引くと判断を逃す。三国12R 10/26)
+            t_sync = time.time()
             sync(f"購入係 {now:%H:%M} {len(pending)}件" if pending else None)
+            if time.time() - t_sync > 20:
+                print(f"{now:%H:%M:%S} GitHubとのやり取りに{time.time() - t_sync:.0f}秒かかった", flush=True)
             pending, last_push = [], time.time()
             if code_version() != ver:   # 新しいコードが来たら、残り時間で自分を起動し直す(決めた段階は記録に残っているので続きから)
                 left = (end - time.time()) / 60
