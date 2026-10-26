@@ -1,7 +1,7 @@
 """手で買う人向けの通知(決裁者Cのやり方)。購入係が段階を決めるたびに ntfy へ送る(買うのは人。自動では買わない)
 
 ・送り先: 環境変数 NTFY_TOPIC(GitHubのSecretsに登録)。無ければ何もしない
-・中身: 決裁者Aが採用する提案を、決裁者Cの強弱(1着専門の後押しが無ければ1/4、同じ頭に自信度が採用線以上の提案が2つ以上なら×2)で
+・中身: 決裁者Aが採用する提案(A級インが逃げる箱だけ)を、決裁者Cの強弱(1着専門の後押しが無ければ1/4、同じ頭に自信度が採用線以上の提案が2つ以上なら×2)で
   金額に直したもの。1提案4,000円が基準
 ・締切5分前「買いそう」→ 2分前「ほぼ決定」→ 45秒前「買う」(または「見送り」)
 """
@@ -19,6 +19,7 @@ from common import DATA
 TOPIC = os.environ.get("NTFY_TOPIC", "").strip()
 _sent = set()
 _last = {}   # レースごとに最後に送った中身(2分前が5分前と同じなら送らない)
+ONLY = ("in.A.",)   # 通知するのはA級インが逃げる箱の提案だけ(10/26 モニターの希望)。全部に戻すなら ("",)
 LABEL = {"候補": "買いそう(5分前)", "確定": "ほぼ決定(2分前)", "直前": "買う(45秒前)"}
 
 
@@ -42,7 +43,7 @@ def _picks(date, key, stage, pred, b):
     conf, adopt = B.conf_for(date), org_tree.adopt_for(date)
     dec = lambda pl: org_tree.decide(org_tree.proposals(pl, pred), conf, adopt=adopt)
     kp = B._kessai_plans(date, key, pred, b, plans) if stage == "直前" else plans
-    got = dec(kp)
+    got = [c for c in dec(kp) if c["leaf"].startswith(ONLY)]
     s = (b.get("stages") or {}).get(stage) or {}
     o2 = {c: v for c, v in zip(bet_mod.ODDS2_ORDER, s.get("o2") or []) if v}
     lv = B._entries(date).get(key)
@@ -56,7 +57,7 @@ def _picks(date, key, stage, pred, b):
         f = 1.0 if wf and wf[c["course"] - 1] >= 1.2 else 0.25
         gv = sum(1 for p in props if p.get("course") == c.get("course") and org_tree.conf_of(p, conf) >= adopt)
         out.append((c, f * (2 if gv >= 2 else 1)))
-    skipped = dec(plans) if (stage == "直前" and not got) else []
+    skipped = [c for c in dec(plans) if c["leaf"].startswith(ONLY)] if (stage == "直前" and not got) else []
     return out, skipped
 
 
