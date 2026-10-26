@@ -25,6 +25,7 @@ warnings.filterwarnings("ignore", message="X does not have valid feature names")
 import bet
 import build_site
 import live_result
+import notify
 import race_view
 from common import DATA, JST, ROOT, now_jst
 
@@ -238,6 +239,10 @@ def main():
             break
         try:
             done = bet.decide_due(now)
+            try:   # 手で買う人向けの通知(決裁者Cのやり方・NTFY_TOPICがある時だけ)
+                notify.after_decide(now, done)
+            except Exception as e:
+                print("通知で失敗:", repr(e), file=sys.stderr)
         except Exception as e:   # 1回の見回りで失敗しても常駐は続ける
             print("見回りで失敗:", repr(e), file=sys.stderr)
             done = []

@@ -39,6 +39,7 @@ jobs:
         env:
           OMP_NUM_THREADS: "1"
           SHARE_KEY: ${{ secrets.SHARE_KEY }}
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           CF_PROJECT: ${{ vars.CF_PROJECT }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}

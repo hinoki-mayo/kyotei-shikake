@@ -1,0 +1,21 @@
+name: 通知のテスト
+
+# ntfy に1通だけテストの通知を送る(NTFY_TOPIC が登録できているかの確認用)
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: |
+          if [ -z "$NTFY_TOPIC" ]; then echo "NTFY_TOPIC がまだ登録されていません"; exit 1; fi
+          cd scripts && python notify.py
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
