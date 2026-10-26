@@ -110,6 +110,13 @@ def main():
                 weather = fetch_weather(h)
                 if weather:
                     rec.update(weather)
+                try:   # 選手ごとの直前情報(体重・調整重量・チルト・プロペラ・部品交換・前走)。10/26から保存
+                    import fetch_before_hist
+                    ex = fetch_before_hist.parse_extra(h)
+                    if ex:
+                        rec["extra"] = ex
+                except Exception as e:
+                    print(f"直前情報の選手欄を読めませんでした({key}): {e!r}")
                 entries[key] = rec
                 todo.append(key)
     if todo:
