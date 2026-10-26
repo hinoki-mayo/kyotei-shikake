@@ -1386,12 +1386,9 @@ def flow_data(now=None):
         except Exception as e:
             print(f"流れ図でAの判断を作れませんでした({key}): {e!r}")
             final, tk, who = False, [], []
-        nd = bool(b) and mins < 0 and "確定" not in (b.get("stages") or {})   # 締切2分前の判断が記録されないまま締切を過ぎた(成績にも数えない)
-        if nd:
-            if res.get("combo2t") or mins < -10:
-                continue
-            x.update(ph="decided", buy=False, st=0, who=[], race=max(1, int(-mins)), nd=1)
-        elif res.get("combo2t"):
+        if b and mins < 0 and "確定" not in (b.get("stages") or {}):
+            x["c5"] = 1   # 2分前・45秒前の判断が抜けたので、5分前の候補の判断で数える
+        if res.get("combo2t"):
             if not tk:
                 continue   # 見送ったレースの結果は出さない(数だけ数える)
             ret = sum(u * (res.get("payout2t") or 0) if c == res["combo2t"] else u * (res.get("payout3t") or 0) if c == res.get("combo3t") else 0
@@ -1495,8 +1492,7 @@ def bets_records(only=None):
             result = {**live.get(key, {}), **(keyed.get((date, jcd, int(race))) or {})}   # 2連単は結果ページの記録から
             if not result.get("combo3t") or pd.isna(result.get("payout3t")):
                 continue
-            if b.get("stage") == "候補" and "確定" not in b.get("stages", {}):
-                continue   # 締切2分前の確定まで行かなかったレースは数えない
+            # 購入係の不調で締切2分前・45秒前の判断が抜けたレースは、5分前の候補の判断で数える(10/26から。当たり外れに関係なく同じ決まり)
             sig = repr([b, result, backfill.get(key), replay.get(key), ofin.get(key), (preds.get(key) or {}).get("predicted_at"),
                         _entries(date).get(key), _odds_live(date).get(key)])
             sigs[key] = sig
@@ -2015,7 +2011,8 @@ function renderFlow(el, F, VN){
     if((x.ph==='prop'||x.ph==='kessai')&&x.lean){ tag='Aが買いそう(まだ決定前)'; bd='#7A5AE0'; }
     const rs=x.race?(x.race>=5?`・結果待ち(締切から${x.race}分)`:'・レース中'):'';   // 締切5分を過ぎたら結果を取りに行っている最中
     if(x.ph==='decided'){ if(x.buy){ tag=`買う ${x.st.toLocaleString()}円`+rs; bg='rgba(30,158,106,.14)'; bd='#1E9E6A'; }
-                          else { tag=(x.nd?'判断できず(記録なし)':'見送り')+rs; } }
+                          else { tag='見送り'+rs; } }
+    if(x.c5 && tag) tag+='・5分前の判断';
     if(x.ph==='result'){ const w=x.ret>0, d=x.ret-x.st; tag=(w?'✅ 的中 ':'❌ ')+(d>=0?'+':'')+d.toLocaleString()+'円'; bg=w?'rgba(30,158,106,.14)':'transparent'; bd=w?'#1E9E6A':'var(--bd)'; }
     return `<a href="${href}" style="display:inline-flex;flex-direction:column;margin:3px;padding:4px 8px;border:1.5px solid ${bd};background:${bg};border-radius:8px;text-decoration:none;color:var(--tx);line-height:1.3">`+
       `<span style="font-size:13px"><b>${VN[x.v]||x.v}${x.r}R</b> <span class="sub">${x.t}</span></span>`+(tag?`<span class="sub" style="font-size:11.5px">${tag}</span>`:'')+`</a>`;
