@@ -145,9 +145,6 @@ def main(argv=None):
     print(f"完了: 新規{n_new}レース(取れず{n_empty}、展示STが読めなかった{n_noest})")
 
 
-if __name__ == "__main__":
-    main()
-
 
 _TB_RE = re.compile(r'<tbody class="is-fs12 ">(.*?)</tbody>', re.S)
 
@@ -190,7 +187,14 @@ def parse_extra(h):
         prev = None
         if pc and pc.group(1).strip():
             prev = [pc.group(1).strip(), ps.group(1).strip() if ps else None, pr.group(1).strip() if pr else None]
+            prev = [None if (x is None or x in ("", "&nbsp;")) else x for x in prev]
+            if prev[0] is None:
+                prev = None
         out[int(w.group(2))] = dict(weight=kg, adj=adj, tilt=tilt, prop=prop, parts=parts, prev=prev)
     if len(out) != 6:
         return None
     return [out[k] for k in range(1, 7)]
+
+
+if __name__ == "__main__":
+    main()
