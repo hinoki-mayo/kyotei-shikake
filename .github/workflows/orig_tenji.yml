@@ -1,0 +1,38 @@
+name: オリジナル展示の保存
+
+# 毎晩、オリジナル展示を出している場の公式サイトから、その節の数字を保存する(予想にはまだ使わない)
+on:
+  schedule:
+    - cron: "37 12 * * *"   # 21:37(日本時間)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: orig-tenji
+  cancel-in-progress: false
+
+jobs:
+  save:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: cd scripts && python fetch_orig.py
+      - name: 保存
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add data/orig_tenji 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "オリジナル展示 $(TZ=Asia/Tokyo date +%m/%d)"
+          for i in 1 2 3 4 5; do
+            git pull --rebase && git push && break
+            sleep $((RANDOM % 20 + 5))
+          done
