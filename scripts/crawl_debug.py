@@ -79,6 +79,32 @@ def main():
                 idx.write(f"p{n + i:04d}.html {u}\n")
             n += len(got)
             print(start, len(got), flush=True)
+    summarize(out)
+
+
+
+def summarize(out):
+    """保存したページから、展示・オリジナル展示らしい言葉の周りの文とリンクだけを summary.txt に書く(ページそのものは残さない)"""
+    import os
+    words = ("オリジナル展示", "一周", "まわり足", "周回", "直線", "展示タイム", "展示情報", "直前情報")
+    lines = []
+    for ln in open(f"{out}/index.txt"):
+        f, u = ln.split()
+        h = open(f"{out}/{f}", errors="replace").read()
+        t = re.sub(r"<script.*?</script>|<style.*?</style>", " ", h, flags=re.S)
+        t = re.sub(r"<[^>]+>", " ", t)
+        t = re.sub(r"\s+", " ", t)
+        hit = [w for w in words if w in t]
+        lines.append(f"## {u} {hit}")
+        for w in hit[:3]:
+            i = t.find(w)
+            lines.append("   " + t[max(0, i - 80):i + 160])
+        for href, text in re.findall(r'<a[^>]+href="([^"#]+)"[^>]*>(.*?)</a>', h, re.S):
+            tx = re.sub(r"<[^>]+>|\s+", " ", text).strip()
+            if any(w in tx for w in words) or re.search(r"tenji|orig|chokuzen|before", href, re.I):
+                lines.append(f"   link: {tx[:30]} -> {urllib.parse.urljoin(u, href)}")
+        os.remove(f"{out}/{f}")
+    open(f"{out}/summary.txt", "w").write("\n".join(lines))
 
 
 if __name__ == "__main__":
