@@ -3141,10 +3141,85 @@ def venue_page(date, jcd, infos, preds, now):
         if i == 5:
             items += f"</div>{ad()}<div class='card list'>"
     head = (f'<h1>{v} {jp(date)}</h1><p class="sub">{html.escape(infos[0]["title"])}・{infos[0]["day"]}日目'
-            f'・<a href="/venue/{SLUG[jcd]}.html" style="color:var(--ac)">{v}の特徴</a></p>')
+            f'・<a href="/venue/{SLUG[jcd]}.html" style="color:var(--ac)">{v}の特徴</a>'
+            f'・<a href="/{date}/{jcd}/standings.html" style="color:var(--ac)">節間順位表{"・オリ展" if jcd in ORIG_JCD else ""}</a></p>')
     scroll = '<script>document.getElementById("cur")?.scrollIntoView({block:"center"})</script>'
     return page(f"{v} {jp(date)} 出走表・展開予想", head + f"<div class='card list'>{items}</div>" + scroll,
                 f"{v}の全レースの出走表と1マーク展開予想", f"/{date}/{jcd}/")
+
+
+ORIG_JCD = {"01"}   # オリジナル展示を保存している場(scripts/fetch_orig.py)
+ORIG_KINDS = ("まわり足", "半周ラップ", "展示タイム", "直線タイム")
+
+
+def _orig_for(jcd, date, start):
+    """その節のオリジナル展示(保存した中で date 以前の一番新しいもの)。{選手名(空白なし): {種類: [枠]}}"""
+    d = DATA / "orig_tenji" / jcd
+    if not d.exists():
+        return {}
+    fs = sorted(f for f in d.glob("*.json") if start <= f.stem <= date)
+    if not fs:
+        return {}
+    try:
+        return json.loads(fs[-1].read_text()).get("racers", {})
+    except Exception:
+        return {}
+
+
+def standings_page(date, jcd, info0, series, n_series, people):
+    """節間順位表(全選手の得点率・着順・🔥⚔の印)と、オリジナル展示がある場はその一覧。people: {登番: (名前, 級)}"""
+    v = VENUES[jcd]
+    day = info0["day"]
+    start = (dt.datetime.strptime(date, "%Y%m%d") - dt.timedelta(days=max(day, 1) - 1)).strftime("%Y%m%d")
+    rows = ""
+    order = sorted(series.items(), key=lambda kv: (kv[1]["pos"], -kv[1]["n"]))
+    for tb, x in order:
+        name, grade = people.get(tb, (tb, ""))
+        tags = form_tags(x, n_series, dict(info0, rtype="予選"))
+        rows += (f'<tr><td>{x["pos"]}</td><td style="text-align:left;white-space:nowrap">{html.escape(name)}{tags}'
+                 f'<br><span class="sub" style="font-size:11px">{html.escape(str(grade))}</span></td>'
+                 f'<td><b>{x["pt"]:.2f}</b></td><td>{x["n"]}</td><td style="text-align:left;font-size:12px">{html.escape(x["seq"])}</td></tr>')
+    table = ('<div class="card"><b>節間順位表</b> <span class="sub">' + f'{day}日目の朝まで・{n_series}人</span>'
+             '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px;text-align:center;margin-top:6px">'
+             '<tr class="sub"><th>順位</th><th style="text-align:left">選手</th><th>平均点</th><th>走</th><th style="text-align:left">着順</th></tr>'
+             + rows + '</table></div><p class="sub" style="margin:6px 0 0">平均点は1着10・2着8・3着6・4着4・5着2・6着1点の目安。'
+             '🔥好調＝3走以上で平均7点以上か直近3走すべて2着以内。⚔勝負駆け＝3日目以降で準優の境目（目安18位）の前後。</p></div>') if rows else \
+            '<div class="card"><b>節間順位表</b><p class="sub">まだこの節の成績がありません（初日）。</p></div>'
+    orig = _orig_for(jcd, date, start) if jcd in ORIG_JCD else {}
+    otab = ""
+    if orig:
+        def last(vals):
+            xs = [x for x in (vals or []) if x is not None]
+            return xs[-1] if xs else None
+        def avg(vals):
+            xs = [x for x in (vals or []) if x is not None]
+            return sum(xs) / len(xs) if xs else None
+        recs = []
+        for nm, kv in orig.items():
+            recs.append((nm, {k: (last(kv.get(k)), avg(kv.get(k))) for k in ORIG_KINDS}))
+        best = {}
+        for k in ORIG_KINDS:   # どれも小さいほど速い。直近の値で上位3人に色
+            vals = sorted(x[1][k][0] for x in recs if x[1][k][0] is not None)
+            best[k] = vals[2] if len(vals) >= 3 else (vals[-1] if vals else None)
+        recs.sort(key=lambda x: (x[1]["まわり足"][0] is None, x[1]["まわり足"][0] or 0))
+        def cell(k, vv):
+            lv, av = vv
+            if lv is None:
+                return "<td>―</td>"
+            hot = best.get(k) is not None and lv <= best[k]
+            return (f'<td style="{"color:var(--hot);font-weight:700" if hot else ""}">{lv:.2f}'
+                    f'<br><span class="sub" style="font-size:10px">平均{av:.2f}</span></td>')
+        orows = "".join(f'<tr><td style="text-align:left;white-space:nowrap">{html.escape(nm)}</td>'
+                        + "".join(cell(k, kv[k]) for k in ORIG_KINDS) + "</tr>" for nm, kv in recs)
+        otab = ('<div class="card"><b>オリジナル展示</b> <span class="sub">直近の値（下は節間の平均）・速い順に上位3人を赤字</span>'
+                '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:center;margin-top:6px">'
+                '<tr class="sub"><th style="text-align:left">選手</th><th>まわり足</th><th>半周</th><th>展示</th><th>直線</th></tr>'
+                + orows + f'</table></div><p class="sub" style="margin:6px 0 0">{v}公式サイトの選手・タイムデータより。どれも小さいほど速い。'
+                'まわり足はターンの速さ、直線は伸び。並びはまわり足の速い順。</p></div>')
+    body = (f'<h1>{v} 節間順位表</h1><p class="sub">{html.escape(info0["title"])}・{jp(date)} {day}日目'
+            f'・<a href="/{date}/{jcd}/" style="color:var(--ac)">{v}のレース一覧に戻る</a></p>' + table + otab)
+    return page(f"{v} 節間順位表{'・オリ展' if otab else ''} {jp(date)}", body,
+                f"{v}の節間順位（得点率・着順）{'とオリジナル展示（まわり足・直線）' if otab else ''}", f"/{date}/{jcd}/standings.html")
 
 
 def _trifecta_matches(pred, combo3t):
@@ -3677,6 +3752,13 @@ def main():
                 if ent:
                     (pick_hi if ent[0] == "hi" else pick_lo).append(ent[1])
             (d / "index.html").write_text(venue_page(date, jcd, infos, preds, now))
+            try:   # 節間順位表(とオリジナル展示)
+                st0 = (dt.datetime.strptime(date, "%Y%m%d") - dt.timedelta(days=max(infos[0]["day"], 1) - 1)).strftime("%Y%m%d")
+                pm = prog[(prog.jcd == jcd) & (prog.date >= st0) & (prog.date <= date)]
+                people = {r.toban: (str(r.name).replace("\u3000", ""), r.grade) for r in pm.drop_duplicates("toban").itertuples()}
+                (d / "standings.html").write_text(standings_page(date, jcd, infos[0], series, n_series, people))
+            except Exception as e:
+                print(f"節間順位表を作れませんでした({date} {jcd}): {e!r}")
             urls.append(f"/{date}/{jcd}/")
         (OUT / date).mkdir(exist_ok=True)
         (OUT / date / "index.html").write_text(grid_page(date, dates, day, preds, now, f"/{date}/", payouts))
