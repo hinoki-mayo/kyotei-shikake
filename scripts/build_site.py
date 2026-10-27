@@ -47,14 +47,14 @@ CSS = """
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#0f1114;--card:#191c21;--tx:#eceef1;--sub:#a1a7b0;--bd:#2a2f37;--ac:#8EC0F2;--off:#22262d;--gain:#5B95EC;--loss:#E8705F;--mark:#4A3D14;--navy:#151f33;--shadow:none;--herobd:#2c3d63;--red:#EE7B7B;--green:#2FA57F}}
 :root[data-theme=dark]{--bg:#0f1114;--card:#191c21;--tx:#eceef1;--sub:#a1a7b0;--bd:#2a2f37;--ac:#8EC0F2;--off:#22262d;--gain:#5B95EC;--loss:#E8705F;--mark:#4A3D14;--navy:#151f33;--shadow:none;--herobd:#2c3d63;--red:#EE7B7B;--green:#2FA57F}
 *{box-sizing:border-box}html{color-scheme:light dark}:root[data-theme=light]{color-scheme:light}:root[data-theme=dark]{color-scheme:dark}
-body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic',Meiryo,sans-serif;line-height:1.6;
+body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic',Meiryo,sans-serif;line-height:1.5;
 -webkit-text-size-adjust:100%}
 a{color:inherit;text-decoration:none}
 header{position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;background:var(--navy);color:#fff;padding:0 16px;height:48px;font-weight:700;font-size:16px}
 .thm{background:rgba(255,255,255,.12);color:#fff;border:0;border-radius:16px;padding:5px 12px;font:inherit;font-size:12px;font-weight:700;letter-spacing:.02em;cursor:pointer}
-main{max-width:760px;margin:0 auto;padding:10px 14px}h1{font-size:20px;font-weight:700;line-height:1.4;margin:12px 0 8px}
-h2{font-size:16px;font-weight:700;margin:20px 0 8px}
-.sub{color:var(--sub);font-size:13px}.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin:10px 0;box-shadow:var(--shadow)}
+main{max-width:760px;margin:0 auto;padding:6px 12px}h1{font-size:18px;font-weight:700;line-height:1.35;margin:8px 0 4px}
+h2{font-size:15px;font-weight:700;margin:14px 0 6px}
+.sub{color:var(--sub);font-size:13px}.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:9px 12px;margin:8px 0;box-shadow:var(--shadow)}
 .pc,.dl,.tot-num,.pc-roi,.rno,.nums,.org-stat,.res .sub{font-variant-numeric:tabular-nums}
 .dnav{display:flex;justify-content:space-between;align-items:center;margin:8px 0}.dnav a,.dnav span.x{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:4px 14px;font-size:14px}
 .dnav span.x{opacity:.35}
@@ -66,10 +66,10 @@ h2{font-size:16px;font-weight:700;margin:20px 0 8px}
 .tile.hot{background:var(--hot);color:#fff}.tile.hot .d,.tile.hot .st{color:#fff}
 .tile.done{opacity:.6}.tag{display:inline-block;font-size:11px;padding:1px 6px;border-radius:4px;margin:1px;color:#fff;background:#6b7a90}
 .hotb{display:inline-block;background:#fff;color:var(--hot);font-size:11px;font-weight:700;border-radius:10px;padding:0 8px;margin-top:2px}
-.list a{display:flex;gap:10px;align-items:center;padding:10px 4px;border-bottom:1px solid var(--bd)}.list a:last-child{border:0}
+.list a{display:flex;gap:10px;align-items:center;padding:7px 4px;border-bottom:1px solid var(--bd)}.list a:last-child{border:0}
 .rno{width:46px;font-weight:700;font-size:16px}.rst{margin-left:auto;font-size:12px;font-weight:700;border-radius:12px;padding:2px 10px;white-space:nowrap}
 .s-hot{background:var(--hot);color:#fff}.s-wait{background:var(--off);color:var(--sub)}.s-done{color:var(--sub)}
-.tabs{display:flex;border-bottom:2px solid var(--bd);margin:8px -14px;padding:0 14px;position:sticky;top:48px;z-index:10;background:var(--bg)}.tabs a{flex:1 1 auto;min-width:0;text-align:center;padding:10px 0;font-size:12.5px;font-weight:700;color:var(--sub);white-space:nowrap}
+.tabs{display:flex;border-bottom:2px solid var(--bd);margin:8px -14px;padding:0 14px;position:sticky;top:48px;z-index:10;background:var(--bg)}.tabs a{flex:1 1 auto;min-width:0;text-align:center;padding:8px 0;font-size:12.5px;font-weight:700;color:var(--sub);white-space:nowrap}
 .tabs a.on{color:var(--tx);border-bottom:3px solid var(--hot);margin-bottom:-2px}.tabs a .lk{font-size:10px;font-weight:500;white-space:normal;display:block;line-height:1.3}
 .viewrow{display:flex;gap:6px;margin:10px 0}.viewbtn{flex:1;text-align:center;padding:9px 0;border:1px solid var(--bd);background:var(--card);border-radius:10px;font-size:13px;font-weight:700;color:var(--sub);cursor:pointer}
 .viewbtn.on{background:var(--hot);color:#fff;border-color:var(--hot)}
@@ -99,7 +99,7 @@ h2{font-size:16px;font-weight:700;margin:20px 0 8px}
 .tree>li>.lv{margin-top:6px}
 .org-mini{display:flex;gap:8px;align-items:center;background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:6px 10px}
 .org-mini>div{min-width:0}.org-mini b{display:block;font-size:13px}.org-mini .sub{display:block;font-size:11.5px;line-height:1.4}.org-mini .org-stat{font-size:12px;margin:0}
-.boat{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--bd)}.boat:last-child{border:0}
+.boat{display:flex;gap:10px;padding:7px 0;border-bottom:1px solid var(--bd)}.boat:last-child{border:0}
 .chip{width:30px;height:30px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-weight:700;flex:none;border:1px solid var(--bd)}
 .face{width:32px;height:44px;object-fit:cover;border-radius:4px;flex:none;background:var(--off)}
 .trifecta{background:linear-gradient(135deg,var(--hot),#B8511E);color:#fff;text-align:center;padding:16px 12px}
@@ -113,7 +113,7 @@ h2{font-size:16px;font-weight:700;margin:20px 0 8px}
 .lab{display:inline-block;font-size:12px;padding:2px 8px;border-radius:6px;color:#fff;margin:2px 4px 2px 0}
 .lock{text-align:center;padding:36px 12px}.rnav{display:flex;justify-content:space-between;margin:14px 0}.rnav a{color:var(--ac)}
 .ad{margin:16px 0;text-align:center;overflow:hidden}
-.sum{padding:14px}.rank{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;font-weight:800;font-size:19px;color:#fff;margin-right:8px;flex:none}
+.sum{padding:10px 12px}.rank{display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:8px;font-weight:800;font-size:19px;color:#fff;margin-right:8px;flex:none}
 .rank-S{background:#C0392B}.rank-A{background:#E8742E}.rank-B{background:#6b7a90}.rank-C{background:#444441}
 .sumhead{display:flex;align-items:center}.sumhead b{font-size:17px}.big5{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 2px}
 .big5 span{background:var(--off);border:1px solid var(--bd);border-radius:8px;padding:4px 9px;font-weight:700;font-size:15px}
@@ -121,11 +121,11 @@ h2{font-size:16px;font-weight:700;margin:20px 0 8px}
 .brow>summary{list-style:none;cursor:pointer;display:flex;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd)}
 .brow>summary::-webkit-details-marker{display:none}.brow[open]>summary{border-bottom:0}
 .brow .nm{flex:1;min-width:0;font-weight:700;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.bar{width:72px;height:8px;border-radius:4px;background:var(--off);flex:none;position:relative}.bar i{display:block;height:100%;background:var(--hot);border-radius:4px}.bar u{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--tx);opacity:.55}.pc small{display:block;font-weight:500;font-size:10px;color:var(--sub);white-space:nowrap}.hero{background:var(--navy);color:#fff;border:1px solid var(--herobd);border-radius:14px;padding:14px 14px 12px;margin:10px 0}.hero .hl{font-size:21px;font-weight:700;line-height:1.3}.hero .hs{font-size:13px;opacity:.85;margin-top:4px}.stack{display:flex;height:30px;border-radius:8px;overflow:hidden;margin:12px 0 4px;background:#fff2}.stack span{display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;min-width:0;overflow:hidden}.hero .cap{font-size:11px;opacity:.7}.res{display:flex;gap:8px;align-items:center;padding:9px 2px;border-bottom:1px solid var(--bd)}.res:last-child{border:0}.res .t{flex:1;min-width:0}.res .t b{font-size:14px}.ok{background:var(--green);color:#fff;border-radius:6px;padding:2px 7px;font-size:12px;font-weight:700;white-space:nowrap}.ng{color:var(--sub);font-size:12px;white-space:nowrap}
+.bar{width:72px;height:8px;border-radius:4px;background:var(--off);flex:none;position:relative}.bar i{display:block;height:100%;background:var(--hot);border-radius:4px}.bar u{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--tx);opacity:.55}.pc small{display:block;font-weight:500;font-size:10px;color:var(--sub);white-space:nowrap}.hero{background:var(--navy);color:#fff;border:1px solid var(--herobd);border-radius:12px;padding:11px 12px 9px;margin:8px 0}.hero .hl{font-size:21px;font-weight:700;line-height:1.3}.hero .hs{font-size:13px;opacity:.85;margin-top:4px}.stack{display:flex;height:30px;border-radius:8px;overflow:hidden;margin:12px 0 4px;background:#fff2}.stack span{display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;min-width:0;overflow:hidden}.hero .cap{font-size:11px;opacity:.7}.res{display:flex;gap:8px;align-items:center;padding:6px 2px;border-bottom:1px solid var(--bd)}.res:last-child{border:0}.res .t{flex:1;min-width:0}.res .t b{font-size:14px}.ok{background:var(--green);color:#fff;border-radius:6px;padding:2px 7px;font-size:12px;font-weight:700;white-space:nowrap}.ng{color:var(--sub);font-size:12px;white-space:nowrap}
 .pc{width:38px;text-align:right;font-weight:800;font-size:14px;flex:none}.bdet{padding:0 0 8px 38px;border-bottom:1px solid var(--bd);font-size:12.5px}
 .rl{display:inline-block;font-size:10.5px;padding:0 5px;border-radius:5px;color:#fff;margin-left:3px;vertical-align:1px}
-.btnrow{display:flex;gap:8px;margin:10px 0}.btnrow a{flex:1;text-align:center;padding:12px 0;border-radius:12px;box-shadow:var(--shadow);background:var(--card);border:1px solid var(--bd);font-weight:700;font-size:13.5px}
-.nx{display:flex;gap:10px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--bd)}.nx:last-child{border:0}
+.btnrow{display:flex;gap:8px;margin:10px 0}.btnrow a{flex:1;text-align:center;padding:9px 0;border-radius:12px;box-shadow:var(--shadow);background:var(--card);border:1px solid var(--bd);font-weight:700;font-size:13.5px}
+.nx{display:flex;gap:10px;align-items:center;padding:7px 2px;border-bottom:1px solid var(--bd)}.nx:last-child{border:0}
 .nx .rank{width:30px;height:30px;font-size:16px;margin:0}.nx .rank-w{background:var(--off);color:var(--sub);font-size:11px}
 .nx .t{flex:1;min-width:0}.nx .t b{font-size:15px}.nx .t .sub{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .nx .dl{font-weight:800;font-size:15px;text-align:right}.nx .dl small{display:block;font-weight:500;font-size:11px;color:var(--sub)}
@@ -138,7 +138,14 @@ h2{font-size:16px;font-weight:700;margin:20px 0 8px}
 .otabs>input{display:none}.otabs>label{display:inline-block;padding:7px 18px;margin:10px 6px 0 0;border:1px solid var(--bd);border-radius:18px;font-weight:700;font-size:14px;color:var(--sub);background:var(--card);cursor:pointer}
 .otabs>input:checked+label{background:var(--hot);border-color:var(--hot);color:#fff}.op{display:none}#ot3:checked~.op3,#ot2:checked~.op2{display:block}
 .o3{border-bottom:1px solid var(--bd);padding:4px 0}.o3:last-child{border:0}.o3>summary{cursor:pointer;padding:6px 0;font-weight:700;list-style:none}.o3>summary::-webkit-details-marker{display:none}
-footer{max-width:760px;margin:24px auto;padding:12px;font-size:12px;color:var(--sub)}footer a{color:var(--ac)}svg{display:block;color:var(--tx)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}@media(min-width:600px){.g3{grid-template-columns:repeat(3,1fr)}}
+.cell{display:block;padding:5px 2px;border-bottom:1px solid var(--bd);min-width:0}.cell b{font-size:14px}.cell .sub{display:block;font-size:11px;line-height:1.35}
+.krow{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)}.krow:last-child{border:0}.krow .kl{flex:1;min-width:0;font-size:13.5px;font-weight:700;line-height:1.35}.krow small{display:block;color:var(--sub);font-size:11px;font-weight:500}.krow>b{font-size:17px}
+.ptabs>input{display:none}.ptabs>label{display:inline-block;padding:5px 14px;margin:4px 6px 0 0;border:1px solid var(--bd);border-radius:16px;font-weight:700;font-size:13px;color:var(--sub);background:var(--card);cursor:pointer}
+.ptabs>input:checked+label{background:var(--hot);border-color:var(--hot);color:#fff}.pp{display:none}#pt1:checked~.pp1,#pt2:checked~.pp2,#pt3:checked~.pp3{display:block}
+.tt td,.tt th{padding:3px 2px;border-bottom:1px solid var(--bd);line-height:1.3}.tt tr:last-child td{border:0}
+.fold>summary{cursor:pointer;font-weight:700;list-style:none}.fold>summary::-webkit-details-marker{display:none}.fold>summary::after{content:' ▾';color:var(--sub);font-weight:500}.fold[open]>summary::after{content:' ▴'}
+footer{max-width:760px;margin:12px auto;padding:12px;font-size:12px;color:var(--sub)}footer a{color:var(--ac)}svg{display:block;color:var(--tx)}
 """
 
 
@@ -641,11 +648,10 @@ def yoso_card(date, info, vw):
         ts = [t for t in pl if t["tier"] == tier]
         if not ts:
             continue
-        rows += (f'<div style="margin-top:8px"><span class="lab" style="background:{TIER_COLOR[tier]}">{tier}</span> '
+        rows += (f'<div style="margin-top:6px"><span class="lab" style="background:{TIER_COLOR[tier]}">{tier}</span> '
                  f'<span class="sub">{sum(t["yen"] for t in ts):,}円・{len(ts)}点</span></div>'
-                 + "".join(f'<div style="display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-bottom:1px solid var(--bd)">'
-                           f'<span><b style="font-size:16px">{t["combo"]}</b> <span class="sub">{t["yen"]:,}円</span></span>'
-                           f'<span class="sub">{t["odds"]:.1f}倍 → <b style="color:var(--tx)">{t["pay"]:,}円</b></span></div>' for t in ts))
+                 + '<div class="g2">' + "".join(f'<div class="cell"><b style="font-size:15px">{t["combo"]}</b> <span class="sub" style="display:inline">{t["yen"]:,}円</span>'
+                           f'<span class="sub">{t["odds"]:.1f}倍 → <b style="color:var(--tx)">{t["pay"]:,}円</b></span></div>' for t in ts) + '</div>')
     only = "　本線が抜けて強いので本線だけ。" if all(t["tier"] == "本線" for t in pl) else ""
     rk = _rank_of_vw(vw)
     ref = YOSO_REF[rk]
@@ -653,8 +659,8 @@ def yoso_card(date, info, vw):
                f'当たった時の払戻は真ん中で約{ref[1]:,}円。<a href="/record.html">実績を見る</a></p>')
     return (f'<div class="card"><b>予想（4,000円）</b> <span class="sub">どれかが来る見込み <b style="color:var(--tx)">{ph:.0%}</b>・{len(pl)}点</span>'
             + rows
-            + f'<p class="sub" style="margin:8px 0 0">{vw["at"]}時点のオッズで、どの目が当たっても4,000円以上戻る配分（トリガミなし）。{only}'
-              'オッズは締切まで動くので目安です。本命以外の頭も押さえる配分で、過去のレースでの的中率は約44%。</p>' + refline + '</div>')
+            + f'<details class="help"><summary>？ 配分の考え方・過去の目安</summary><p>{vw["at"]}時点のオッズで、どの目が当たっても4,000円以上戻る配分（トリガミなし）。{only}'
+              'オッズは締切まで動くので目安です。本命以外の頭も押さえる配分で、過去のレースでの的中率は約44%。</p>' + refline + '</details></div>')
 
 
 def race_view_of(date, info, pred):
@@ -1858,7 +1864,7 @@ function filt(){
   const keep=per==='all'?null:new Set(ds.slice(-({today:1,d7:7,d30:30})[per]));
   return D.filter(x=>!keep||keep.has(x.d));
 }
-const row=(label,a,n,ref)=>`<div class="boat"><div style="flex:1"><b>${label}</b><br><span class="sub">${a}/${n}R・過去の目安 ${ref}</span></div><b style="font-size:20px">${pct(a,n)}</b></div>`;
+const row=(label,a,n,ref)=>`<div class="krow"><span class="kl">${label}<small>${a}/${n}R・過去の目安 ${ref}</small></span><b>${pct(a,n)}</b></div>`;
 function block(rs){
   const h1=rs.filter(x=>x.h===1), h2=rs.filter(x=>x.h!==1), lost=rs.filter(x=>x.w!==1), lost2=lost.filter(x=>x.h!==1);
   const c=(arr,f)=>arr.filter(f).length;
@@ -1956,7 +1962,7 @@ function filt(){
   const keep=per==='all'?null:new Set(ds.slice(-({today:1,d7:7,d30:30})[per]));
   return D.filter(x=>!keep||keep.has(x.d));
 }
-const row=(label,a,n,ref)=>`<div class="boat"><div style="flex:1"><b>${label}</b><br><span class="sub">${a}/${n}R・過去の目安 ${ref}</span></div><b style="font-size:20px">${pct(a,n)}</b></div>`;
+const row=(label,a,n,ref)=>`<div class="krow"><span class="kl">${label}<small>${a}/${n}R・過去の目安 ${ref}</small></span><b>${pct(a,n)}</b></div>`;
 function render(){
   const rows=filt(), hi=rows.filter(x=>x.p1>=HI), lo=rows.filter(x=>x.p1<LO);
   const c=(arr,f)=>arr.filter(f).length, lostHit=lo.filter(x=>x.w!==1);
@@ -2551,12 +2557,12 @@ def monitor_room():
             + '<div class="card"><b>決裁者Aの成績</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
             + SIDE_CARD + MQ_CARD
             + '<div class="card"><b>決裁者Cの成績</b><div data-stat="plan:kessaiC"></div><div data-pnl="kessaiC" style="margin-top:6px"></div></div>'
-            + '<div class="card"><b>判定の予定</b><p class="sub" style="margin:4px 0 0">10/31(14日)と11/17(30日)に、A・Cの成績と社員候補を比べて、'
-              '本命の決裁者と社員の入れ替えを決める。決め方は運用メモに事前に書いてある。</p></div>'
-            + '<div class="card"><b>社員同士の被り</b> <span class="sub">同じレースで同じ頭を推した社員がほかにもいたか。提案1つ4,000円で、採用されたかどうかに関係なく数える</span>'
-              '<div data-stat="staff-ov" style="margin-top:6px"></div></div>'
+            + '<details class="card fold"><summary>判定の予定</summary><p class="sub" style="margin:4px 0 0">10/31(14日)と11/17(30日)に、A・Cの成績と社員候補を比べて、'
+              '本命の決裁者と社員の入れ替えを決める。決め方は運用メモに事前に書いてある。</p></details>'
+            + '<details class="card fold"><summary>社員同士の被り</summary><span class="sub">同じレースで同じ頭を推した社員がほかにもいたか。提案1つ4,000円で、採用されたかどうかに関係なく数える</span>'
+              '<div data-stat="staff-ov" style="margin-top:6px"></div></details>'
             + '<a class="org-tile" href="/org/intern.html" style="margin-bottom:12px"><div><b>有力インターン生の部屋 →</b><span class="sub">説D・インの2着専門・E2・E3など、社員に上がる前の説</span></div></a>'
-            + '<div class="card"><b>社員候補(記録だけ)</b><p class="sub" style="margin:2px 0 6px">'
+            + '<details class="card fold"><summary>社員候補(記録だけ)</summary><p class="sub" style="margin:2px 0 6px">'
               '事前に決めた条件を別の年で確かめて残った買い方。1点1,000円・締切2分前のオッズで判断。成績がよければ社員にする。</p>'
               '<div><b>説D 1-3/1-4</b> <span class="sub">インが堅い(本予想60%以上)時の、8〜12倍で割安な1-3・1-4(2連単)</span></div>'
               '<div data-stat="plan:setsuD"></div>'
@@ -2578,7 +2584,7 @@ def monitor_room():
               '<div data-stat="plan:uraF"></div>'
               '<div style="margin-top:8px"><b>インの2着専門(本命型)</b> <span class="sub">インが頭の2連単1-Xで、1着専門のイン1着確率×2着専門の2着確率×見込みの確定オッズが1.1以上、'
               '見込みの確定オッズ3〜15倍の目を1点1,000円。10/20から。年をまたいだ確かめ(1.1以上)で3〜8倍120%・130%(的中約20%)、8〜15倍118%・118%</span></div>'
-              '<div data-stat="plan:inSec"></div></div>'
+              '<div data-stat="plan:inSec"></div></details>'
             + '<div id="up"></div>')
     return _org_page("モニター", "/org/monitor.html", body, upcoming=["kessai"])
 
@@ -3177,11 +3183,11 @@ def standings_page(date, jcd, info0, series, n_series, people):
         name, grade = people.get(tb, (tb, ""))
         tags = form_tags(x, n_series, dict(info0, rtype="予選"))
         rows += (f'<tr><td>{x["pos"]}</td><td style="text-align:left;white-space:nowrap">{html.escape(name)}{tags}'
-                 f'<br><span class="sub" style="font-size:11px">{html.escape(str(grade))}</span></td>'
-                 f'<td><b>{x["pt"]:.2f}</b></td><td>{x["n"]}</td><td style="text-align:left;font-size:12px">{html.escape(x["seq"])}</td></tr>')
+                 f' <span class="sub" style="font-size:10.5px">{html.escape(str(grade))}</span></td>'
+                 f'<td><b>{x["pt"]:.2f}</b></td><td>{x["n"]}</td><td style="text-align:left;font-size:12px;letter-spacing:-.02em">{html.escape(x["seq"])}</td></tr>')
     table = ('<div class="card"><b>節間順位表</b> <span class="sub">' + f'{day}日目の朝まで・{n_series}人</span>'
-             '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13px;text-align:center;margin-top:6px">'
-             '<tr class="sub"><th>順位</th><th style="text-align:left">選手</th><th>平均点</th><th>走</th><th style="text-align:left">着順</th></tr>'
+             '<div style="overflow-x:auto"><table class="tt" style="width:100%;border-collapse:collapse;font-size:13px;text-align:center;margin-top:4px">'
+             '<tr class="sub"><th>位</th><th style="text-align:left">選手</th><th>平均点</th><th>走</th><th style="text-align:left">着順</th></tr>'
              + rows + '</table></div><p class="sub" style="margin:6px 0 0">平均点は1着10・2着8・3着6・4着4・5着2・6着1点の目安。'
              '🔥好調＝3走以上で平均7点以上か直近3走すべて2着以内。⚔勝負駆け＝3日目以降で準優の境目（目安18位）の前後。</p></div>') if rows else \
             '<div class="card"><b>節間順位表</b><p class="sub">まだこの節の成績がありません（初日）。</p></div>'
@@ -3208,16 +3214,19 @@ def standings_page(date, jcd, info0, series, n_series, people):
                 return "<td>―</td>"
             hot = best.get(k) is not None and lv <= best[k]
             return (f'<td style="{"color:var(--hot);font-weight:700" if hot else ""}">{lv:.2f}'
-                    f'<br><span class="sub" style="font-size:10px">平均{av:.2f}</span></td>')
+                    f'<span class="sub" style="font-size:10px;display:block;line-height:1.1">{av:.2f}</span></td>')
         orows = "".join(f'<tr><td style="text-align:left;white-space:nowrap">{html.escape(nm)}</td>'
                         + "".join(cell(k, kv[k]) for k in ORIG_KINDS) + "</tr>" for nm, kv in recs)
-        otab = ('<div class="card"><b>オリジナル展示</b> <span class="sub">直近の値（下は節間の平均）・速い順に上位3人を赤字</span>'
-                '<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:center;margin-top:6px">'
+        otab = ('<div class="card"><b>オリジナル展示</b> <span class="sub">直近の値（下の小さい数字は節間の平均）・速い順に上位3人を赤字</span>'
+                '<div style="overflow-x:auto"><table class="tt" style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:center;margin-top:4px">'
                 '<tr class="sub"><th style="text-align:left">選手</th><th>まわり足</th><th>半周</th><th>展示</th><th>直線</th></tr>'
                 + orows + f'</table></div><p class="sub" style="margin:6px 0 0">{v}公式サイトの選手・タイムデータより。どれも小さいほど速い。'
                 'まわり足はターンの速さ、直線は伸び。並びはまわり足の速い順。</p></div>')
     body = (f'<h1>{v} 節間順位表</h1><p class="sub">{html.escape(info0["title"])}・{jp(date)} {day}日目'
-            f'・<a href="/{date}/{jcd}/" style="color:var(--ac)">{v}のレース一覧に戻る</a></p>' + table + otab)
+            f'・<a href="/{date}/{jcd}/" style="color:var(--ac)">{v}のレース一覧に戻る</a></p>'
+            + (('<div class="ptabs"><input type="radio" name="pt" id="pt1" checked><label for="pt1">順位表</label>'
+                '<input type="radio" name="pt" id="pt2"><label for="pt2">オリ展</label>'
+                f'<div class="pp pp1">{table}</div><div class="pp pp2">{otab}</div></div>') if otab else table))
     return page(f"{v} 節間順位表{'・オリ展' if otab else ''} {jp(date)}", body,
                 f"{v}の節間順位（得点率・着順）{'とオリジナル展示（まわり足・直線）' if otab else ''}", f"/{date}/{jcd}/standings.html")
 
@@ -3434,8 +3443,8 @@ def record_page():
             '<h2>予想（4,000円）の成績 <span class="sub">ランク別</span></h2><div class="card">'
             '<p class="sub" style="margin:0 0 6px">堅いランクほどよく当たり、混戦ほど当たった時の払戻が大きくなります。</p>'
             + _yoso_record_table() + '</div>'
-            '<h2>場ごと <span class="sub">予想（4,000円）</span></h2><div class="card list">'
-            + "".join(f'<a href="/venue/{SLUG[j]}.html"><span class="rno" style="width:70px">{VENUES[j]}</span>'
+            '<h2>場ごと <span class="sub">予想（4,000円）</span></h2><div class="card g2 g3">'
+            + "".join(f'<a class="cell" href="/venue/{SLUG[j]}.html"><b>{VENUES[j]}</b>'
                       f'<span class="sub">{_yoso_line(yr["場:" + j])}</span></a>' for j in venues)
             + '</div>'
             f'<h2>参考: 確率の上位5点 <span class="sub">{since}から {n5}レース</span></h2><div class="card">'
@@ -3565,14 +3574,14 @@ def today_page(date, prog_day, preds, now):
     h_html = "".join(card(it, "・🔥" + "・".join(f'{b["waku"]}号艇' for b in it[6])) for it in sorted(up_hot)[:10]) \
         or '<p class="sub" style="margin:8px 0">これからの🔥はありません</p>'
     hit = sum(1 for _, ok, _ in done_s if ok)
-    d_html = "".join(f'<div class="boat" style="padding:6px 0"><span style="flex:1"><b>{VENUES[it[1]]} {it[2]}R</b> '
-                     f'<span class="sub">結果 {c3}</span></span><b style="color:{"var(--green)" if ok else "var(--sub)"}">{"的中" if ok else "はずれ"}</b></div>'
+    d_html = "".join(f'<div class="cell" style="display:flex;gap:6px;align-items:center"><span style="flex:1;min-width:0"><b>{VENUES[it[1]]} {it[2]}R</b>'
+                     f'<span class="sub">結果 {c3}</span></span><b style="font-size:13px;color:{"var(--green)" if ok else "var(--sub)"}">{"的中" if ok else "はずれ"}</b></div>'
                      for it, ok, c3 in sorted(done_s))
     body = (f'<h1>今日の注目レース <span class="sub">{jp(date)}</span></h1>'
             '<p class="sub">これから締切のレースから、堅い（Sランク）レースのおすすめ5点と、普段より調子のいい艇（🔥）がいるレースを集めました。</p>'
             f'<h2>堅いレース（S）</h2><div class="card" style="padding:2px 12px">{s_html}</div>'
             f'<h2>🔥の艇がいるレース</h2><div class="card" style="padding:2px 12px">{h_html}</div>'
-            + (f'<h2>今日のSランクの答え合わせ <span class="sub">5点で{hit}/{len(done_s)}的中</span></h2><div class="card">{d_html}</div>' if done_s else "")
+            + (f'<h2>今日のSランクの答え合わせ <span class="sub">5点で{hit}/{len(done_s)}的中</span></h2><div class="card g2 g3">{d_html}</div>' if done_s else "")
             + '<div class="btnrow"><a href="/record.html">的中実績</a><a href="/">トップへ</a></div>' + ad())
     return page(f"今日の注目レース {jp(date)}", body, f"{jp(date)}の競艇の注目レース。堅いレースのおすすめ5点と、調子のいい艇。", "/today.html")
 
