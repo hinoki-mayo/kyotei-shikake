@@ -335,22 +335,40 @@ def entry_page(date, info, boats, season, series, n_series, pred, races, result_
         sea = season.get(b["toban"])
         sea_s = f"{sea:.2f}" if sea is not None else "―"
         ser_s = f'節間{s["pt"]:.2f}（{s["pos"]}位/{n_series}）' if s else "節間―"
+        tags = form_tags(s, n_series, info)
         rows += (f'<div class="boat">{chip(b["waku"])}'
                  f'<img class="face" src="https://www.boatrace.jp/racerphoto/{b["toban"]}.jpg" loading="lazy" '
                  f'alt="" onerror="this.remove()">'
                  f'<div style="flex:1;min-width:0">'
                  f'<div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline">'
-                 f'<b style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{html.escape(b["name"])}</b>'
+                 f'<b style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{html.escape(b["name"])}{tags}</b>'
                  f'<span class="sub" style="flex:none">今期{sea_s}</span></div>'
                  f'<div class="sub" style="font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'
                  f'{b["grade"]}・{b["age"]}歳・{html.escape(b["branch"])}｜全国{b["nat_win"]:.2f}/当地{b["loc_win"]:.2f}｜'
                  f'モ{b["motor_2r"]:.1f}%｜{ser_s}</div></div></div>')
     entry = ("展示の進入：" + " ".join(str(w) for w in order)) if order else "展示の進入が出たら、予想と展開を公開します（締切の約20分前）。"
+    entry += ("<br>🔥好調＝この節3走以上で平均7点以上、または直近3走がすべて2着以内。"
+              "⚔勝負駆け＝予選の3日目以降で、節間順位が準優勝戦の境目（目安18位）の前後にいる選手。")
     body = (race_head(date, v, info, "entry", locked, base, result_ready)
             + tenji_card(date, info) + f'<h2>出走表</h2><div class="card">{rows}</div><p class="sub">{entry}</p>'
             + ad() + rnav(date, info["jcd"], info["race"], races, "-entry"))
     return page(f"{v}{info['race']}R 出走表 {jp(date)}", body,
                 f"{v}{info['race']}Rの出走表。今期勝率・節間成績つき。", f"/{date}/{info['jcd']}/{base}-entry.html")
+
+
+def form_tags(s, n_series, info):
+    """出走表の名前の横に付ける印: 🔥好調・⚔勝負駆け(節間成績から。どちらも目安)"""
+    if not s:
+        return ""
+    out = ""
+    seq = [x for x in str(s.get("seq", "")).split() if x.isdigit()]
+    last3 = seq[-3:]
+    if s.get("n", 0) >= 3 and (s.get("pt", 0) >= 7.0 or (len(last3) == 3 and all(int(x) <= 2 for x in last3))):
+        out += ' <span style="color:#E8542F;font-size:11px">🔥好調</span>'
+    border = 18 if n_series >= 40 else max(6, round(n_series * 0.38))
+    if "予選" in str(info.get("rtype", "")) and info.get("day", 0) >= 3 and abs(s.get("pos", 99) - border) <= 6:
+        out += ' <span style="color:#7A5AE0;font-size:11px">⚔勝負駆け</span>'
+    return out
 
 
 RANKS = (("S", 0.5, "ガチガチ", "57%"), ("A", 0.4, "堅め", "44%"), ("B", 0.3, "やや混戦", "33%"), ("C", 0.0, "混戦", "22%"))
