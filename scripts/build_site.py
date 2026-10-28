@@ -137,7 +137,7 @@ h2{font-size:15px;font-weight:700;margin:14px 0 6px}
 .ov{flex:1;text-align:right;font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;padding-right:2px}.ov.hot{background:rgba(15,110,86,.18);border-radius:3px}
 .otabs>input{display:none}.otabs>label{display:inline-block;padding:7px 18px;margin:10px 6px 0 0;border:1px solid var(--bd);border-radius:18px;font-weight:700;font-size:14px;color:var(--sub);background:var(--card);cursor:pointer}
 .otabs>input:checked+label{background:var(--hot);border-color:var(--hot);color:#fff}.op{display:none}#ot3:checked~.op3,#ot2:checked~.op2{display:block}
-.o3{border-bottom:1px solid var(--bd);padding:4px 0}.o3:last-child{border:0}.o3>summary{cursor:pointer;padding:6px 0;font-weight:700;list-style:none}.o3>summary::-webkit-details-marker{display:none}
+.shihan{display:none}.o3{border-bottom:1px solid var(--bd);padding:4px 0}.o3:last-child{border:0}.o3>summary{cursor:pointer;padding:6px 0;font-weight:700;list-style:none}.o3>summary::-webkit-details-marker{display:none}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}@media(min-width:600px){.g3{grid-template-columns:repeat(3,1fr)}}
 .cell{display:block;padding:5px 2px;border-bottom:1px solid var(--bd);min-width:0}.cell b{font-size:14px}.cell .sub{display:block;font-size:11px;line-height:1.35}
 .krow{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)}.krow:last-child{border:0}.krow .kl{flex:1;min-width:0;font-size:13.5px;font-weight:700;line-height:1.35}.krow small{display:block;color:var(--sub);font-size:11px;font-weight:500}.krow>b{font-size:17px}
@@ -149,6 +149,50 @@ footer{max-width:760px;margin:12px auto;padding:12px;font-size:12px;color:var(--
 """
 
 
+ENT = os.environ.get("SITE_THEME") == "ent"   # お試し: 見た目をエンタメ寄りにする(並び・中身は同じ)
+ENT_HEAD = ('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
+            '<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">')
+ENT_CSS = """
+:root{--gold1:#F7D774;--gold2:#C9932B;--ink:#151a2e;--ent1:#1B2A4A;--ent2:#4B2C8F;--pop:#FF5A36}
+body{background:radial-gradient(circle at 10% -10%,rgba(255,90,54,.08),transparent 40%),radial-gradient(circle at 110% 10%,rgba(75,44,143,.10),transparent 45%),var(--bg)}
+h1,h2,.hero .hl,.rank,.sumhead b,.tri-main,.tot-num,.big5 span,.rno,.ent-best b,.tile b{font-family:'M PLUS Rounded 1c',-apple-system,sans-serif}
+header{background:linear-gradient(90deg,var(--ent1),var(--ent2));box-shadow:0 2px 10px rgba(27,42,74,.35)}
+header a::before{content:'🥋 '}
+h2::before{content:'';display:inline-block;width:5px;height:15px;border-radius:3px;background:linear-gradient(var(--pop),#FFB23E);margin-right:6px;vertical-align:-2px}
+.card{border-radius:14px;border-color:transparent;box-shadow:0 2px 10px rgba(16,24,40,.07)}
+.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#17213d 0%,#2B2C6E 55%,#5A2E8C 100%);border:0;border-radius:16px;box-shadow:0 6px 18px rgba(43,44,110,.35)}
+.hero::after{content:'';position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 70%)}
+.hero .hl{font-size:22px;font-weight:800;text-shadow:0 2px 0 rgba(0,0,0,.25)}
+.shihan{display:inline-flex!important;align-items:center;gap:4px;background:rgba(255,255,255,.14);border-radius:12px;padding:1px 9px;font-size:11px;font-weight:700;margin-bottom:4px}
+.stack{height:34px;border-radius:10px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.25)}
+.rank{border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.2);position:relative}
+.rank-S{background:linear-gradient(135deg,var(--gold1),var(--gold2));color:#5a3a00;overflow:hidden}
+.rank-S::after{content:'';position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);transform:skewX(-20deg);animation:shine 2.6s infinite}
+@keyframes shine{0%{left:-60%}60%,100%{left:130%}}
+.rank-A{background:linear-gradient(135deg,#FF8A3D,#E2452B)}.rank-B{background:linear-gradient(135deg,#3FA7A0,#2C6F8E)}
+.rank-C{background:linear-gradient(135deg,#7B4BD1,#3B2577)}
+.sumhead .rank-C+div b::after{content:' ⚡荒れ注意';font-size:12px;color:#7B4BD1}
+.big5 span{background:var(--card);border:2px dashed var(--bd);border-radius:10px;position:relative}
+.big5 span:first-child{border-color:var(--pop);color:var(--pop)}
+.lab{border-radius:4px 12px 12px 4px;font-weight:800;padding:2px 10px}
+.ok{background:none;color:#D7263D;border:2px solid #D7263D;border-radius:50%;width:46px;height:46px;display:inline-flex;align-items:center;justify-content:center;
+ text-align:center;font-size:11px;line-height:1.15;transform:rotate(-12deg);font-weight:800;padding:2px;box-shadow:inset 0 0 0 2px rgba(215,38,61,.15)}
+.res{padding:8px 2px}
+.tile{border-radius:0;transition:transform .1s}.tile.hot{background:linear-gradient(135deg,#FF7A3D,#E2452B);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{box-shadow:inset 0 0 0 0 rgba(255,255,255,0)}50%{box-shadow:inset 0 0 0 3px rgba(255,255,255,.45)}}
+.grid{border-radius:12px;border:0;box-shadow:0 2px 10px rgba(16,24,40,.08)}
+.btnrow a{border-radius:14px;border:0;background:linear-gradient(135deg,var(--card),var(--off));font-weight:800}
+.tabs a.on{border-bottom-color:var(--pop)}
+.ent-best{display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,#FFE7A0,#FFC24B);color:#4a2c00;border-radius:16px;padding:12px 14px;margin:10px 0;box-shadow:0 4px 14px rgba(201,147,43,.35);position:relative;overflow:hidden}
+.ent-best .big{font-size:34px;line-height:1}.ent-best b{font-size:20px;font-weight:800;display:block}.ent-best .s{font-size:12px;opacity:.85}
+.ent-best .pay{margin-left:auto;text-align:right;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:800;font-size:22px}
+.ent-best .pay small{display:block;font-size:11px;font-weight:700;opacity:.8}
+.ent-score{display:flex;gap:8px;margin:8px 0}.ent-score div{flex:1;background:var(--card);border-radius:12px;padding:8px;text-align:center;box-shadow:0 2px 8px rgba(16,24,40,.06)}
+.ent-score b{display:block;font-family:'M PLUS Rounded 1c',sans-serif;font-size:22px;font-weight:800;color:var(--pop)}.ent-score span{font-size:11px;color:var(--sub)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .ent-best{background:linear-gradient(135deg,#5a4413,#8a6416);color:#fff3d6}}
+"""
+
+
 def page(title, body, desc="", path="", noindex=False):
     robots = '<meta name="robots" content="noindex">' if noindex else ""
     gsc = f'<meta name="google-site-verification" content="{html.escape(CFG["gsc_verify"])}">' if CFG.get("gsc_verify") else ""
@@ -157,7 +201,7 @@ def page(title, body, desc="", path="", noindex=False):
 <title>{html.escape(title)}｜{CFG['site_name']}</title><meta name="description" content="{html.escape(desc)}">
 <link rel="canonical" href="{CFG['base_url']}{path}"><meta property="og:title" content="{html.escape(title)}">
 <meta property="og:site_name" content="{CFG['site_name']}">{gsc}<meta name="theme-color" content="#1B2A4A">
-<style>{CSS}</style>{CFG.get('ad_head', '')}</head><body>
+{ENT_HEAD if ENT else ""}<style>{CSS}{ENT_CSS if ENT else ""}</style>{CFG.get('ad_head', '')}</head><body>
 <header><a href="/">{CFG['site_name']}</a></header><main>{body}</main>
 <footer>{CFG['site_name']}は、展示の進入をもとにデータから見た1マークの展開の傾向を掲載しています。着順を保証するものではありません。舟券の購入は20歳から。<br>
 <a href="/record.html">的中実績</a>・<a href="/venue/">全24場の特徴</a>・<a href="/about.html">運営者情報</a>・<a href="/privacy.html">プライバシーポリシー</a>・<a href="/disclaimer.html">免責事項</a>・<a href="/contact.html">お問い合わせ</a></footer>
@@ -421,7 +465,7 @@ def predict_page(date, info, pred, races, result_ready=False):
             return f"・{x:.1f}倍" if x else ""
         t2 = "　".join(f'{c} <span class="sub">{_pct(p)}{od2(c)}</span>' for c, p in vw["top2"][:3])
         hl, hs = hook(vw)
-        hero = (f'<div class="hero"><div class="hl">{html.escape(hl)}</div>' + (f'<div class="hs">{html.escape(hs)}</div>' if hs else "")
+        hero = (f'<div class="hero"><div class="shihan">🥋 師範の見立て</div><div class="hl">{html.escape(hl)}</div>' + (f'<div class="hs">{html.escape(hs)}</div>' if hs else "")
                 + stack_bar(vw) + '<div class="cap">1着の確率（色＝艇の色）</div></div>')
         summary = hero + f'<div class="card sum">{head}{mid}<div class="sub" style="margin-top:8px">2連単の上位　<b style="color:var(--tx)">{t2}</b></div></div>'
         summary += yoso_card(date, info, vw)
@@ -3346,12 +3390,23 @@ def _recent_results_html(date, prog_day, preds, now, n=4):
     judged = [(dl, j, race, res, _judge(vw, res)) for dl, j, race, res, vw in rows]
     hit = sum(1 for *_, (_, ok) in judged if ok)
     out = ""
+    best = ""
+    if ENT:
+        h5 = [(float(res.get("payout3t") or 0), j, race, res) for dl, j, race, res, (lab, ok) in judged if lab.startswith("3連単")]
+        if h5:
+            pay, j, race, res = max(h5)
+            best = (f'<a class="ent-best" href="/{date}/{j}/{race:02d}-result.html"><span class="big">🎯</span><span><span class="s">今日の一撃</span>'
+                    f'<b>{VENUES[j]} {race}R</b><span class="s">{res["combo3t"]}・おすすめ5点で的中</span></span>'
+                    f'<span class="pay">{int(pay):,}円<small>100円あたり</small></span></a>')
+        best += (f'<div class="ent-score"><div><b>{len(judged)}</b><span>結果が出たレース</span></div><div><b>{hit}</b><span>予想が当たった</span></div>'
+                 f'<div><b>{hit / len(judged):.0%}</b><span>的中率</span></div></div>')
     for dl, j, race, res, (lab, ok) in sorted(judged, reverse=True)[:n]:
         pay = f'{int(res["payout3t"]):,}円' if res.get("payout3t") else ""
-        mark = f'<span class="ok">{lab}</span>' if ok else f'<span class="ng">{lab}</span>'
+        short = {"3連単5点 的中": "3単<br>的中", "2連単1番手 的中": "2単<br>的中", "本命1着": "本命<br>1着"}
+        mark = (f'<span class="ok">{short.get(lab, lab) if ENT else lab}</span>' if ok else f'<span class="ng">{lab}</span>')
         out += (f'<a class="res" href="/{date}/{j}/{race:02d}-result.html"><span class="t"><b>{VENUES[j]} {race}R</b> '
                 f'<span class="sub">{res["combo3t"]} {pay}</span></span>{mark}</a>')
-    return (f'<h2>さっきの結果 <span class="sub">今日 {len(judged)}レース中 {hit}レースで予想が的中・'
+    return best + (f'<h2>さっきの結果 <span class="sub">今日 {len(judged)}レース中 {hit}レースで予想が的中・'
             '<a href="/record.html" style="color:var(--ac)">実績</a></span></h2>'
             f'<div class="card" style="padding:2px 12px">{out}</div>')
 
