@@ -66,3 +66,32 @@ def daterange(start: dt.date, end: dt.date):
     while d <= end:
         yield d
         d += dt.timedelta(days=1)
+
+
+# ---------- 締切時刻の変更(遅延など) ----------
+# 朝の番組表の締切が当日に変わる(天候で遅れるなど)ことがある。展示を取りに行った公式ページの
+# 「締切予定時刻」の一覧と違えば data/deadlines/日付.json に {場: [1R..12Rの時刻]} で残し、番組表を読む所で上書きする
+def deadline_fix(date):
+    import json
+    p = DATA / "deadlines" / f"{date}.json"
+    try:
+        return json.loads(p.read_text()) if p.exists() else {}
+    except Exception:
+        return {}
+
+
+def apply_deadlines(prog, date=None):
+    """番組表(DataFrame: date, jcd, race, deadline)に当日の締切の変更を反映したコピーを返す"""
+    dates = [date] if date else sorted(set(prog["date"])) if len(prog) else []
+    out = prog
+    for d in dates:
+        fx = deadline_fix(d)
+        if not fx:
+            continue
+        if out is prog:
+            out = prog.copy()
+        for jcd, ds in fx.items():
+            for i, t in enumerate(ds):
+                if t:
+                    out.loc[(out["date"] == d) & (out["jcd"] == jcd) & (out["race"] == i + 1), "deadline"] = t
+    return out
