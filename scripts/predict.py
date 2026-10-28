@@ -11,7 +11,7 @@ import json
 import numpy as np
 import pandas as pd
 
-from common import DATA, JST, now_jst, today_jst
+from common import DATA, JST, apply_deadlines, now_jst, today_jst
 from model import Model, load_results
 import scenarios
 from place import trifecta_probs
@@ -35,7 +35,7 @@ def run(date, only=None, model=None, allow_late=False):
     if not prog_p.exists():
         return 0
     prog = pd.read_parquet(prog_p)
-    prog = prog[prog.date == date]
+    prog = apply_deadlines(prog[prog.date == date], date)
     if prog.empty:
         print(f"{date}: 番組表なし")
         return 0

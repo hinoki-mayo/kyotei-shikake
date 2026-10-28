@@ -25,7 +25,7 @@ import yoso
 import shadow_staff
 import live_result
 import share
-from common import DATA, JST, ROOT, now_jst
+from common import DATA, JST, ROOT, apply_deadlines, now_jst
 from draw import slit_svg, turn_svg
 from parse import VENUES
 
@@ -1332,7 +1332,7 @@ def quick_bet_pages(now, keys):
     if not keys or not p.exists():
         return
     prog = pd.read_parquet(p)
-    day = prog[prog.date == date]
+    day = apply_deadlines(prog[prog.date == date], date)
     preds = json.loads((DATA / "predictions" / f"{date}.json").read_text())["races"]
     bp = DATA / "bets" / f"{date}.json"
     bets = json.loads(bp.read_text()) if bp.exists() else {}
@@ -3717,6 +3717,7 @@ def main():
     prog = pd.concat(progs) if progs else pd.DataFrame(columns=["date"])
     hi = (now + dt.timedelta(days=1)).strftime("%Y%m%d")
     prog = prog[(prog.date >= lo) & (prog.date <= hi)]
+    prog = apply_deadlines(prog)   # 当日に締切が変わった場(遅延など)
     dates = sorted(prog.date.unique())
     stats = Stats(load_results(period_start(lo) if dates else today))
     if OUT.exists():

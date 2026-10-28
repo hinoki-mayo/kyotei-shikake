@@ -16,7 +16,7 @@ import pandas as pd
 import bet
 import live_result
 import predict
-from common import DATA, JST, UA, now_jst
+from common import DATA, JST, UA, apply_deadlines, now_jst
 
 URL = "https://www.boatrace.jp/owpc/pc/race/beforeinfo?rno={race}&jcd={jcd}&hd={date}"
 TENJI_RE = re.compile(r'toban=(\d+)">.*?<td rowspan="2">[\d.]+kg</td>\s*<td rowspan="4">([\d.]+)</td>', re.S)
@@ -73,6 +73,46 @@ def _fetch(date, jcd, race):
         return None
 
 
+DL_ROW = re.compile(r"締切予定時刻</td>(.*?)</tr>", re.S)
+
+
+def parse_deadlines(h):
+    """公式のレースページ上の「締切予定時刻」の一覧(1R〜12R)。読めなければNone"""
+    m = DL_ROW.search(h or "")
+    if not m:
+        return None
+    ts = re.findall(r"<td[^>]*>\s*(\d{1,2}:\d{2})\s*</td>", m.group(1))
+    return [t.zfill(5) for t in ts] if ts else None
+
+
+def fix_deadlines(date, prog0, found):
+    """found: {場: [時刻]}。朝の番組表(prog0)と違う場を data/deadlines に残し、予想ファイルの締切もそろえる。直したらTrue"""
+    cur = {(r.jcd, int(r.race)): r.deadline for r in prog0.itertuples()}
+    fp = DATA / "deadlines" / f"{date}.json"
+    saved = json.loads(fp.read_text()) if fp.exists() else {}
+    new = {}
+    for jcd, ds in found.items():
+        if saved.get(jcd) != ds and (jcd in saved or any(cur.get((jcd, i + 1)) not in (None, t) for i, t in enumerate(ds))):
+            new[jcd] = ds
+    if new:
+        saved.update(new)
+        fp.parent.mkdir(parents=True, exist_ok=True)
+        fp.write_text(json.dumps(saved))
+        print(f"締切の変更を反映: {new}")
+    pp = DATA / "predictions" / f"{date}.json"
+    if saved and pp.exists():
+        st = json.loads(pp.read_text())
+        n = 0
+        for key, x in st.get("races", {}).items():
+            j, r = key.split("-")
+            if j in saved and int(r) <= len(saved[j]) and x.get("deadline") != saved[j][int(r) - 1]:
+                x["deadline"] = saved[j][int(r) - 1]
+                n += 1
+        if n:
+            pp.write_text(json.dumps(st, ensure_ascii=False, indent=0))
+    return bool(new)
+
+
 def main():
     now = now_jst()
     date = f"{now:%Y%m%d}"
@@ -80,7 +120,9 @@ def main():
     if not pp.exists():
         return
     prog = pd.read_parquet(pp, columns=["date", "jcd", "race", "deadline"])
-    prog = prog[prog.date == date].drop_duplicates(["jcd", "race"])
+    prog0 = prog[prog.date == date].drop_duplicates(["jcd", "race"])
+    prog = apply_deadlines(prog0, date)
+    found = {}
     ep = DATA / "entries" / f"{date}.json"
     ep.parent.mkdir(parents=True, exist_ok=True)
     entries = json.loads(ep.read_text()) if ep.exists() else {}
@@ -93,6 +135,9 @@ def main():
         if now + dt.timedelta(minutes=2) < t <= now + dt.timedelta(minutes=30):
             order, h = fetch_order(date, r.jcd, r.race)
             time.sleep(1.0)
+            ds = parse_deadlines(h)
+            if ds:
+                found[r.jcd] = ds
             if order:
                 rec = dict(order=order)
                 tenji = fetch_tenji(h)
@@ -119,6 +164,8 @@ def main():
                     print(f"直前情報の選手欄を読めませんでした({key}): {e!r}")
                 entries[key] = rec
                 todo.append(key)
+    if fix_deadlines(date, prog0, found):
+        prog = apply_deadlines(prog, date)
     if todo:
         ep.write_text(json.dumps(entries))
         predict.run(date, only=set(todo))
