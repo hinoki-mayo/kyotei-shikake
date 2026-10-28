@@ -137,7 +137,7 @@ h2{font-size:15px;font-weight:700;margin:14px 0 6px}
 .ov{flex:1;text-align:right;font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;padding-right:2px}.ov.hot{background:rgba(15,110,86,.18);border-radius:3px}
 .otabs>input{display:none}.otabs>label{display:inline-block;padding:7px 18px;margin:10px 6px 0 0;border:1px solid var(--bd);border-radius:18px;font-weight:700;font-size:14px;color:var(--sub);background:var(--card);cursor:pointer}
 .otabs>input:checked+label{background:var(--hot);border-color:var(--hot);color:#fff}.op{display:none}#ot3:checked~.op3,#ot2:checked~.op2{display:block}
-.shihan{display:none}.o3{border-bottom:1px solid var(--bd);padding:4px 0}.o3:last-child{border:0}.o3>summary{cursor:pointer;padding:6px 0;font-weight:700;list-style:none}.o3>summary::-webkit-details-marker{display:none}
+.shihan{display:none}.scbar,.pbar{display:none}.o3{border-bottom:1px solid var(--bd);padding:4px 0}.o3:last-child{border:0}.o3>summary{cursor:pointer;padding:6px 0;font-weight:700;list-style:none}.o3>summary::-webkit-details-marker{display:none}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}@media(min-width:600px){.g3{grid-template-columns:repeat(3,1fr)}}
 .cell{display:block;padding:5px 2px;border-bottom:1px solid var(--bd);min-width:0}.cell b{font-size:14px}.cell .sub{display:block;font-size:11px;line-height:1.35}
 .krow{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)}.krow:last-child{border:0}.krow .kl{flex:1;min-width:0;font-size:13.5px;font-weight:700;line-height:1.35}.krow small{display:block;color:var(--sub);font-size:11px;font-weight:500}.krow>b{font-size:17px}
@@ -189,6 +189,19 @@ h2::before{content:'';display:inline-block;width:5px;height:15px;border-radius:3
 .ent-best .pay small{display:block;font-size:11px;font-weight:700;opacity:.8}
 .ent-score{display:flex;gap:8px;margin:8px 0}.ent-score div{flex:1;background:var(--card);border-radius:12px;padding:8px;text-align:center;box-shadow:0 2px 8px rgba(16,24,40,.06)}
 .ent-score b{display:block;font-family:'M PLUS Rounded 1c',sans-serif;font-size:22px;font-weight:800;color:var(--pop)}.ent-score span{font-size:11px;color:var(--sub)}
+.scn{background:linear-gradient(90deg,rgba(255,90,54,.06),transparent);border-radius:12px;padding:10px 8px;margin:4px 0;border:0}
+.scbar,.pbar{display:block;height:6px;border-radius:3px;background:var(--off);margin:4px 0 2px;overflow:hidden}.scbar i,.pbar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#FFB23E,var(--pop))}
+.t3r{align-items:center}.t3r .pbar{flex:1;height:6px;margin:0 8px;min-width:30px}
+.t3r:nth-child(-n+3){background:linear-gradient(90deg,rgba(247,215,116,.25),transparent);border-radius:8px;padding-left:6px!important}
+.erow{border-left:5px solid var(--bc);border-bottom:0;border-radius:10px;padding:8px 8px;margin:5px 0;background:var(--card);box-shadow:0 1px 6px rgba(16,24,40,.06)}
+.pod{border-radius:12px;padding:10px 8px;margin:5px 0;border:0}.pod b{font-family:'M PLUS Rounded 1c',sans-serif}
+.pod1{background:linear-gradient(135deg,rgba(247,215,116,.55),rgba(201,147,43,.25))}.pod1 b:first-child{font-size:26px!important}
+.pod2{background:linear-gradient(135deg,rgba(210,214,222,.6),rgba(160,168,180,.2))}.pod2 b:first-child,.pod3 b:first-child{font-size:22px!important}
+.pod3{background:linear-gradient(135deg,rgba(214,160,110,.45),rgba(160,100,60,.15))}
+.manshu{margin-left:8px;color:#D7263D;border:2px solid #D7263D;border-radius:8px;padding:0 6px;font-weight:800;font-size:12px;transform:rotate(-6deg);display:inline-block}
+.vrow{border-radius:10px;padding:8px;margin:4px 0;border:0}.vok{background:rgba(15,110,86,.10)}.vng{background:rgba(163,45,45,.07)}
+.vok b::after{content:' ⭕'}.vng b::after{content:' ✖';color:var(--red)}
+.otabs>input:checked+label{background:linear-gradient(135deg,#FF8A3D,#E2452B);border:0}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .ent-best{background:linear-gradient(135deg,#5a4413,#8a6416);color:#fff3d6}}
 """
 
@@ -359,7 +372,7 @@ def tenji_card(date, info):
     cells = "".join(
         f'<div style="text-align:center">{chip(w)}<b style="display:block;font-size:14px;margin-top:2px;'
         f'{"color:var(--red)" if (tj[w - 1] if len(tj) >= w else None) == (rk[0] if rk else -1) else ""}">'
-        f'{(f"{tj[w - 1]:.2f}" if len(tj) >= w and tj[w - 1] else "-")}</b>'
+        f'{"👑" if ENT and rk and len(tj) >= w and tj[w - 1] == rk[0] else ""}{(f"{tj[w - 1]:.2f}" if len(tj) >= w and tj[w - 1] else "-")}</b>'
         f'<span class="sub" style="font-size:10.5px">{(str(rk.index(tj[w - 1]) + 1) + "位") if len(tj) >= w and tj[w - 1] in rk else ""}</span></div>'
         for w in range(1, 7))
     wx = "・".join(x for x in (f'{lv.get("wind_dir", "")}の風 {lv["wind"]:.0f}m' if lv.get("wind") is not None else "",
@@ -387,7 +400,7 @@ def entry_page(date, info, boats, season, series, n_series, pred, races, result_
         sea_s = f"{sea:.2f}" if sea is not None else "―"
         ser_s = f'節間{s["pt"]:.2f}（{s["pos"]}位/{n_series}）' if s else "節間―"
         tags = form_tags(s, n_series, info)
-        rows += (f'<div class="boat">{chip(b["waku"])}'
+        rows += (f'<div class="boat erow" style="--bc:{BC[b["waku"] - 1] if b["waku"] != 1 else "#c9ccd3"}">{chip(b["waku"])}'
                  f'<img class="face" src="https://www.boatrace.jp/racerphoto/{b["toban"]}.jpg" loading="lazy" '
                  f'alt="" onerror="this.remove()">'
                  f'<div style="flex:1;min-width:0">'
@@ -725,8 +738,8 @@ def scen_card(v):
     for x in v["scen"]:
         sec = "・".join(f'{w}号艇<span class="sub">{_pct(q)}</span>' for w, q in x["sec"])
         thr = "・".join(f'{w}号艇<span class="sub">{_pct(q)}</span>' for w, q in x["thr"])
-        out += (f'<div class="boat">{chip(x["head"])}<div style="flex:1;min-width:0"><div><b>{html.escape(x["name"])}</b> '
-                f'<b style="color:var(--red)">{_pct(x["p"])}</b></div>'
+        out += (f'<div class="boat scn">{chip(x["head"])}<div style="flex:1;min-width:0"><div><b>{html.escape(x["name"])}</b> '
+                f'<b style="color:var(--red)">{_pct(x["p"])}</b></div><span class="scbar"><i style="width:{min(100, x["p"] * 100):.0f}%"></i></span>'
                 f'<div class="sub">2着 {sec}</div><div class="sub">3着 {thr}</div></div></div>')
     return ('<h2>展開ごとの予想</h2><div class="card"><p class="sub" style="margin:0 0 6px">勝ちそうな艇の順に、その展開になる確率と、'
             'その時に2着・3着へ来やすい艇(その展開になった時の確率)。</p>' + out + '</div>')
@@ -868,7 +881,7 @@ def _verdict_card(pred, by_waku):
     if not rows:
         return ""
     items = "".join(
-        f'<div class="boat">{chip(w)}<div><b>{lab}</b><br>'
+        f'<div class="boat vrow {"vok" if ok else "vng"}">{chip(w)}<div><b>{lab}</b><br>'
         f'<span class="sub" style="color:{"var(--green)" if ok else "var(--red)"}">{txt}</span></div></div>'
         for w, lab, txt, ok in rows)
     return f'<h2>展開予想の答え合わせ</h2><div class="card">{items}</div>'
@@ -943,11 +956,14 @@ def odds_page(date, info, pred, races, result_ready=False):
             sec3 += (f'<details class="o3"{" open" if i == fav else ""}><summary>{sq(i)} が1着 <span class="sub">（列＝2着の艇）</span></summary>'
                      f'<div class="ogrid" style="grid-template-columns:repeat(5,1fr)">{grp}</div></details>')
         t3 = ""
-        for c, p in vw.get("top3_20") or []:
+        p_top = max([p for _, p in vw.get("top3_20") or []] or [1])
+        for n_, (c, p) in enumerate(vw.get("top3_20") or []):
             o = o3.get(tuple(int(x) - 1 for x in c.split("-")))
             if not o:
                 continue
-            t3 += (f'<div class="boat" style="padding:6px 0"><b style="width:70px">{c}</b><span class="sub" style="width:48px">{_pct(p)}</span>'
+            md = ("🥇", "🥈", "🥉")[n_] if ENT and n_ < 3 else ""
+            t3 += (f'<div class="boat t3r" style="padding:6px 0"><b style="width:70px">{md}{c}</b><span class="sub" style="width:48px">{_pct(p)}</span>'
+                   f'<span class="pbar"><i style="width:{p / p_top * 100:.0f}%"></i></span>'
                    f'<b style="margin-left:auto">{o:.1f}倍</b>' + (' <span class="ok" style="margin-left:6px">割安</span>' if mark(p, o) else '') + '</div>')
         content = (f'<p class="sub" style="margin:6px 0">{od.get("t", "")}時点のオッズ。締切の約2分前まで、約2分ごとに更新します（締切までに変わります）。緑＝割安</p>'
                    '<div class="otabs"><input type="radio" name="ot" id="ot3" checked><label for="ot3">3連単</label>'
@@ -999,7 +1015,9 @@ def result_page(date, info, pred, races, result, boats=None):
             face = (f'<img class="face" src="https://www.boatrace.jp/racerphoto/{tb}.jpg" loading="lazy" alt="" '
                     'onerror="this.style.visibility=\'hidden\'">') if tb else ""
             meta = "・".join(x for x in (f"{crs_of(w)}コース" if crs_of(w) else "", f"ST {stv(w)}" if stv(w) else "") if x)
-            podium += (f'<div class="boat" style="align-items:center"><b style="width:34px;font-size:18px">{int(r)}着</b>{chip(w)}{face}'
+            ri = int(r) if str(r).isdigit() else 0
+            lab_r = ("🥇", "🥈", "🥉")[ri - 1] if ENT and 1 <= ri <= 3 else (f"{ri}着" if ri else html.escape(str(r)))
+            podium += (f'<div class="boat pod pod{ri}" style="align-items:center"><b style="width:34px;font-size:18px">{lab_r}</b>{chip(w)}{face}'
                        f'<div style="min-width:0"><b>{nm(w)}</b><br><span class="sub">{meta}</span></div></div>')
         rest = "".join(f'<tr><td>{int(r) if str(r).isdigit() else html.escape(str(r))}</td><td>{chip(w)}</td><td style="text-align:left">{nm(w)}</td>'
                        f'<td>{crs_of(w) or ""}</td><td>{stv(w)}</td></tr>' for w, r in order)
@@ -1009,7 +1027,8 @@ def result_page(date, info, pred, races, result, boats=None):
             if c and y is not None and not pd.isna(y):
                 pop, src = _popularity(date, key, kind, c)
                 pays += (f'<div class="boat" style="padding:6px 0"><b style="width:56px">{lab}</b><b>{html.escape(c)}</b>'
-                         f'<span style="margin-left:auto"><b>{int(y):,}円</b>' + (f' <span class="sub">{pop}番人気</span>' if pop else "") + '</span></div>')
+                         f'<span style="margin-left:auto"><b>{int(y):,}円</b>' + (f' <span class="sub">{pop}番人気</span>' if pop else "") + '</span>'
+                         + ('<span class="manshu">💰万舟</span>' if ENT and kind == "3t" and y >= 10000 else "") + '</div>')
         src_note = '<p class="sub" style="margin:4px 0 0">人気は確定オッズ(無ければ締切前のオッズ)で数えたもの。進入・STは公式の成績ファイルが出てから入ります。</p>'
         st_note = "" if any(stv(w) for w, _ in order) else ""
         content = (f'<h2>結果（決まり手：{html.escape(kimarite) or "―"}）</h2><div class="card">{podium}</div>'
@@ -1219,7 +1238,7 @@ def bet_page(date, info, pred, races, result, bet):
                    '<span class="sub">締切の約2〜9分前にオッズを見て、1レース1回だけ決めます</span></div>')
     else:
         content = f'<p class="sub">{bet.get("odds_at", "")}時点のオッズで決めた買い目です</p>'
-        if result and result.get("combo3t"):
+        if result and isinstance(result.get("combo3t"), str):
             pay = "" if pd.isna(result.get("payout3t")) else f'（{int(result["payout3t"]):,}円）'
             e2 = (f'<br><span class="sub">2連単 {html.escape(result["combo2t"])}（{int(result["payout2t"]):,}円）</span>'
                   if result.get("combo2t") and result.get("payout2t") else "")
@@ -3803,7 +3822,7 @@ def main():
                 base = f'{info["race"]:02d}'
                 result = stats.race_result(jcd, date, info["race"])
                 if live.get(f"{jcd}-{base}"):   # 成績ファイルが出るまでのつなぎ。2連単の配当はこちらにしかない
-                    result = {**live[f"{jcd}-{base}"], **(result or {})}
+                    result = {**live[f"{jcd}-{base}"], **{k: x for k, x in (result or {}).items() if not (isinstance(x, float) and x != x)}}   # 成績ファイル側が空欄(NaN)なら速報の値を残す
                 ready = result is not None
                 (d / f"{base}.html").write_text(predict_page(date, info, pred, races, ready))
                 (d / f"{base}-entry.html").write_text(entry_page(date, info, boats, season, series, n_series, pred, races, ready))
