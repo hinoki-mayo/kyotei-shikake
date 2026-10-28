@@ -202,8 +202,101 @@ h2::before{content:'';display:inline-block;width:5px;height:15px;border-radius:3
 .vrow{border-radius:10px;padding:8px;margin:4px 0;border:0}.vok{background:rgba(15,110,86,.10)}.vng{background:rgba(163,45,45,.07)}
 .vok b::after{content:' ⭕'}.vng b::after{content:' ✖';color:var(--red)}
 .otabs>input:checked+label{background:linear-gradient(135deg,#FF8A3D,#E2452B);border:0}
+/* ---- ナイター風 ---- */
+:root:not(#x){--bg:#0b0f2a;--card:#151a3d;--tx:#eef0ff;--sub:#a5abd3;--bd:#2a3068;--off:#1f2552;--ac:#7FC4FF;--red:#FF6B6B;--green:#3DDC97;--shadow:none;color-scheme:dark}
+body{background:radial-gradient(ellipse at 50% -20%,#3a1f7a 0%,transparent 55%),radial-gradient(circle at 100% 40%,rgba(255,90,54,.18),transparent 40%),radial-gradient(circle at 0% 80%,rgba(0,200,255,.12),transparent 45%),#0b0f2a;background-attachment:fixed}
+header{background:linear-gradient(90deg,#0b0f2a,#3B1E78 60%,#7A1E6B);border-bottom:1px solid rgba(255,255,255,.12)}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.025));border:1px solid rgba(140,150,255,.18);box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.tabs{background:rgba(11,15,42,.85);backdrop-filter:blur(6px)}
+.tabs a.on{color:#fff;text-shadow:0 0 10px rgba(255,90,54,.8)}
+h2{color:#fff}
+.ent-score div{background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,.03));border:1px solid rgba(140,150,255,.18)}
+.ent-score b{color:#FFD45C;text-shadow:0 0 12px rgba(255,212,92,.5)}
+.dnav a,.dnav span.x{background:rgba(255,255,255,.06);border-color:rgba(140,150,255,.2)}
+.tile{background:#151a3d}.tile.none{background:#0f1333}.grid{background:#2a3068}
+.btnrow a{background:linear-gradient(135deg,#FF7A3D,#C2185B);color:#fff;box-shadow:0 4px 14px rgba(194,24,91,.35)}
+.big5 span{background:rgba(255,255,255,.04)}
+/* 速報テロップ */
+.ticker{position:sticky;top:48px;z-index:19;overflow:hidden;white-space:nowrap;background:linear-gradient(90deg,#FFD45C,#FF8A3D);color:#2b1400;font-weight:800;font-size:13px;height:28px;line-height:28px}
+.ticker .tk{display:inline-block;padding-left:100%;animation:tick 28s linear infinite}.ticker .tk span{margin-right:36px}
+@keyframes tick{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+.tabs{top:76px}
+/* カウントダウン */
+.nx .dl small{color:#FFD45C;font-weight:800;font-size:12px}.nx .dl small.soon{color:#FF6B6B;animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.35}}
+/* ランクのハンコ */
+.sumhead{position:relative}
+.sumhead .rank+div b::after{display:inline-block;margin-left:10px;padding:0 6px;border:2px solid currentColor;border-radius:6px;transform:rotate(-8deg);font-size:15px;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:800;vertical-align:2px}
+.sumhead .rank-S+div b::after{content:'鉄板';color:#FFD45C}.sumhead .rank-A+div b::after{content:'本命';color:#FF8A3D}
+.sumhead .rank-B+div b::after{content:'混戦';color:#3FD0C9}.sumhead .rank-C+div b::after{content:'波乱⚡';color:#C08BFF;font-size:14px}
+/* 堅さメーター */
+.gauge{display:flex;align-items:center;gap:10px;margin:8px 0 2px}.gauge svg{flex:none}.gauge .gl{font-size:12px;color:var(--sub)}.gauge .gl b{display:block;font-size:20px;color:#fff;font-family:'M PLUS Rounded 1c',sans-serif}
+/* 師範 */
+.sh-row{display:flex;gap:10px;align-items:flex-start}.sh-row svg{flex:none;filter:drop-shadow(0 3px 6px rgba(0,0,0,.4))}
+.bubble{position:relative;background:#fff;color:#1b1f3b;border-radius:14px;padding:8px 12px;flex:1;min-width:0}
+.bubble::before{content:'';position:absolute;left:-8px;top:16px;border:8px solid transparent;border-right-color:#fff;border-left:0}
+.bubble .hl{font-size:19px!important;text-shadow:none!important;color:#1b1f3b}.bubble .hs{color:#4a4f73;opacity:1!important}
+.hero .shihan{display:none!important}
+/* 的中で紙吹雪 */
+.win{position:relative;overflow:hidden;text-align:center;border-radius:16px;padding:16px 10px;margin:10px 0;background:linear-gradient(135deg,#FF3D6E,#FF8A3D 50%,#FFD45C);color:#fff;box-shadow:0 8px 24px rgba(255,61,110,.45)}
+.win b{display:block;font-family:'M PLUS Rounded 1c',sans-serif;font-size:28px;text-shadow:0 3px 0 rgba(0,0,0,.2)}.win .s{font-size:13px;font-weight:700}
+.win i{position:absolute;top:-12px;width:8px;height:14px;border-radius:2px;animation:fall 2.6s linear infinite;opacity:.9}
+@keyframes fall{to{transform:translateY(160px) rotate(540deg)}}
+.lose{text-align:center;border-radius:14px;padding:10px;margin:10px 0;background:rgba(255,255,255,.05);border:1px dashed rgba(140,150,255,.3);color:var(--sub);font-weight:700}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]) .ent-best{background:linear-gradient(135deg,#5a4413,#8a6416);color:#fff3d6}}
 """
+
+
+_TICKER = [""]   # お試し: 画面上に流す今日の当たり
+ENT_JS = """<script>
+(function(){const els=[...document.querySelectorAll('[data-dl]')];if(!els.length)return;
+function t(){const now=Date.now();for(const e of els){const s=Math.floor((new Date(e.dataset.dl)-now)/1000);
+if(s<=0){e.textContent='締切';e.classList.add('soon');continue}
+const m=Math.floor(s/60),x=String(s%60).padStart(2,'0');e.textContent='あと '+m+':'+x;e.classList.toggle('soon',s<300)}}
+t();setInterval(t,1000)})();</script>"""
+
+
+def _ticker_html(date, prog_day, preds):
+    """お試し: 今日の当たり・万舟を画面上に流すテロップ"""
+    live = live_result.load(date)
+    hits, man = [], []
+    for r in prog_day.drop_duplicates(["jcd", "race"]).itertuples():
+        key = f"{r.jcd}-{int(r.race):02d}"
+        res = live.get(key)
+        if not res or not isinstance(res.get("combo3t"), str) or dl_dt(date, r.deadline) > now_jst():
+            continue
+        pay = float(res.get("payout3t") or 0)
+        x = _rank_of(date, r.jcd, int(r.race), preds.get(key))
+        if x:
+            lab, ok = _judge(x[2], res)
+            if ok and lab.startswith("3連単"):
+                hits.append((pay, f"🎯 {VENUES[r.jcd]}{int(r.race)}R 予想的中 {res['combo3t']} {int(pay):,}円"))
+        if pay >= 10000:
+            man.append((pay, f"💰 {VENUES[r.jcd]}{int(r.race)}R 万舟 {res['combo3t']} {int(pay):,}円"))
+    items = [t for _, t in sorted(hits, reverse=True)[:6]] + [t for _, t in sorted(man, reverse=True)[:3]]
+    if not items:
+        return ""
+    sp = "".join(f"<span>{html.escape(t)}</span>" for t in items)
+    return f'<div class="ticker"><div class="tk">{sp}</div></div>'
+
+
+SHIHAN_SVG = ('<svg width="52" height="52" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="25" fill="#FFE0B8"/>'
+              '<path d="M3 20 Q26 6 49 20 L49 16 Q26 0 3 16Z" fill="#1b1f3b"/><rect x="2" y="17" width="48" height="6" rx="3" fill="#E2452B"/>'
+              '<path d="M47 20 l6 -4 l-2 8z" fill="#E2452B"/><circle cx="18" cy="28" r="2.6" fill="#1b1f3b"/><circle cx="34" cy="28" r="2.6" fill="#1b1f3b"/>'
+              '<path d="M13 23 l9 2 M39 23 l-9 2" stroke="#1b1f3b" stroke-width="2.4" stroke-linecap="round"/>'
+              '<path d="M16 37 Q26 46 36 37 Q26 41 16 37Z" fill="#fff" stroke="#1b1f3b" stroke-width="1.5"/>'
+              '<path d="M14 36 Q26 30 38 36" stroke="#8a8a8a" stroke-width="3" fill="none" stroke-linecap="round"/></svg>')
+
+
+def _gauge(p):
+    """お試し: 堅さメーター(半円)。p=おすすめ5点のどれかが来る見込み"""
+    import math
+    a = math.pi * (1 - min(max(p, 0), 1))
+    x, y = 40 + 32 * math.cos(a), 40 - 32 * math.sin(a)
+    col = "#FFD45C" if p >= 0.5 else "#FF8A3D" if p >= 0.4 else "#3FD0C9" if p >= 0.3 else "#C08BFF"
+    return (f'<svg width="80" height="46" viewBox="0 0 80 46"><path d="M8 40 A32 32 0 0 1 72 40" stroke="rgba(255,255,255,.15)" stroke-width="9" fill="none" stroke-linecap="round"/>'
+            f'<path d="M8 40 A32 32 0 0 1 {x:.1f} {y:.1f}" stroke="{col}" stroke-width="9" fill="none" stroke-linecap="round"/>'
+            f'<circle cx="{x:.1f}" cy="{y:.1f}" r="5" fill="#fff"/></svg>')
 
 
 def page(title, body, desc="", path="", noindex=False):
@@ -215,7 +308,7 @@ def page(title, body, desc="", path="", noindex=False):
 <link rel="canonical" href="{CFG['base_url']}{path}"><meta property="og:title" content="{html.escape(title)}">
 <meta property="og:site_name" content="{CFG['site_name']}">{gsc}<meta name="theme-color" content="#1B2A4A">
 {ENT_HEAD if ENT else ""}<style>{CSS}{ENT_CSS if ENT else ""}</style>{CFG.get('ad_head', '')}</head><body>
-<header><a href="/">{CFG['site_name']}</a></header><main>{body}</main>
+<header><a href="/">{CFG['site_name']}</a></header>{_TICKER[0] if ENT else ""}<main>{body}</main>{ENT_JS if ENT else ""}
 <footer>{CFG['site_name']}は、展示の進入をもとにデータから見た1マークの展開の傾向を掲載しています。着順を保証するものではありません。舟券の購入は20歳から。<br>
 <a href="/record.html">的中実績</a>・<a href="/venue/">全24場の特徴</a>・<a href="/about.html">運営者情報</a>・<a href="/privacy.html">プライバシーポリシー</a>・<a href="/disclaimer.html">免責事項</a>・<a href="/contact.html">お問い合わせ</a></footer>
 </body></html>"""
@@ -478,9 +571,12 @@ def predict_page(date, info, pred, races, result_ready=False):
             return f"・{x:.1f}倍" if x else ""
         t2 = "　".join(f'{c} <span class="sub">{_pct(p)}{od2(c)}</span>' for c, p in vw["top2"][:3])
         hl, hs = hook(vw)
-        hero = (f'<div class="hero"><div class="shihan">🥋 師範の見立て</div><div class="hl">{html.escape(hl)}</div>' + (f'<div class="hs">{html.escape(hs)}</div>' if hs else "")
+        hero = (f'<div class="hero"><div class="sh-row">{SHIHAN_SVG}<div class="bubble"><div class="hl">{html.escape(hl)}</div>'
+                + (f'<div class="hs">{html.escape(hs)}</div>' if hs else "") + '</div></div>' + stack_bar(vw)
+                + '<div class="cap">1着の確率（色＝艇の色）</div></div>') if ENT else (f'<div class="hero"><div class="shihan">🥋 師範の見立て</div><div class="hl">{html.escape(hl)}</div>' + (f'<div class="hs">{html.escape(hs)}</div>' if hs else "")
                 + stack_bar(vw) + '<div class="cap">1着の確率（色＝艇の色）</div></div>')
-        summary = hero + f'<div class="card sum">{head}{mid}<div class="sub" style="margin-top:8px">2連単の上位　<b style="color:var(--tx)">{t2}</b></div></div>'
+        gauge = (f'<div class="gauge">{_gauge(p5)}<div class="gl">おすすめ5点のどれかが来る見込み<b>{p5:.0%}</b></div></div>') if ENT else ""
+        summary = hero + f'<div class="card sum">{head}{gauge}{mid}<div class="sub" style="margin-top:8px">2連単の上位　<b style="color:var(--tx)">{t2}</b></div></div>'
         summary += yoso_card(date, info, vw)
         rows = ""
         for b in sorted(vw["boats"], key=lambda b: b["waku"]):
@@ -1031,7 +1127,22 @@ def result_page(date, info, pred, races, result, boats=None):
                          + ('<span class="manshu">💰万舟</span>' if ENT and kind == "3t" and y >= 10000 else "") + '</div>')
         src_note = '<p class="sub" style="margin:4px 0 0">人気は確定オッズ(無ければ締切前のオッズ)で数えたもの。進入・STは公式の成績ファイルが出てから入ります。</p>'
         st_note = "" if any(stv(w) for w, _ in order) else ""
-        content = (f'<h2>結果（決まり手：{html.escape(kimarite) or "―"}）</h2><div class="card">{podium}</div>'
+        win = ""
+        if ENT and pred and not locked and isinstance(result.get("combo3t"), str):
+            try:
+                lab, ok = _judge(race_view_of(date, info, pred), result)
+            except Exception:
+                lab, ok = "", False
+            pay3 = result.get("payout3t")
+            pay3 = f'{int(pay3):,}円' if isinstance(pay3, (int, float)) and pay3 == pay3 else ""
+            if ok and lab.startswith("3連単"):
+                conf = "".join(f'<i style="left:{(k * 37) % 100}%;background:{("#fff", "#FFD45C", "#3DDC97", "#7FC4FF", "#C08BFF")[k % 5]};animation-delay:{(k * 0.17) % 2.6:.2f}s"></i>' for k in range(22))
+                win = f'<div class="win">{conf}<span class="s">🎉 道場の予想</span><b>的中！</b><span class="s">{result["combo3t"]}　{pay3}</span></div>'
+            elif ok:
+                win = f'<div class="lose" style="color:var(--green);border-color:var(--green)">⭕ {lab}（3連単 {result["combo3t"]} {pay3}）</div>'
+            else:
+                win = f'<div class="lose">💦 今回は外れ。{result["combo3t"]} {pay3}　次のレースで取り返す！</div>'
+        content = win + (f'<h2>結果（決まり手：{html.escape(kimarite) or "―"}）</h2><div class="card">{podium}</div>'
                    + (f'<div class="card"><b>払戻</b>{pays}{src_note}</div>' if pays else "")
                    + '<div class="card"><b>着順</b><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13.5px;text-align:center;margin-top:6px">'
                      '<tr class="sub"><th>着</th><th>艇</th><th style="text-align:left">選手</th><th>進入</th><th>ST</th></tr>' + rest + '</table></div></div>')
@@ -3375,7 +3486,7 @@ def _next_races_html(date, prog_day, preds, now, n=6):
             pv = race_view_of(date, dict(jcd=j, race=race), pp) if pp and pp.get("tri") else None
             info = f"見立て：{hook(pv)[0]}" if pv else f"{op}ごろ予想を公開"
         out += (f'<a class="nx" href="/{date}/{j}/{race:02d}.html">{badge}<span class="t"><b>{VENUES[j]} {race}R</b>'
-                f'<span class="sub">{info}</span></span><span class="dl">{dl}<small>あと{mins}分</small></span></a>')
+                f'<span class="sub">{info}</span></span><span class="dl">{dl}<small data-dl="{t.isoformat()}">あと{mins}分</small></span></a>')
     return ('<h2>次のレース <span class="sub">S＝堅い 〜 C＝混戦・<a href="/today.html" style="color:var(--ac)">今日の注目</a></span></h2>'
             f'<div class="card" style="padding:2px 12px">{out}</div>')
 
@@ -3797,6 +3908,11 @@ def main():
     if OUT.exists():
         shutil.rmtree(OUT)
     OUT.mkdir()
+    if ENT:
+        _tk = today if today in dates else (dates[-1] if dates else None)
+        if _tk:
+            _tp = DATA / "predictions" / f"{_tk}.json"
+            _TICKER[0] = _ticker_html(_tk, prog[prog.date == _tk], json.loads(_tp.read_text())["races"] if _tp.exists() else {})
     urls = ["/"]
     pick_hi, pick_lo = [], []
     for date in dates:
