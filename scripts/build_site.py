@@ -137,7 +137,7 @@ h2{font-size:15px;font-weight:700;margin:14px 0 6px}
 .ov{flex:1;text-align:right;font-weight:700;font-size:13px;font-variant-numeric:tabular-nums;padding-right:2px}.ov.hot{background:rgba(15,110,86,.18);border-radius:3px}
 .otabs>input{display:none}.otabs>label{display:inline-block;padding:7px 18px;margin:10px 6px 0 0;border:1px solid var(--bd);border-radius:18px;font-weight:700;font-size:14px;color:var(--sub);background:var(--card);cursor:pointer}
 .otabs>input:checked+label{background:var(--hot);border-color:var(--hot);color:#fff}.op{display:none}#ot3:checked~.op3,#ot2:checked~.op2{display:block}
-.o3{border-bottom:1px solid var(--bd);padding:4px 0}.o3:last-child{border:0}.o3>summary{cursor:pointer;padding:6px 0;font-weight:700;list-style:none}.o3>summary::-webkit-details-marker{display:none}
+.shihan{display:none}.scbar,.pbar{display:none}.o3{border-bottom:1px solid var(--bd);padding:4px 0}.o3:last-child{border:0}.o3>summary{cursor:pointer;padding:6px 0;font-weight:700;list-style:none}.o3>summary::-webkit-details-marker{display:none}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:0 12px}@media(min-width:600px){.g3{grid-template-columns:repeat(3,1fr)}}
 .cell{display:block;padding:5px 2px;border-bottom:1px solid var(--bd);min-width:0}.cell b{font-size:14px}.cell .sub{display:block;font-size:11px;line-height:1.35}
 .krow{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bd)}.krow:last-child{border:0}.krow .kl{flex:1;min-width:0;font-size:13.5px;font-weight:700;line-height:1.35}.krow small{display:block;color:var(--sub);font-size:11px;font-weight:500}.krow>b{font-size:17px}
@@ -149,6 +149,132 @@ footer{max-width:760px;margin:12px auto;padding:12px;font-size:12px;color:var(--
 """
 
 
+ENT = os.environ.get("SITE_THEME") == "ent"   # お試し: 見た目をエンタメ寄りにする(並び・中身は同じ)
+ENT_HEAD = ""
+ENT_CSS = """
+:root{--nv:#13235b;--rd:#d0021b;--ln:#d5d9e2;--gd:#b8861e}
+body{background:#eef0f4}
+header{background:var(--nv);border-bottom:3px solid var(--rd)}
+header a{font-weight:900;letter-spacing:.03em}
+header a::before{content:'予想';display:inline-block;background:var(--rd);color:#fff;font-size:11px;line-height:1;padding:4px 5px;margin-right:8px;vertical-align:2px;border-radius:2px}
+.gnav{display:flex;background:#fff;border-bottom:1px solid var(--ln)}
+.gnav a{flex:1;text-align:center;padding:7px 2px;font-size:12px;font-weight:700;color:var(--nv);border-right:1px solid #e6e8ee;white-space:nowrap}.gnav a:last-child{border-right:0}
+.ticker{overflow-x:auto;white-space:nowrap;background:#fff;border-bottom:1px solid var(--ln);font-size:12.5px;color:var(--tx);padding:6px 12px;scrollbar-width:none}
+.ticker::-webkit-scrollbar{display:none}.ticker b{background:var(--rd);color:#fff;font-size:11px;padding:2px 6px;margin-right:8px;border-radius:2px}
+.ticker .tk span:not(:last-child)::after{content:'／';color:var(--sub);margin:0 6px}
+h2{background:var(--nv);color:#fff;padding:7px 10px;margin:16px 0 0;font-size:14.5px;border-left:6px solid var(--rd)}
+h2 .sub{color:#c3c9de}h2 a{color:#ffd45c!important}
+h2+.card,h2+p+.card{margin-top:0;border-top:0;border-radius:0 0 4px 4px}
+.card{border-radius:4px;border:1px solid var(--ln);box-shadow:none}
+.hero{background:#fff;color:var(--tx);border:1px solid var(--ln);border-top:4px solid var(--rd);border-radius:4px}
+.hero .hl{font-size:19px;font-weight:900}.hero .hs,.hero .cap{color:var(--sub);opacity:1}
+.stack{background:#eceef3;border-radius:2px;height:28px;box-shadow:inset 0 0 0 1px #c9ccd3}.stack span:first-child{box-shadow:inset 0 0 0 1px #c9ccd3}
+.sh-row{display:flex;gap:10px;align-items:flex-start}.sh-row svg{flex:none;width:44px;height:44px}
+.bubble{flex:1;min-width:0}.bubble .hl::before{content:'師範の一言';display:block;font-size:11px;color:var(--rd);font-weight:700;letter-spacing:.05em}
+.rank{border-radius:3px;box-shadow:none}
+.rank-S{background:var(--gd)}.rank-A{background:#e2452b}.rank-B{background:#2c6f8e}.rank-C{background:#5b3aa8}
+.sumhead .rank+div b::after{display:inline-block;margin-left:8px;padding:1px 6px;border:1px solid currentColor;border-radius:2px;font-size:12px;font-weight:700;vertical-align:2px;background:#fff}
+.sumhead .rank-S+div b::after{content:'鉄板';color:var(--gd)}.sumhead .rank-A+div b::after{content:'本命';color:#e2452b}
+.sumhead .rank-B+div b::after{content:'混戦';color:#2c6f8e}.sumhead .rank-C+div b::after{content:'波乱';color:#5b3aa8}
+.stars{display:inline-block;margin-left:6px;font-size:12px;letter-spacing:1px;color:var(--gd);vertical-align:2px}
+.gauge{display:flex;align-items:center;gap:10px;margin:8px 0 2px;padding:6px 8px;background:#f6f7fa;border:1px solid #e6e8ee;border-radius:3px}
+.gauge .gl{font-size:12px;color:var(--sub)}.gauge .gl b{display:block;font-size:20px;color:var(--tx)}
+.big5 span{border:1px solid var(--ln);border-radius:3px;background:#fff}.big5 span:first-child{border-color:var(--rd);background:#fff4f4;color:var(--rd)}
+.lab{border-radius:2px}
+.ok{background:var(--rd);color:#fff;border-radius:2px;padding:2px 6px;font-size:11px;font-weight:700}
+.btnrow a{background:var(--nv);color:#fff;border:0;border-radius:3px;box-shadow:none}
+.tile.hot{background:var(--rd)}.grid{border-radius:2px}
+.tabs a.on{border-bottom-color:var(--rd)}
+.ent-best{display:block;background:#fff;border:2px solid var(--rd);border-radius:4px;margin:10px 0;color:var(--tx)}
+.ent-best .eb-h{background:var(--rd);color:#fff;font-weight:900;font-size:13px;padding:4px 10px}
+.ent-best .eb-b{display:flex;align-items:center;gap:10px;padding:8px 10px}.ent-best .eb-b b{font-size:18px;display:block}.ent-best .s{font-size:12px;color:var(--sub)}
+.ent-best .pay{margin-left:auto;text-align:right;font-weight:900;font-size:24px;color:var(--rd)}.ent-best .pay small{display:block;font-size:10.5px;color:var(--sub);font-weight:500}
+.ent-score{display:grid;grid-template-columns:repeat(3,1fr);background:#fff;border:1px solid var(--ln);border-radius:4px;margin:8px 0;overflow:hidden}
+.ent-score .sh{grid-column:1/-1;background:#f3f4f8;border-bottom:1px solid var(--ln);font-size:12px;font-weight:700;padding:4px 10px;color:var(--nv)}
+.ent-score div{text-align:center;padding:6px 4px;border-right:1px solid #e6e8ee}.ent-score div:last-child{border-right:0}
+.ent-score b{display:block;font-size:22px;font-weight:900;color:var(--rd)}.ent-score span{font-size:11px;color:var(--sub)}
+.scn{border-left:4px solid var(--rd);background:#fff8f6;padding:8px;margin:4px 0;border-bottom:0}
+.scbar,.pbar{display:block;height:6px;background:#eceef3;margin:4px 0 2px;overflow:hidden}.scbar i,.pbar i{display:block;height:100%;background:#e2452b}
+.t3r{align-items:center}.t3r .pbar{flex:1;margin:0 8px;min-width:30px}.t3r:nth-child(-n+3){background:#fff8e1}
+.rk3{display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;font-size:11px;color:#fff;background:var(--gd);border-radius:2px;margin-right:4px;vertical-align:1px}
+.boat.erow{border:1px solid #e6e8ee;border-left:5px solid var(--bc);border-radius:3px;padding:7px 8px;margin:4px 0}
+.boat.pod{border-radius:3px;padding:8px;margin:4px 0;border:1px solid #e6e8ee}.boat.pod1{background:#fff6dc;border-left:5px solid var(--gd)}.boat.pod2{background:#f4f5f8;border-left:5px solid #9aa0ad}.boat.pod3{background:#fbf0e7;border-left:5px solid #b07040}
+.manshu{margin-left:8px;background:var(--rd);color:#fff;border-radius:2px;padding:1px 6px;font-weight:700;font-size:11px}
+.boat.vrow{padding:7px 8px;margin:4px 0;border:1px solid #e6e8ee;border-radius:3px}
+.vok b::after{content:'当たり';margin-left:6px;font-size:10.5px;background:var(--green);color:#fff;padding:1px 5px;border-radius:2px;vertical-align:2px}
+.vng b::after{content:'外れ';margin-left:6px;font-size:10.5px;background:#9aa0ad;color:#fff;padding:1px 5px;border-radius:2px;vertical-align:2px}
+.win{background:#fff;border:2px solid var(--rd);border-radius:4px;margin:10px 0}
+.win .wh{background:var(--rd);color:#fff;font-weight:900;padding:5px 10px;font-size:14px}
+.win .wb{display:flex;align-items:baseline;gap:10px;padding:10px}.win .wb .s{color:var(--sub);font-size:12.5px}
+.win .wb b{margin-left:auto;font-size:26px;font-weight:900;color:var(--rd)}.win .wb b small{font-size:11px;color:var(--sub);font-weight:500;margin-right:4px}
+.lose{border:1px solid var(--ln);background:#fff;border-radius:4px;padding:8px 10px;margin:10px 0;font-size:13px;color:var(--sub)}
+.brow .bar{height:10px;border-radius:2px}.brow .bar i{border-radius:2px;background:#e2452b}
+.nx .dl small{color:var(--rd);font-weight:700}
+.res{padding:8px 2px}
+h1{border-bottom:2px solid var(--nv);padding-bottom:6px}
+.tg{display:inline-block;font-size:10.5px;font-weight:700;color:#fff;padding:0 5px;border-radius:2px;margin-left:3px;vertical-align:1px;line-height:1.6}
+.tg.up{background:var(--rd)}.tg.dn{background:#6b84b0}.tg.kk{background:var(--nv)}
+.card table th,.tt th{background:#f3f4f8;color:var(--nv);font-weight:700}
+.tt tr:nth-child(even) td{background:#fafbfc}
+.ptabs>label{border-radius:3px}.ptabs>input:checked+label{background:var(--nv);border-color:var(--nv)}
+.otabs>label{border-radius:3px}.otabs>input:checked+label{background:var(--nv);border-color:var(--nv)}
+"""
+
+
+ENT_NAV = ('<nav class="gnav"><a href="/">本日のレース</a><a href="/today.html">今日の注目</a>'
+           '<a href="/record.html">的中実績</a><a href="/venue/">場の特徴</a></nav>')
+_TICKER = [""]   # お試し: 画面上に流す今日の当たり
+ENT_JS = """<script>
+(function(){const els=[...document.querySelectorAll('[data-dl]')];if(!els.length)return;
+function t(){const now=Date.now();for(const e of els){const s=Math.floor((new Date(e.dataset.dl)-now)/1000);
+if(s<=0){e.textContent='締切';e.classList.add('soon');continue}
+const m=Math.floor(s/60),x=String(s%60).padStart(2,'0');e.textContent='あと '+m+':'+x;e.classList.toggle('soon',s<300)}}
+t();setInterval(t,1000)})();</script>"""
+
+
+def _ticker_html(date, prog_day, preds):
+    """お試し: 今日の当たり・万舟を画面上に流すテロップ"""
+    live = live_result.load(date)
+    hits, man = [], []
+    for r in prog_day.drop_duplicates(["jcd", "race"]).itertuples():
+        key = f"{r.jcd}-{int(r.race):02d}"
+        res = live.get(key)
+        if not res or not isinstance(res.get("combo3t"), str) or dl_dt(date, r.deadline) > now_jst():
+            continue
+        pay = float(res.get("payout3t") or 0)
+        x = _rank_of(date, r.jcd, int(r.race), preds.get(key))
+        if x:
+            lab, ok = _judge(x[2], res)
+            if ok and lab.startswith("3連単"):
+                hits.append((pay, f"{VENUES[r.jcd]}{int(r.race)}R 的中 {res['combo3t']} {int(pay):,}円"))
+        if pay >= 10000:
+            man.append((pay, f"{VENUES[r.jcd]}{int(r.race)}R 万舟 {res['combo3t']} {int(pay):,}円"))
+    items = [t for _, t in sorted(hits, reverse=True)[:6]] + [t for _, t in sorted(man, reverse=True)[:3]]
+    if not items:
+        return ""
+    sp = "<b>速報</b>" + "".join(f"<span>{html.escape(t)}</span>" for t in items)
+    return f'<div class="ticker"><div class="tk">{sp}</div></div>'
+
+
+SHIHAN_SVG = ('<svg width="52" height="52" viewBox="0 0 52 52" aria-hidden="true"><circle cx="26" cy="26" r="25" fill="#FFE0B8"/>'
+              '<path d="M3 20 Q26 6 49 20 L49 16 Q26 0 3 16Z" fill="#1b1f3b"/><rect x="2" y="17" width="48" height="6" rx="3" fill="#E2452B"/>'
+              '<path d="M47 20 l6 -4 l-2 8z" fill="#E2452B"/><circle cx="18" cy="28" r="2.6" fill="#1b1f3b"/><circle cx="34" cy="28" r="2.6" fill="#1b1f3b"/>'
+              '<path d="M13 23 l9 2 M39 23 l-9 2" stroke="#1b1f3b" stroke-width="2.4" stroke-linecap="round"/>'
+              '<path d="M16 37 Q26 46 36 37 Q26 41 16 37Z" fill="#fff" stroke="#1b1f3b" stroke-width="1.5"/>'
+              '<path d="M14 36 Q26 30 38 36" stroke="#8a8a8a" stroke-width="3" fill="none" stroke-linecap="round"/></svg>')
+
+
+def _gauge(p):
+    """お試し: 堅さメーター(半円)。p=おすすめ5点のどれかが来る見込み"""
+    import math
+    a = math.pi * (1 - min(max(p, 0), 1))
+    x, y = 40 + 32 * math.cos(a), 40 - 32 * math.sin(a)
+    col = "#E0A526" if p >= 0.5 else "#FF8A3D" if p >= 0.4 else "#3FD0C9" if p >= 0.3 else "#C08BFF"
+    return (f'<svg width="80" height="46" viewBox="0 0 80 46"><path d="M8 40 A32 32 0 0 1 72 40" stroke="rgba(120,120,150,.18)" stroke-width="9" fill="none" stroke-linecap="round"/>'
+            f'<path d="M8 40 A32 32 0 0 1 {x:.1f} {y:.1f}" stroke="{col}" stroke-width="9" fill="none" stroke-linecap="round"/>'
+            f'<circle cx="{x:.1f}" cy="{y:.1f}" r="5" fill="#fff" stroke="{col}" stroke-width="2"/></svg>')
+
+
 def page(title, body, desc="", path="", noindex=False):
     robots = '<meta name="robots" content="noindex">' if noindex else ""
     gsc = f'<meta name="google-site-verification" content="{html.escape(CFG["gsc_verify"])}">' if CFG.get("gsc_verify") else ""
@@ -157,8 +283,8 @@ def page(title, body, desc="", path="", noindex=False):
 <title>{html.escape(title)}｜{CFG['site_name']}</title><meta name="description" content="{html.escape(desc)}">
 <link rel="canonical" href="{CFG['base_url']}{path}"><meta property="og:title" content="{html.escape(title)}">
 <meta property="og:site_name" content="{CFG['site_name']}">{gsc}<meta name="theme-color" content="#1B2A4A">
-<style>{CSS}</style>{CFG.get('ad_head', '')}</head><body>
-<header><a href="/">{CFG['site_name']}</a></header><main>{body}</main>
+{ENT_HEAD if ENT else ""}<style>{CSS}{ENT_CSS if ENT else ""}</style>{CFG.get('ad_head', '')}</head><body>
+<header><a href="/">{CFG['site_name']}</a></header>{ENT_NAV if ENT else ""}{_TICKER[0] if ENT else ""}<main>{body}</main>
 <footer>{CFG['site_name']}は、展示の進入をもとにデータから見た1マークの展開の傾向を掲載しています。着順を保証するものではありません。舟券の購入は20歳から。<br>
 <a href="/record.html">的中実績</a>・<a href="/venue/">全24場の特徴</a>・<a href="/about.html">運営者情報</a>・<a href="/privacy.html">プライバシーポリシー</a>・<a href="/disclaimer.html">免責事項</a>・<a href="/contact.html">お問い合わせ</a></footer>
 </body></html>"""
@@ -343,7 +469,7 @@ def entry_page(date, info, boats, season, series, n_series, pred, races, result_
         sea_s = f"{sea:.2f}" if sea is not None else "―"
         ser_s = f'節間{s["pt"]:.2f}（{s["pos"]}位/{n_series}）' if s else "節間―"
         tags = form_tags(s, n_series, info)
-        rows += (f'<div class="boat">{chip(b["waku"])}'
+        rows += (f'<div class="boat erow" style="--bc:{BC[b["waku"] - 1] if b["waku"] != 1 else "#c9ccd3"}">{chip(b["waku"])}'
                  f'<img class="face" src="https://www.boatrace.jp/racerphoto/{b["toban"]}.jpg" loading="lazy" '
                  f'alt="" onerror="this.remove()">'
                  f'<div style="flex:1;min-width:0">'
@@ -371,10 +497,10 @@ def form_tags(s, n_series, info):
     seq = [x for x in str(s.get("seq", "")).split() if x.isdigit()]
     last3 = seq[-3:]
     if s.get("n", 0) >= 3 and (s.get("pt", 0) >= 7.0 or (len(last3) == 3 and all(int(x) <= 2 for x in last3))):
-        out += ' <span style="color:#E8542F;font-size:11px">🔥好調</span>'
+        out += ' <span class="tg up">好調</span>' if ENT else ' <span style="color:#E8542F;font-size:11px">🔥好調</span>'
     border = 18 if n_series >= 40 else max(6, round(n_series * 0.38))
     if "予選" in str(info.get("rtype", "")) and info.get("day", 0) >= 3 and abs(s.get("pos", 99) - border) <= 6:
-        out += ' <span style="color:#7A5AE0;font-size:11px">⚔勝負駆け</span>'
+        out += ' <span class="tg kk">勝負駆け</span>' if ENT else ' <span style="color:#7A5AE0;font-size:11px">⚔勝負駆け</span>'
     return out
 
 
@@ -404,7 +530,8 @@ def predict_page(date, info, pred, races, result_ready=False):
         rk, _, word, hist = next(x for x in RANKS if p5 >= x[1])
         bs = sorted(vw["boats"], key=lambda b: -b["p1"])
         fav = bs[0]
-        head = (f'<div class="sumhead"><span class="rank rank-{rk}">{rk}</span><div><b>{word}のレース</b><br>'
+        stars = (f'<span class="stars r{"5432"["SABC".index(rk)]}">' + "★" * (5 - "SABC".index(rk)) + "☆" * "SABC".index(rk) + '</span>') if ENT else ""
+        head = (f'<div class="sumhead"><span class="rank rank-{rk}">{rk}</span><div><b>{word}のレース</b>{stars}<br>'
                 f'<span class="sub">本命 {fav["waku"]}号艇 {html.escape(fav["name"])}（1着{_pct(fav["p1"])}）</span></div></div>')
         if rk in ("S", "A"):
             picks = "".join(f'<span>{c}<small>{_pct(p)}</small></span>' for c, p in vw["top3"][:5])
@@ -421,13 +548,18 @@ def predict_page(date, info, pred, races, result_ready=False):
             return f"・{x:.1f}倍" if x else ""
         t2 = "　".join(f'{c} <span class="sub">{_pct(p)}{od2(c)}</span>' for c, p in vw["top2"][:3])
         hl, hs = hook(vw)
-        hero = (f'<div class="hero"><div class="hl">{html.escape(hl)}</div>' + (f'<div class="hs">{html.escape(hs)}</div>' if hs else "")
+        hero = (f'<div class="hero"><div class="sh-row">{SHIHAN_SVG}<div class="bubble"><div class="hl">{html.escape(hl)}</div>'
+                + (f'<div class="hs">{html.escape(hs)}</div>' if hs else "") + '</div></div>' + stack_bar(vw)
+                + '<div class="cap">1着の確率（色＝艇の色）</div></div>') if ENT else (f'<div class="hero"><div class="shihan">🥋 師範の見立て</div><div class="hl">{html.escape(hl)}</div>' + (f'<div class="hs">{html.escape(hs)}</div>' if hs else "")
                 + stack_bar(vw) + '<div class="cap">1着の確率（色＝艇の色）</div></div>')
-        summary = hero + f'<div class="card sum">{head}{mid}<div class="sub" style="margin-top:8px">2連単の上位　<b style="color:var(--tx)">{t2}</b></div></div>'
+        gauge = (f'<div class="gauge">{_gauge(p5)}<div class="gl">おすすめ5点のどれかが来る見込み<b>{p5:.0%}</b></div></div>') if ENT else ""
+        summary = hero + f'<div class="card sum">{head}{gauge}{mid}<div class="sub" style="margin-top:8px">2連単の上位　<b style="color:var(--tx)">{t2}</b></div></div>'
         summary += yoso_card(date, info, vw)
         rows = ""
         for b in sorted(vw["boats"], key=lambda b: b["waku"]):
             heat = "🔥" if b["heat"] > 0 else ("🧊" if b["heat"] < 0 else "")
+            if ENT:
+                heat = '<span class="tg up">上昇</span>' if b["heat"] > 0 else ('<span class="tg dn">低調</span>' if b["heat"] < 0 else "")
             rl = "".join(f'<span class="rl" style="background:{ROLE_COLOR[r]}">{r}</span>' for r in b["roles"])
             why = "・".join(b["good"]) + (("｜" if b["good"] else "") + "・".join(b["bad"]) if b["bad"] else "")
             rows += (f'<details class="brow"><summary>{chip(b["waku"])}<span class="nm">{html.escape(b["name"])} {heat}{rl}</span>'
@@ -681,8 +813,8 @@ def scen_card(v):
     for x in v["scen"]:
         sec = "・".join(f'{w}号艇<span class="sub">{_pct(q)}</span>' for w, q in x["sec"])
         thr = "・".join(f'{w}号艇<span class="sub">{_pct(q)}</span>' for w, q in x["thr"])
-        out += (f'<div class="boat">{chip(x["head"])}<div style="flex:1;min-width:0"><div><b>{html.escape(x["name"])}</b> '
-                f'<b style="color:var(--red)">{_pct(x["p"])}</b></div>'
+        out += (f'<div class="boat scn">{chip(x["head"])}<div style="flex:1;min-width:0"><div><b>{html.escape(x["name"])}</b> '
+                f'<b style="color:var(--red)">{_pct(x["p"])}</b></div><span class="scbar"><i style="width:{min(100, x["p"] * 100):.0f}%"></i></span>'
                 f'<div class="sub">2着 {sec}</div><div class="sub">3着 {thr}</div></div></div>')
     return ('<h2>展開ごとの予想</h2><div class="card"><p class="sub" style="margin:0 0 6px">勝ちそうな艇の順に、その展開になる確率と、'
             'その時に2着・3着へ来やすい艇(その展開になった時の確率)。</p>' + out + '</div>')
@@ -824,7 +956,7 @@ def _verdict_card(pred, by_waku):
     if not rows:
         return ""
     items = "".join(
-        f'<div class="boat">{chip(w)}<div><b>{lab}</b><br>'
+        f'<div class="boat vrow {"vok" if ok else "vng"}">{chip(w)}<div><b>{lab}</b><br>'
         f'<span class="sub" style="color:{"var(--green)" if ok else "var(--red)"}">{txt}</span></div></div>'
         for w, lab, txt, ok in rows)
     return f'<h2>展開予想の答え合わせ</h2><div class="card">{items}</div>'
@@ -899,11 +1031,14 @@ def odds_page(date, info, pred, races, result_ready=False):
             sec3 += (f'<details class="o3"{" open" if i == fav else ""}><summary>{sq(i)} が1着 <span class="sub">（列＝2着の艇）</span></summary>'
                      f'<div class="ogrid" style="grid-template-columns:repeat(5,1fr)">{grp}</div></details>')
         t3 = ""
-        for c, p in vw.get("top3_20") or []:
+        p_top = max([p for _, p in vw.get("top3_20") or []] or [1])
+        for n_, (c, p) in enumerate(vw.get("top3_20") or []):
             o = o3.get(tuple(int(x) - 1 for x in c.split("-")))
             if not o:
                 continue
-            t3 += (f'<div class="boat" style="padding:6px 0"><b style="width:70px">{c}</b><span class="sub" style="width:48px">{_pct(p)}</span>'
+            md = f'<span class="rk3">{n_ + 1}</span>' if ENT and n_ < 3 else ""
+            t3 += (f'<div class="boat t3r" style="padding:6px 0"><b style="width:70px">{md}{c}</b><span class="sub" style="width:48px">{_pct(p)}</span>'
+                   f'<span class="pbar"><i style="width:{p / p_top * 100:.0f}%"></i></span>'
                    f'<b style="margin-left:auto">{o:.1f}倍</b>' + (' <span class="ok" style="margin-left:6px">割安</span>' if mark(p, o) else '') + '</div>')
         content = (f'<p class="sub" style="margin:6px 0">{od.get("t", "")}時点のオッズ。締切の約2分前まで、約2分ごとに更新します（締切までに変わります）。緑＝割安</p>'
                    '<div class="otabs"><input type="radio" name="ot" id="ot3" checked><label for="ot3">3連単</label>'
@@ -955,7 +1090,9 @@ def result_page(date, info, pred, races, result, boats=None):
             face = (f'<img class="face" src="https://www.boatrace.jp/racerphoto/{tb}.jpg" loading="lazy" alt="" '
                     'onerror="this.style.visibility=\'hidden\'">') if tb else ""
             meta = "・".join(x for x in (f"{crs_of(w)}コース" if crs_of(w) else "", f"ST {stv(w)}" if stv(w) else "") if x)
-            podium += (f'<div class="boat" style="align-items:center"><b style="width:34px;font-size:18px">{int(r)}着</b>{chip(w)}{face}'
+            ri = int(r) if str(r).isdigit() else 0
+            lab_r = f"{ri}着" if ri else html.escape(str(r))
+            podium += (f'<div class="boat pod pod{ri}" style="align-items:center"><b style="width:34px;font-size:18px">{lab_r}</b>{chip(w)}{face}'
                        f'<div style="min-width:0"><b>{nm(w)}</b><br><span class="sub">{meta}</span></div></div>')
         rest = "".join(f'<tr><td>{int(r) if str(r).isdigit() else html.escape(str(r))}</td><td>{chip(w)}</td><td style="text-align:left">{nm(w)}</td>'
                        f'<td>{crs_of(w) or ""}</td><td>{stv(w)}</td></tr>' for w, r in order)
@@ -965,10 +1102,26 @@ def result_page(date, info, pred, races, result, boats=None):
             if c and y is not None and not pd.isna(y):
                 pop, src = _popularity(date, key, kind, c)
                 pays += (f'<div class="boat" style="padding:6px 0"><b style="width:56px">{lab}</b><b>{html.escape(c)}</b>'
-                         f'<span style="margin-left:auto"><b>{int(y):,}円</b>' + (f' <span class="sub">{pop}番人気</span>' if pop else "") + '</span></div>')
+                         f'<span style="margin-left:auto"><b>{int(y):,}円</b>' + (f' <span class="sub">{pop}番人気</span>' if pop else "") + '</span>'
+                         + ('<span class="manshu">万舟</span>' if ENT and kind == "3t" and y >= 10000 else "") + '</div>')
         src_note = '<p class="sub" style="margin:4px 0 0">人気は確定オッズ(無ければ締切前のオッズ)で数えたもの。進入・STは公式の成績ファイルが出てから入ります。</p>'
         st_note = "" if any(stv(w) for w, _ in order) else ""
-        content = (f'<h2>結果（決まり手：{html.escape(kimarite) or "―"}）</h2><div class="card">{podium}</div>'
+        win = ""
+        if ENT and pred and not locked and isinstance(result.get("combo3t"), str):
+            try:
+                lab, ok = _judge(race_view_of(date, info, pred), result)
+            except Exception:
+                lab, ok = "", False
+            pay3 = result.get("payout3t")
+            pay3 = f'{int(pay3):,}円' if isinstance(pay3, (int, float)) and pay3 == pay3 else ""
+            if ok and lab.startswith("3連単"):
+                win = (f'<div class="win"><div class="wh">的中速報　道場の予想が的中しました</div><div class="wb"><span class="s">3連単 {result["combo3t"]}<br>おすすめ5点</span>'
+                       f'<b><small>100円 →</small>{pay3}</b></div></div>')
+            elif ok:
+                win = f'<div class="lose" style="color:var(--green);border-color:var(--green)">{lab}（3連単 {result["combo3t"]} {pay3}）</div>'
+            else:
+                win = f'<div class="lose">今回の予想は外れ（3連単 {result["combo3t"]} {pay3}）</div>'
+        content = win + (f'<h2>結果（決まり手：{html.escape(kimarite) or "―"}）</h2><div class="card">{podium}</div>'
                    + (f'<div class="card"><b>払戻</b>{pays}{src_note}</div>' if pays else "")
                    + '<div class="card"><b>着順</b><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13.5px;text-align:center;margin-top:6px">'
                      '<tr class="sub"><th>着</th><th>艇</th><th style="text-align:left">選手</th><th>進入</th><th>ST</th></tr>' + rest + '</table></div></div>')
@@ -1175,7 +1328,7 @@ def bet_page(date, info, pred, races, result, bet):
                    '<span class="sub">締切の約2〜9分前にオッズを見て、1レース1回だけ決めます</span></div>')
     else:
         content = f'<p class="sub">{bet.get("odds_at", "")}時点のオッズで決めた買い目です</p>'
-        if result and result.get("combo3t"):
+        if result and isinstance(result.get("combo3t"), str):
             pay = "" if pd.isna(result.get("payout3t")) else f'（{int(result["payout3t"]):,}円）'
             e2 = (f'<br><span class="sub">2連単 {html.escape(result["combo2t"])}（{int(result["payout2t"]):,}円）</span>'
                   if result.get("combo2t") and result.get("payout2t") else "")
@@ -3312,7 +3465,7 @@ def _next_races_html(date, prog_day, preds, now, n=6):
             pv = race_view_of(date, dict(jcd=j, race=race), pp) if pp and pp.get("tri") else None
             info = f"見立て：{hook(pv)[0]}" if pv else f"{op}ごろ予想を公開"
         out += (f'<a class="nx" href="/{date}/{j}/{race:02d}.html">{badge}<span class="t"><b>{VENUES[j]} {race}R</b>'
-                f'<span class="sub">{info}</span></span><span class="dl">{dl}<small>あと{mins}分</small></span></a>')
+                f'<span class="sub">{info}</span></span><span class="dl">{dl}<small data-dl="{t.isoformat()}">あと{mins}分</small></span></a>')
     return ('<h2>次のレース <span class="sub">S＝堅い 〜 C＝混戦・<a href="/today.html" style="color:var(--ac)">今日の注目</a></span></h2>'
             f'<div class="card" style="padding:2px 12px">{out}</div>')
 
@@ -3346,12 +3499,24 @@ def _recent_results_html(date, prog_day, preds, now, n=4):
     judged = [(dl, j, race, res, _judge(vw, res)) for dl, j, race, res, vw in rows]
     hit = sum(1 for *_, (_, ok) in judged if ok)
     out = ""
+    best = ""
+    if ENT:
+        h5 = [(float(res.get("payout3t") or 0), j, race, res) for dl, j, race, res, (lab, ok) in judged if lab.startswith("3連単")]
+        if h5:
+            pay, j, race, res = max(h5)
+            best = (f'<a class="ent-best" href="/{date}/{j}/{race:02d}-result.html"><div class="eb-h">本日の的中ハイライト</div><div class="eb-b"><span>'
+                    f'<b>{VENUES[j]} {race}R</b><span class="s">3連単 {res["combo3t"]}（おすすめ5点で的中）</span></span>'
+                    f'<span class="pay">{int(pay):,}円<small>100円あたりの払戻</small></span></div></a>')
+        h5n = sum(1 for *_, (lab, ok) in judged if ok and lab.startswith("3連単"))
+        best += (f'<div class="ent-score"><div class="sh">本日の戦績（おすすめ5点）</div><div><b>{len(judged)}</b><span>結果が出たレース</span></div><div><b>{h5n}</b><span>5点で的中</span></div>'
+                 f'<div><b>{h5n / len(judged):.0%}</b><span>的中率</span></div></div>')
     for dl, j, race, res, (lab, ok) in sorted(judged, reverse=True)[:n]:
         pay = f'{int(res["payout3t"]):,}円' if res.get("payout3t") else ""
-        mark = f'<span class="ok">{lab}</span>' if ok else f'<span class="ng">{lab}</span>'
+        short = {"3連単5点 的中": "3単<br>的中", "2連単1番手 的中": "2単<br>的中", "本命1着": "本命<br>1着"}
+        mark = (f'<span class="ok">{short.get(lab, lab) if ENT else lab}</span>' if ok else f'<span class="ng">{lab}</span>')
         out += (f'<a class="res" href="/{date}/{j}/{race:02d}-result.html"><span class="t"><b>{VENUES[j]} {race}R</b> '
                 f'<span class="sub">{res["combo3t"]} {pay}</span></span>{mark}</a>')
-    return (f'<h2>さっきの結果 <span class="sub">今日 {len(judged)}レース中 {hit}レースで予想が的中・'
+    return best + (f'<h2>さっきの結果 <span class="sub">今日 {len(judged)}レース中 {hit}レースで予想が的中・'
             '<a href="/record.html" style="color:var(--ac)">実績</a></span></h2>'
             f'<div class="card" style="padding:2px 12px">{out}</div>')
 
@@ -3571,8 +3736,8 @@ def today_page(date, prog_day, preds, now):
                 + (f'<span class="big5" style="margin:4px 0 0">{picks}</span>' if picks else "")
                 + f'</span><span class="dl">{dl}</span></a>')
     s_html = "".join(card(it) for it in sorted(up_s)[:10]) or '<p class="sub" style="margin:8px 0">これからのSランクはありません</p>'
-    h_html = "".join(card(it, "・🔥" + "・".join(f'{b["waku"]}号艇' for b in it[6])) for it in sorted(up_hot)[:10]) \
-        or '<p class="sub" style="margin:8px 0">これからの🔥はありません</p>'
+    h_html = "".join(card(it, ("・調子上昇 " if ENT else "・🔥") + "・".join(f'{b["waku"]}号艇' for b in it[6])) for it in sorted(up_hot)[:10]) \
+        or f'<p class="sub" style="margin:8px 0">{"これからの該当レースはありません" if ENT else "これからの🔥はありません"}</p>'
     hit = sum(1 for _, ok, _ in done_s if ok)
     d_html = "".join(f'<div class="cell" style="display:flex;gap:6px;align-items:center"><span style="flex:1;min-width:0"><b>{VENUES[it[1]]} {it[2]}R</b>'
                      f'<span class="sub">結果 {c3}</span></span><b style="font-size:13px;color:{"var(--green)" if ok else "var(--sub)"}">{"的中" if ok else "はずれ"}</b></div>'
@@ -3580,7 +3745,7 @@ def today_page(date, prog_day, preds, now):
     body = (f'<h1>今日の注目レース <span class="sub">{jp(date)}</span></h1>'
             '<p class="sub">これから締切のレースから、堅い（Sランク）レースのおすすめ5点と、普段より調子のいい艇（🔥）がいるレースを集めました。</p>'
             f'<h2>堅いレース（S）</h2><div class="card" style="padding:2px 12px">{s_html}</div>'
-            f'<h2>🔥の艇がいるレース</h2><div class="card" style="padding:2px 12px">{h_html}</div>'
+            f'<h2>{"調子のいい艇がいるレース" if ENT else "🔥の艇がいるレース"}</h2><div class="card" style="padding:2px 12px">{h_html}</div>'
             + (f'<h2>今日のSランクの答え合わせ <span class="sub">5点で{hit}/{len(done_s)}的中</span></h2><div class="card g2 g3">{d_html}</div>' if done_s else "")
             + '<div class="btnrow"><a href="/record.html">的中実績</a><a href="/">トップへ</a></div>' + ad())
     return page(f"今日の注目レース {jp(date)}", body, f"{jp(date)}の競艇の注目レース。堅いレースのおすすめ5点と、調子のいい艇。", "/today.html")
@@ -3723,6 +3888,11 @@ def main():
     if OUT.exists():
         shutil.rmtree(OUT)
     OUT.mkdir()
+    if ENT:
+        _tk = today if today in dates else (dates[-1] if dates else None)
+        if _tk:
+            _tp = DATA / "predictions" / f"{_tk}.json"
+            _TICKER[0] = _ticker_html(_tk, prog[prog.date == _tk], json.loads(_tp.read_text())["races"] if _tp.exists() else {})
     urls = ["/"]
     pick_hi, pick_lo = [], []
     for date in dates:
@@ -3748,7 +3918,7 @@ def main():
                 base = f'{info["race"]:02d}'
                 result = stats.race_result(jcd, date, info["race"])
                 if live.get(f"{jcd}-{base}"):   # 成績ファイルが出るまでのつなぎ。2連単の配当はこちらにしかない
-                    result = {**live[f"{jcd}-{base}"], **(result or {})}
+                    result = {**live[f"{jcd}-{base}"], **{k: x for k, x in (result or {}).items() if not (isinstance(x, float) and x != x)}}   # 成績ファイル側が空欄(NaN)なら速報の値を残す
                 ready = result is not None
                 (d / f"{base}.html").write_text(predict_page(date, info, pred, races, ready))
                 (d / f"{base}-entry.html").write_text(entry_page(date, info, boats, season, series, n_series, pred, races, ready))

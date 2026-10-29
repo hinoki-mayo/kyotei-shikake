@@ -43,8 +43,12 @@ jobs:
           git config user.email "github-actions@users.noreply.github.com"
           git add data
           git commit -m "展示反映 $(TZ=Asia/Tokyo date +%H:%M)"
-          git pull --rebase
-          git push
+          # 購入係の保存とぶつかって弾かれることがあるので、取り込み直して何回かやり直す(弾かれたまま終わると展示が消える)
+          for i in 1 2 3 4 5 6; do
+            git pull --rebase && git push && exit 0
+            sleep $((i * 3))
+          done
+          exit 1
       # サイト作りが失敗しても、取り込んだ展示・買い目のデータは先に保存しておく
       # 購入係がいる時間は、購入係が最新のデータでサイトを作って出す(こちらが古いサイトで上書きしないよう、作らない)
       - if: steps.buyer.outputs.running != '1'

@@ -33,8 +33,11 @@ jobs:
           git config user.email "github-actions@users.noreply.github.com"
           git add data
           git diff --cached --quiet || git commit -m "予想更新 $(TZ=Asia/Tokyo date +%Y-%m-%d_%H:%M)"
-          git pull --rebase
-          git push
+          for i in 1 2 3 4 5 6; do   # 購入係の保存とぶつかったら取り込み直してやり直す
+            git pull --rebase && git push && break
+            [ $i = 6 ] && exit 1
+            sleep $((i * 3))
+          done
       - name: 公開(Cloudflare Pages)
         if: ${{ vars.CF_PROJECT != '' }}
         uses: cloudflare/wrangler-action@v3
