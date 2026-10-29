@@ -150,92 +150,73 @@ footer{max-width:760px;margin:12px auto;padding:12px;font-size:12px;color:var(--
 
 
 ENT = os.environ.get("SITE_THEME") == "ent"   # お試し: 見た目をエンタメ寄りにする(並び・中身は同じ)
-ENT_HEAD = ('<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>'
-            '<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@700;800&display=swap" rel="stylesheet">')
+ENT_HEAD = ""
 ENT_CSS = """
-:root{--gold1:#F7D774;--gold2:#C9932B;--ink:#151a2e;--ent1:#1B2A4A;--ent2:#4B2C8F;--pop:#FF5A36}
-body{background:radial-gradient(circle at 10% -10%,rgba(255,90,54,.08),transparent 40%),radial-gradient(circle at 110% 10%,rgba(75,44,143,.10),transparent 45%),var(--bg)}
-h1,h2,.hero .hl,.rank,.sumhead b,.tri-main,.tot-num,.big5 span,.rno,.ent-best b,.tile b{font-family:'M PLUS Rounded 1c',-apple-system,sans-serif}
-header{background:linear-gradient(90deg,var(--ent1),var(--ent2));box-shadow:0 2px 10px rgba(27,42,74,.35)}
-header a::before{content:'🥋 '}
-h2::before{content:'';display:inline-block;width:5px;height:15px;border-radius:3px;background:linear-gradient(var(--pop),#FFB23E);margin-right:6px;vertical-align:-2px}
-.card{border-radius:14px;border-color:transparent;box-shadow:0 2px 10px rgba(16,24,40,.07)}
-.hero{position:relative;overflow:hidden;background:linear-gradient(135deg,#17213d 0%,#2B2C6E 55%,#5A2E8C 100%);border:0;border-radius:16px;box-shadow:0 6px 18px rgba(43,44,110,.35)}
-.hero::after{content:'';position:absolute;right:-40px;top:-40px;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,rgba(255,255,255,.18),transparent 70%)}
-.hero .hl{font-size:22px;font-weight:800;text-shadow:0 2px 0 rgba(0,0,0,.25)}
-.shihan{display:inline-flex!important;align-items:center;gap:4px;background:rgba(255,255,255,.14);border-radius:12px;padding:1px 9px;font-size:11px;font-weight:700;margin-bottom:4px}
-.stack{height:34px;border-radius:10px;box-shadow:inset 0 0 0 2px rgba(255,255,255,.25)}
-.rank{border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,.2);position:relative}
-.rank-S{background:linear-gradient(135deg,var(--gold1),var(--gold2));color:#5a3a00;overflow:hidden}
-.rank-S{box-shadow:0 0 0 2px #fff,0 0 0 4px #E0A526,0 3px 8px rgba(201,147,43,.5)}
-.rank-A{background:linear-gradient(135deg,#FF8A3D,#E2452B)}.rank-B{background:linear-gradient(135deg,#3FA7A0,#2C6F8E)}
-.rank-C{background:linear-gradient(135deg,#7B4BD1,#3B2577)}
-.sumhead .rank-C+div b::after{content:' ⚡荒れ注意';font-size:12px;color:#7B4BD1}
-.big5 span{background:var(--card);border:2px dashed var(--bd);border-radius:10px;position:relative}
-.big5 span:first-child{border-color:var(--pop);color:var(--pop)}
-.lab{border-radius:4px 12px 12px 4px;font-weight:800;padding:2px 10px}
-.ok{background:none;color:#D7263D;border:2px solid #D7263D;border-radius:50%;width:46px;height:46px;display:inline-flex;align-items:center;justify-content:center;
- text-align:center;font-size:11px;line-height:1.15;transform:rotate(-12deg);font-weight:800;padding:2px;box-shadow:inset 0 0 0 2px rgba(215,38,61,.15)}
+:root{--nv:#13235b;--rd:#d0021b;--ln:#d5d9e2;--gd:#b8861e}
+body{background:#eef0f4}
+header{background:var(--nv);border-bottom:3px solid var(--rd)}
+header a{font-weight:900;letter-spacing:.03em}
+header a::before{content:'予想';display:inline-block;background:var(--rd);color:#fff;font-size:11px;line-height:1;padding:4px 5px;margin-right:8px;vertical-align:2px;border-radius:2px}
+.gnav{display:flex;background:#fff;border-bottom:1px solid var(--ln)}
+.gnav a{flex:1;text-align:center;padding:7px 2px;font-size:12px;font-weight:700;color:var(--nv);border-right:1px solid #e6e8ee;white-space:nowrap}.gnav a:last-child{border-right:0}
+.ticker{overflow-x:auto;white-space:nowrap;background:#fff;border-bottom:1px solid var(--ln);font-size:12.5px;color:var(--tx);padding:6px 12px;scrollbar-width:none}
+.ticker::-webkit-scrollbar{display:none}.ticker b{background:var(--rd);color:#fff;font-size:11px;padding:2px 6px;margin-right:8px;border-radius:2px}
+.ticker .tk span:not(:last-child)::after{content:'／';color:var(--sub);margin:0 6px}
+h2{background:var(--nv);color:#fff;padding:7px 10px;margin:16px 0 0;font-size:14.5px;border-left:6px solid var(--rd)}
+h2 .sub{color:#c3c9de}h2 a{color:#ffd45c!important}
+h2+.card,h2+p+.card{margin-top:0;border-top:0;border-radius:0 0 4px 4px}
+.card{border-radius:4px;border:1px solid var(--ln);box-shadow:none}
+.hero{background:#fff;color:var(--tx);border:1px solid var(--ln);border-top:4px solid var(--rd);border-radius:4px}
+.hero .hl{font-size:19px;font-weight:900}.hero .hs,.hero .cap{color:var(--sub);opacity:1}
+.stack{background:#eceef3;border-radius:2px;height:28px;box-shadow:inset 0 0 0 1px #c9ccd3}.stack span:first-child{box-shadow:inset 0 0 0 1px #c9ccd3}
+.sh-row{display:flex;gap:10px;align-items:flex-start}.sh-row svg{flex:none;width:44px;height:44px}
+.bubble{flex:1;min-width:0}.bubble .hl::before{content:'師範の一言';display:block;font-size:11px;color:var(--rd);font-weight:700;letter-spacing:.05em}
+.rank{border-radius:3px;box-shadow:none}
+.rank-S{background:var(--gd)}.rank-A{background:#e2452b}.rank-B{background:#2c6f8e}.rank-C{background:#5b3aa8}
+.sumhead .rank+div b::after{display:inline-block;margin-left:8px;padding:1px 6px;border:1px solid currentColor;border-radius:2px;font-size:12px;font-weight:700;vertical-align:2px;background:#fff}
+.sumhead .rank-S+div b::after{content:'鉄板';color:var(--gd)}.sumhead .rank-A+div b::after{content:'本命';color:#e2452b}
+.sumhead .rank-B+div b::after{content:'混戦';color:#2c6f8e}.sumhead .rank-C+div b::after{content:'波乱';color:#5b3aa8}
+.stars{display:inline-block;margin-left:6px;font-size:12px;letter-spacing:1px;color:var(--gd);vertical-align:2px}
+.gauge{display:flex;align-items:center;gap:10px;margin:8px 0 2px;padding:6px 8px;background:#f6f7fa;border:1px solid #e6e8ee;border-radius:3px}
+.gauge .gl{font-size:12px;color:var(--sub)}.gauge .gl b{display:block;font-size:20px;color:var(--tx)}
+.big5 span{border:1px solid var(--ln);border-radius:3px;background:#fff}.big5 span:first-child{border-color:var(--rd);background:#fff4f4;color:var(--rd)}
+.lab{border-radius:2px}
+.ok{background:var(--rd);color:#fff;border-radius:2px;padding:2px 6px;font-size:11px;font-weight:700}
+.btnrow a{background:var(--nv);color:#fff;border:0;border-radius:3px;box-shadow:none}
+.tile.hot{background:var(--rd)}.grid{border-radius:2px}
+.tabs a.on{border-bottom-color:var(--rd)}
+.ent-best{display:block;background:#fff;border:2px solid var(--rd);border-radius:4px;margin:10px 0;color:var(--tx)}
+.ent-best .eb-h{background:var(--rd);color:#fff;font-weight:900;font-size:13px;padding:4px 10px}
+.ent-best .eb-b{display:flex;align-items:center;gap:10px;padding:8px 10px}.ent-best .eb-b b{font-size:18px;display:block}.ent-best .s{font-size:12px;color:var(--sub)}
+.ent-best .pay{margin-left:auto;text-align:right;font-weight:900;font-size:24px;color:var(--rd)}.ent-best .pay small{display:block;font-size:10.5px;color:var(--sub);font-weight:500}
+.ent-score{display:grid;grid-template-columns:repeat(3,1fr);background:#fff;border:1px solid var(--ln);border-radius:4px;margin:8px 0;overflow:hidden}
+.ent-score .sh{grid-column:1/-1;background:#f3f4f8;border-bottom:1px solid var(--ln);font-size:12px;font-weight:700;padding:4px 10px;color:var(--nv)}
+.ent-score div{text-align:center;padding:6px 4px;border-right:1px solid #e6e8ee}.ent-score div:last-child{border-right:0}
+.ent-score b{display:block;font-size:22px;font-weight:900;color:var(--rd)}.ent-score span{font-size:11px;color:var(--sub)}
+.scn{border-left:4px solid var(--rd);background:#fff8f6;padding:8px;margin:4px 0;border-bottom:0}
+.scbar,.pbar{display:block;height:6px;background:#eceef3;margin:4px 0 2px;overflow:hidden}.scbar i,.pbar i{display:block;height:100%;background:#e2452b}
+.t3r{align-items:center}.t3r .pbar{flex:1;margin:0 8px;min-width:30px}.t3r:nth-child(-n+3){background:#fff8e1}
+.rk3{display:inline-block;width:18px;height:18px;line-height:18px;text-align:center;font-size:11px;color:#fff;background:var(--gd);border-radius:2px;margin-right:4px;vertical-align:1px}
+.boat.erow{border:1px solid #e6e8ee;border-left:5px solid var(--bc);border-radius:3px;padding:7px 8px;margin:4px 0}
+.boat.pod{border-radius:3px;padding:8px;margin:4px 0;border:1px solid #e6e8ee}.boat.pod1{background:#fff6dc;border-left:5px solid var(--gd)}.boat.pod2{background:#f4f5f8;border-left:5px solid #9aa0ad}.boat.pod3{background:#fbf0e7;border-left:5px solid #b07040}
+.manshu{margin-left:8px;background:var(--rd);color:#fff;border-radius:2px;padding:1px 6px;font-weight:700;font-size:11px}
+.boat.vrow{padding:7px 8px;margin:4px 0;border:1px solid #e6e8ee;border-radius:3px}
+.vok b::after{content:'当たり';margin-left:6px;font-size:10.5px;background:var(--green);color:#fff;padding:1px 5px;border-radius:2px;vertical-align:2px}
+.vng b::after{content:'外れ';margin-left:6px;font-size:10.5px;background:#9aa0ad;color:#fff;padding:1px 5px;border-radius:2px;vertical-align:2px}
+.win{background:#fff;border:2px solid var(--rd);border-radius:4px;margin:10px 0}
+.win .wh{background:var(--rd);color:#fff;font-weight:900;padding:5px 10px;font-size:14px}
+.win .wb{display:flex;align-items:baseline;gap:10px;padding:10px}.win .wb .s{color:var(--sub);font-size:12.5px}
+.win .wb b{margin-left:auto;font-size:26px;font-weight:900;color:var(--rd)}.win .wb b small{font-size:11px;color:var(--sub);font-weight:500;margin-right:4px}
+.lose{border:1px solid var(--ln);background:#fff;border-radius:4px;padding:8px 10px;margin:10px 0;font-size:13px;color:var(--sub)}
+.brow .bar{height:10px;border-radius:2px}.brow .bar i{border-radius:2px;background:#e2452b}
+.nx .dl small{color:var(--rd);font-weight:700}
 .res{padding:8px 2px}
-.tile{border-radius:0;transition:transform .1s}.tile.hot{background:linear-gradient(135deg,#FF7A3D,#E2452B)}
-.grid{border-radius:12px;border:0;box-shadow:0 2px 10px rgba(16,24,40,.08)}
-.btnrow a{border-radius:14px;border:0;background:linear-gradient(180deg,#FF9A4D,#F2622E);color:#fff;font-weight:800;box-shadow:0 4px 0 #B8431A;transform:translateY(-2px)}
-.btnrow a:active{transform:translateY(1px);box-shadow:0 1px 0 #B8431A}
-/* ゲーム風 */
-.stars{display:inline-block;margin-left:6px;font-size:12px;letter-spacing:1px;vertical-align:2px}
-.stars.r5{color:#E0A526}.stars.r4{color:#F2622E}.stars.r3{color:#2C8E8E}.stars.r2{color:#7B4BD1}
-.brow .bar{width:84px;height:12px;border-radius:6px;background:repeating-linear-gradient(90deg,var(--off) 0 9px,var(--card) 9px 10px);box-shadow:inset 0 0 0 1px var(--bd)}
-.brow .bar i{border-radius:6px;background:linear-gradient(180deg,#FFB23E,#F2622E);box-shadow:inset 0 -3px 0 rgba(0,0,0,.12)}
-.ent-score{position:relative;margin-top:16px}.ent-score::before{content:'本日の戦績';position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:linear-gradient(90deg,#F2622E,#E0A526);color:#fff;font-size:11px;font-weight:800;padding:1px 12px;border-radius:10px;z-index:1}
-.ent-score div{border:2px solid #F7D9A8;border-radius:12px}
-.tabs a.on{border-bottom-color:var(--pop)}
-.ent-best{display:flex;gap:12px;align-items:center;background:linear-gradient(135deg,#FFE7A0,#FFC24B);color:#4a2c00;border-radius:16px;padding:12px 14px;margin:10px 0;box-shadow:0 4px 14px rgba(201,147,43,.35);position:relative;overflow:hidden}
-.ent-best .big{font-size:34px;line-height:1}.ent-best b{font-size:20px;font-weight:800;display:block}.ent-best .s{font-size:12px;opacity:.85}
-.ent-best .pay{margin-left:auto;text-align:right;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:800;font-size:22px}
-.ent-best .pay small{display:block;font-size:11px;font-weight:700;opacity:.8}
-.ent-score{display:flex;gap:8px;margin:8px 0}.ent-score div{flex:1;background:var(--card);border-radius:12px;padding:8px;text-align:center;box-shadow:0 2px 8px rgba(16,24,40,.06)}
-.ent-score b{display:block;font-family:'M PLUS Rounded 1c',sans-serif;font-size:22px;font-weight:800;color:var(--pop)}.ent-score span{font-size:11px;color:var(--sub)}
-.scn{background:linear-gradient(90deg,rgba(255,90,54,.06),transparent);border-radius:12px;padding:10px 8px;margin:4px 0;border:0}
-.scbar,.pbar{display:block;height:6px;border-radius:3px;background:var(--off);margin:4px 0 2px;overflow:hidden}.scbar i,.pbar i{display:block;height:100%;border-radius:3px;background:linear-gradient(90deg,#FFB23E,var(--pop))}
-.t3r{align-items:center}.t3r .pbar{flex:1;height:6px;margin:0 8px;min-width:30px}
-.t3r:nth-child(-n+3){background:linear-gradient(90deg,rgba(247,215,116,.25),transparent);border-radius:8px;padding-left:6px!important}
-.erow{border-left:5px solid var(--bc);border-bottom:0;border-radius:10px;padding:8px 8px;margin:5px 0;background:var(--card);box-shadow:0 1px 6px rgba(16,24,40,.06)}
-.pod{border-radius:12px;padding:10px 8px;margin:5px 0;border:0}.pod b{font-family:'M PLUS Rounded 1c',sans-serif}
-.pod1{background:linear-gradient(135deg,rgba(247,215,116,.55),rgba(201,147,43,.25))}.pod1 b:first-child{font-size:26px!important}
-.pod2{background:linear-gradient(135deg,rgba(210,214,222,.6),rgba(160,168,180,.2))}.pod2 b:first-child,.pod3 b:first-child{font-size:22px!important}
-.pod3{background:linear-gradient(135deg,rgba(214,160,110,.45),rgba(160,100,60,.15))}
-.manshu{margin-left:8px;color:#D7263D;border:2px solid #D7263D;border-radius:8px;padding:0 6px;font-weight:800;font-size:12px;transform:rotate(-6deg);display:inline-block}
-.vrow{border-radius:10px;padding:8px;margin:4px 0;border:0}.vok{background:rgba(15,110,86,.10)}.vng{background:rgba(163,45,45,.07)}
-.vok b::after{content:' ⭕'}.vng b::after{content:' ✖';color:var(--red)}
-.otabs>input:checked+label{background:linear-gradient(135deg,#FF8A3D,#E2452B);border:0}
-/* 速報テロップ */
-.ticker{overflow-x:auto;white-space:nowrap;background:linear-gradient(90deg,#FFF3C4,#FFE0B2);border-bottom:1px solid #F3C77A;font-size:12.5px;font-weight:800;color:#5a3200;padding:5px 12px;scrollbar-width:none}
-.ticker::-webkit-scrollbar{display:none}.ticker .tk span{display:inline-block;background:#fff;border:1px solid #F3C77A;border-radius:12px;padding:1px 9px;margin-right:6px}
-/* カウントダウン */
-.nx .dl small{color:var(--pop);font-weight:800;font-size:12px}
-/* ランクのハンコ */
-.sumhead{position:relative}
-.sumhead .rank+div b::after{display:inline-block;margin-left:10px;padding:0 6px;border:2px solid currentColor;border-radius:6px;transform:rotate(-8deg);font-size:15px;font-family:'M PLUS Rounded 1c',sans-serif;font-weight:800;vertical-align:2px}
-.sumhead .rank-S+div b::after{content:'鉄板';color:#C9932B}.sumhead .rank-A+div b::after{content:'本命';color:#FF8A3D}
-.sumhead .rank-B+div b::after{content:'混戦';color:#3FD0C9}.sumhead .rank-C+div b::after{content:'波乱⚡';color:#C08BFF;font-size:14px}
-/* 堅さメーター */
-.gauge{display:flex;align-items:center;gap:10px;margin:8px 0 2px}.gauge svg{flex:none}.gauge .gl{font-size:12px;color:var(--sub)}.gauge .gl b{display:block;font-size:20px;color:var(--tx);font-family:'M PLUS Rounded 1c',sans-serif}
-/* 師範 */
-.sh-row{display:flex;gap:10px;align-items:flex-start}.sh-row svg{flex:none;filter:drop-shadow(0 3px 6px rgba(0,0,0,.4))}
-.bubble{position:relative;background:#fff;color:#1b1f3b;border-radius:14px;padding:8px 12px;flex:1;min-width:0}
-.bubble::before{content:'';position:absolute;left:-8px;top:16px;border:8px solid transparent;border-right-color:#fff;border-left:0}
-.bubble .hl{font-size:19px!important;text-shadow:none!important;color:#1b1f3b}.bubble .hs{color:#4a4f73;opacity:1!important}
-.hero .shihan{display:none!important}
-/* 的中で紙吹雪 */
-.win{position:relative;overflow:hidden;text-align:center;border-radius:16px;padding:16px 10px;margin:10px 0;background:linear-gradient(135deg,#FF3D6E,#FF8A3D 50%,#FFD45C);color:#fff;box-shadow:0 8px 24px rgba(255,61,110,.45)}
-.win b{display:block;font-family:'M PLUS Rounded 1c',sans-serif;font-size:28px;text-shadow:0 3px 0 rgba(0,0,0,.2)}.win .s{font-size:13px;font-weight:700}
-.win .rw{display:inline-block;margin-top:6px;background:#fff;color:#E2452B;border-radius:20px;padding:2px 14px;font-weight:800;font-family:'M PLUS Rounded 1c',sans-serif;font-size:18px;box-shadow:0 3px 0 rgba(0,0,0,.15)}
-.win .st{letter-spacing:4px;font-size:16px;color:#FFF7C2}
-.lose{text-align:center;border-radius:14px;padding:10px;margin:10px 0;background:var(--card);border:2px dashed var(--bd);color:var(--sub);font-weight:700}
-@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .ent-best{background:linear-gradient(135deg,#5a4413,#8a6416);color:#fff3d6}}
+.otabs>label{border-radius:3px}.otabs>input:checked+label{background:var(--nv);border-color:var(--nv)}
 """
 
 
+ENT_NAV = ('<nav class="gnav"><a href="/">本日のレース</a><a href="/today.html">今日の注目</a>'
+           '<a href="/record.html">的中実績</a><a href="/venue/">場の特徴</a></nav>')
 _TICKER = [""]   # お試し: 画面上に流す今日の当たり
 ENT_JS = """<script>
 (function(){const els=[...document.querySelectorAll('[data-dl]')];if(!els.length)return;
@@ -259,13 +240,13 @@ def _ticker_html(date, prog_day, preds):
         if x:
             lab, ok = _judge(x[2], res)
             if ok and lab.startswith("3連単"):
-                hits.append((pay, f"🎯 {VENUES[r.jcd]}{int(r.race)}R 予想的中 {res['combo3t']} {int(pay):,}円"))
+                hits.append((pay, f"{VENUES[r.jcd]}{int(r.race)}R 的中 {res['combo3t']} {int(pay):,}円"))
         if pay >= 10000:
-            man.append((pay, f"💰 {VENUES[r.jcd]}{int(r.race)}R 万舟 {res['combo3t']} {int(pay):,}円"))
+            man.append((pay, f"{VENUES[r.jcd]}{int(r.race)}R 万舟 {res['combo3t']} {int(pay):,}円"))
     items = [t for _, t in sorted(hits, reverse=True)[:6]] + [t for _, t in sorted(man, reverse=True)[:3]]
     if not items:
         return ""
-    sp = "<b>今日の当たり ▶ </b>" + "".join(f"<span>{html.escape(t)}</span>" for t in items)
+    sp = "<b>速報</b>" + "".join(f"<span>{html.escape(t)}</span>" for t in items)
     return f'<div class="ticker"><div class="tk">{sp}</div></div>'
 
 
@@ -297,7 +278,7 @@ def page(title, body, desc="", path="", noindex=False):
 <link rel="canonical" href="{CFG['base_url']}{path}"><meta property="og:title" content="{html.escape(title)}">
 <meta property="og:site_name" content="{CFG['site_name']}">{gsc}<meta name="theme-color" content="#1B2A4A">
 {ENT_HEAD if ENT else ""}<style>{CSS}{ENT_CSS if ENT else ""}</style>{CFG.get('ad_head', '')}</head><body>
-<header><a href="/">{CFG['site_name']}</a></header>{_TICKER[0] if ENT else ""}<main>{body}</main>
+<header><a href="/">{CFG['site_name']}</a></header>{ENT_NAV if ENT else ""}{_TICKER[0] if ENT else ""}<main>{body}</main>
 <footer>{CFG['site_name']}は、展示の進入をもとにデータから見た1マークの展開の傾向を掲載しています。着順を保証するものではありません。舟券の購入は20歳から。<br>
 <a href="/record.html">的中実績</a>・<a href="/venue/">全24場の特徴</a>・<a href="/about.html">運営者情報</a>・<a href="/privacy.html">プライバシーポリシー</a>・<a href="/disclaimer.html">免責事項</a>・<a href="/contact.html">お問い合わせ</a></footer>
 </body></html>"""
@@ -454,7 +435,7 @@ def tenji_card(date, info):
     cells = "".join(
         f'<div style="text-align:center">{chip(w)}<b style="display:block;font-size:14px;margin-top:2px;'
         f'{"color:var(--red)" if (tj[w - 1] if len(tj) >= w else None) == (rk[0] if rk else -1) else ""}">'
-        f'{"👑" if ENT and rk and len(tj) >= w and tj[w - 1] == rk[0] else ""}{(f"{tj[w - 1]:.2f}" if len(tj) >= w and tj[w - 1] else "-")}</b>'
+        f'{(f"{tj[w - 1]:.2f}" if len(tj) >= w and tj[w - 1] else "-")}</b>'
         f'<span class="sub" style="font-size:10.5px">{(str(rk.index(tj[w - 1]) + 1) + "位") if len(tj) >= w and tj[w - 1] in rk else ""}</span></div>'
         for w in range(1, 7))
     wx = "・".join(x for x in (f'{lv.get("wind_dir", "")}の風 {lv["wind"]:.0f}m' if lv.get("wind") is not None else "",
@@ -1047,7 +1028,7 @@ def odds_page(date, info, pred, races, result_ready=False):
             o = o3.get(tuple(int(x) - 1 for x in c.split("-")))
             if not o:
                 continue
-            md = ("🥇", "🥈", "🥉")[n_] if ENT and n_ < 3 else ""
+            md = f'<span class="rk3">{n_ + 1}</span>' if ENT and n_ < 3 else ""
             t3 += (f'<div class="boat t3r" style="padding:6px 0"><b style="width:70px">{md}{c}</b><span class="sub" style="width:48px">{_pct(p)}</span>'
                    f'<span class="pbar"><i style="width:{p / p_top * 100:.0f}%"></i></span>'
                    f'<b style="margin-left:auto">{o:.1f}倍</b>' + (' <span class="ok" style="margin-left:6px">割安</span>' if mark(p, o) else '') + '</div>')
@@ -1102,7 +1083,7 @@ def result_page(date, info, pred, races, result, boats=None):
                     'onerror="this.style.visibility=\'hidden\'">') if tb else ""
             meta = "・".join(x for x in (f"{crs_of(w)}コース" if crs_of(w) else "", f"ST {stv(w)}" if stv(w) else "") if x)
             ri = int(r) if str(r).isdigit() else 0
-            lab_r = ("🥇", "🥈", "🥉")[ri - 1] if ENT and 1 <= ri <= 3 else (f"{ri}着" if ri else html.escape(str(r)))
+            lab_r = f"{ri}着" if ri else html.escape(str(r))
             podium += (f'<div class="boat pod pod{ri}" style="align-items:center"><b style="width:34px;font-size:18px">{lab_r}</b>{chip(w)}{face}'
                        f'<div style="min-width:0"><b>{nm(w)}</b><br><span class="sub">{meta}</span></div></div>')
         rest = "".join(f'<tr><td>{int(r) if str(r).isdigit() else html.escape(str(r))}</td><td>{chip(w)}</td><td style="text-align:left">{nm(w)}</td>'
@@ -1114,7 +1095,7 @@ def result_page(date, info, pred, races, result, boats=None):
                 pop, src = _popularity(date, key, kind, c)
                 pays += (f'<div class="boat" style="padding:6px 0"><b style="width:56px">{lab}</b><b>{html.escape(c)}</b>'
                          f'<span style="margin-left:auto"><b>{int(y):,}円</b>' + (f' <span class="sub">{pop}番人気</span>' if pop else "") + '</span>'
-                         + ('<span class="manshu">💰万舟</span>' if ENT and kind == "3t" and y >= 10000 else "") + '</div>')
+                         + ('<span class="manshu">万舟</span>' if ENT and kind == "3t" and y >= 10000 else "") + '</div>')
         src_note = '<p class="sub" style="margin:4px 0 0">人気は確定オッズ(無ければ締切前のオッズ)で数えたもの。進入・STは公式の成績ファイルが出てから入ります。</p>'
         st_note = "" if any(stv(w) for w, _ in order) else ""
         win = ""
@@ -1126,12 +1107,12 @@ def result_page(date, info, pred, races, result, boats=None):
             pay3 = result.get("payout3t")
             pay3 = f'{int(pay3):,}円' if isinstance(pay3, (int, float)) and pay3 == pay3 else ""
             if ok and lab.startswith("3連単"):
-                win = (f'<div class="win"><span class="st">★★★</span><b>予想的中！</b><span class="s">3連単 {result["combo3t"]}（おすすめ5点）</span><br>'
-                       f'<span class="rw">100円 ➜ {pay3}</span></div>')
+                win = (f'<div class="win"><div class="wh">的中速報　道場の予想が的中しました</div><div class="wb"><span class="s">3連単 {result["combo3t"]}<br>おすすめ5点</span>'
+                       f'<b><small>100円 →</small>{pay3}</b></div></div>')
             elif ok:
-                win = f'<div class="lose" style="color:var(--green);border-color:var(--green)">⭕ {lab}（3連単 {result["combo3t"]} {pay3}）</div>'
+                win = f'<div class="lose" style="color:var(--green);border-color:var(--green)">{lab}（3連単 {result["combo3t"]} {pay3}）</div>'
             else:
-                win = f'<div class="lose">💦 今回は外れ。{result["combo3t"]} {pay3}　次のレースで取り返す！</div>'
+                win = f'<div class="lose">今回の予想は外れ（3連単 {result["combo3t"]} {pay3}）</div>'
         content = win + (f'<h2>結果（決まり手：{html.escape(kimarite) or "―"}）</h2><div class="card">{podium}</div>'
                    + (f'<div class="card"><b>払戻</b>{pays}{src_note}</div>' if pays else "")
                    + '<div class="card"><b>着順</b><div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:13.5px;text-align:center;margin-top:6px">'
@@ -3515,10 +3496,10 @@ def _recent_results_html(date, prog_day, preds, now, n=4):
         h5 = [(float(res.get("payout3t") or 0), j, race, res) for dl, j, race, res, (lab, ok) in judged if lab.startswith("3連単")]
         if h5:
             pay, j, race, res = max(h5)
-            best = (f'<a class="ent-best" href="/{date}/{j}/{race:02d}-result.html"><span class="big">🎯</span><span><span class="s">今日の一撃</span>'
-                    f'<b>{VENUES[j]} {race}R</b><span class="s">{res["combo3t"]}・おすすめ5点で的中</span></span>'
-                    f'<span class="pay">{int(pay):,}円<small>100円あたり</small></span></a>')
-        best += (f'<div class="ent-score"><div><b>{len(judged)}戦</b><span>結果が出たレース</span></div><div><b>{hit}勝</b><span>予想が当たった</span></div>'
+            best = (f'<a class="ent-best" href="/{date}/{j}/{race:02d}-result.html"><div class="eb-h">本日の的中ハイライト</div><div class="eb-b"><span>'
+                    f'<b>{VENUES[j]} {race}R</b><span class="s">3連単 {res["combo3t"]}（おすすめ5点で的中）</span></span>'
+                    f'<span class="pay">{int(pay):,}円<small>100円あたりの払戻</small></span></div></a>')
+        best += (f'<div class="ent-score"><div class="sh">本日の戦績</div><div><b>{len(judged)}戦</b><span>結果が出たレース</span></div><div><b>{hit}勝</b><span>予想が当たった</span></div>'
                  f'<div><b>{hit / len(judged):.0%}</b><span>勝率</span></div></div>')
     for dl, j, race, res, (lab, ok) in sorted(judged, reverse=True)[:n]:
         pay = f'{int(res["payout3t"]):,}円' if res.get("payout3t") else ""
