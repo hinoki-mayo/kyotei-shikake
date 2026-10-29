@@ -124440,5 +124440,694 @@ null
 }
 },
 "pred_version": "final"
+},
+"01-09": {
+"plans": {
+"balance": {
+"skip": true
+},
+"in_hit": {
+"skip": false,
+"head": 1,
+"himo": [
+2,
+4,
+5
+],
+"ev": 0.856,
+"hit": 0.492,
+"stake": 1100,
+"scenario": "1号艇(1コース)が逃げる展開(1コースが勝つ確率64%)。2・3着は2・4・5号艇の争い",
+"tickets": [
+{
+"combo": "1-2-4",
+"units": 4,
+"odds": 4.5,
+"prob": 0.2015,
+"model": 0.0455
+},
+{
+"combo": "1-2-5",
+"units": 1,
+"odds": 15.9,
+"prob": 0.0559,
+"model": 0.0357
+},
+{
+"combo": "1-4-2",
+"units": 3,
+"odds": 6.3,
+"prob": 0.1324,
+"model": 0.0234
+},
+{
+"combo": "1-4-5",
+"units": 1,
+"odds": 12.6,
+"prob": 0.0597,
+"model": 0.01
+},
+{
+"combo": "1-5-2",
+"units": 1,
+"odds": 36.7,
+"prob": 0.0226,
+"model": 0.0197
+},
+{
+"combo": "1-5-4",
+"units": 1,
+"odds": 38.0,
+"prob": 0.0195,
+"model": 0.0083
+}
+]
+},
+"in_ev": {
+"skip": false,
+"head": 1,
+"himo": [
+2,
+4,
+5
+],
+"ev": 0.856,
+"hit": 0.492,
+"stake": 1100,
+"scenario": "1号艇(1コース)が逃げる展開(1コースが勝つ確率64%)。2・3着は2・4・5号艇の争い",
+"tickets": [
+{
+"combo": "1-2-4",
+"units": 4,
+"odds": 4.5,
+"prob": 0.2015,
+"model": 0.0455
+},
+{
+"combo": "1-2-5",
+"units": 1,
+"odds": 15.9,
+"prob": 0.0559,
+"model": 0.0357
+},
+{
+"combo": "1-4-2",
+"units": 3,
+"odds": 6.3,
+"prob": 0.1324,
+"model": 0.0234
+},
+{
+"combo": "1-4-5",
+"units": 1,
+"odds": 12.6,
+"prob": 0.0597,
+"model": 0.01
+},
+{
+"combo": "1-5-2",
+"units": 1,
+"odds": 36.7,
+"prob": 0.0226,
+"model": 0.0197
+},
+{
+"combo": "1-5-4",
+"units": 1,
+"odds": 38.0,
+"prob": 0.0195,
+"model": 0.0083
+}
+]
+},
+"out_hit": {
+"skip": false,
+"head": 2,
+"himo": [
+1,
+4,
+5,
+6
+],
+"ev": 0.718,
+"hit": 0.15,
+"stake": 2000,
+"scenario": "2号艇(2コース)の差しが決まる展開(この艇が勝つ確率15%)。1コースは流れても2・3着に残りやすい",
+"tickets": [
+{
+"combo": "2-1-4",
+"units": 6,
+"odds": 13.1,
+"prob": 0.0596,
+"model": 0.0133
+},
+{
+"combo": "2-1-5",
+"units": 2,
+"odds": 35.8,
+"prob": 0.0213,
+"model": 0.0104
+},
+{
+"combo": "2-1-6",
+"units": 2,
+"odds": 41.5,
+"prob": 0.0178,
+"model": 0.008
+},
+{
+"combo": "2-4-1",
+"units": 2,
+"odds": 30.9,
+"prob": 0.0215,
+"model": 0.0036
+},
+{
+"combo": "2-4-5",
+"units": 1,
+"odds": 87.0,
+"prob": 0.0067,
+"model": 0.0013
+},
+{
+"combo": "2-4-6",
+"units": 1,
+"odds": 97.5,
+"prob": 0.0058,
+"model": 0.0009
+},
+{
+"combo": "2-5-1",
+"units": 1,
+"odds": 142.6,
+"prob": 0.0046,
+"model": 0.003
+},
+{
+"combo": "2-5-4",
+"units": 1,
+"odds": 211.7,
+"prob": 0.0027,
+"model": 0.001
+},
+{
+"combo": "2-5-6",
+"units": 1,
+"odds": 265.4,
+"prob": 0.0021,
+"model": 0.0008
+},
+{
+"combo": "2-6-1",
+"units": 1,
+"odds": 152.6,
+"prob": 0.004,
+"model": 0.0018
+},
+{
+"combo": "2-6-4",
+"units": 1,
+"odds": 226.4,
+"prob": 0.0024,
+"model": 0.0006
+},
+{
+"combo": "2-6-5",
+"units": 1,
+"odds": 350.1,
+"prob": 0.0015,
+"model": 0.0005
+}
+]
+},
+"out_ana": {
+"skip": false,
+"head": null,
+"himo": null,
+"ev": 0.642,
+"hit": 0.047,
+"stake": 1500,
+"scenario": "1コースが崩れる波乱を想定。5号艇(5コース)のまくり差しが決まる展開(この艇が勝つ確率4%)。内と外の間を割って抜ける形",
+"tickets": [
+{
+"combo": "5-1-2",
+"units": 2,
+"odds": 100.3,
+"prob": 0.0071,
+"model": 0.0053
+},
+{
+"combo": "5-1-6",
+"units": 2,
+"odds": 144.9,
+"prob": 0.0046,
+"model": 0.0031
+},
+{
+"combo": "2-5-1",
+"units": 2,
+"odds": 142.6,
+"prob": 0.0046,
+"model": 0.003
+},
+{
+"combo": "5-2-1",
+"units": 2,
+"odds": 160.4,
+"prob": 0.004,
+"model": 0.0026
+},
+{
+"combo": "6-1-2",
+"units": 2,
+"odds": 149.7,
+"prob": 0.0043,
+"model": 0.0024
+},
+{
+"combo": "5-1-4",
+"units": 1,
+"odds": 93.7,
+"prob": 0.0067,
+"model": 0.0021
+},
+{
+"combo": "2-6-1",
+"units": 1,
+"odds": 152.6,
+"prob": 0.004,
+"model": 0.0018
+},
+{
+"combo": "2-4-5",
+"units": 1,
+"odds": 87.0,
+"prob": 0.0067,
+"model": 0.0013
+},
+{
+"combo": "5-2-6",
+"units": 1,
+"odds": 320.1,
+"prob": 0.0018,
+"model": 0.0011
+},
+{
+"combo": "6-2-1",
+"units": 1,
+"odds": 205.7,
+"prob": 0.0028,
+"model": 0.0011
+}
+]
+},
+"e2_top1": {
+"skip": true,
+"bet": "2t"
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickura": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickgen": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickoutfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickinwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankabin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankagap": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick2": {
+"skip": true
+},
+"pickin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick2tan": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick21": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick21t": {
+"skip": true,
+"logic": "2026-10-14c"
+}
+},
+"odds": [
+null,
+null,
+null,
+19.0,
+100.3,
+149.7,
+4.5,
+13.1,
+null,
+null,
+null,
+null,
+15.9,
+35.8,
+null,
+28.6,
+93.7,
+165.2,
+17.0,
+41.5,
+null,
+38.5,
+144.9,
+270.7,
+null,
+null,
+null,
+35.0,
+160.4,
+205.7,
+null,
+null,
+null,
+null,
+null,
+null,
+null,
+null,
+null,
+82.2,
+206.4,
+310.6,
+null,
+null,
+null,
+94.4,
+320.1,
+444.3,
+6.3,
+30.9,
+null,
+null,
+null,
+null,
+null,
+null,
+null,
+null,
+null,
+null,
+12.6,
+87.0,
+null,
+null,
+null,
+null,
+15.7,
+97.5,
+null,
+null,
+null,
+null,
+36.7,
+142.6,
+null,
+48.6,
+131.0,
+226.6,
+null,
+null,
+null,
+81.3,
+207.8,
+333.1,
+38.0,
+211.7,
+null,
+null,
+null,
+null,
+61.5,
+265.4,
+null,
+68.2,
+175.7,
+303.2,
+50.7,
+152.6,
+null,
+87.1,
+207.6,
+330.7,
+null,
+null,
+null,
+129.6,
+264.6,
+436.0,
+50.2,
+226.4,
+null,
+null,
+null,
+null,
+86.4,
+350.1,
+null,
+107.7,
+210.5,
+322.0
+],
+"cond": {
+"g1": "A1",
+"na1": 2,
+"wingap": -0.88,
+"p1": 0.663,
+"head": [
+1
+],
+"pressed": false,
+"stgap": 0.021
+},
+"odds_at": "19:09",
+"stage": "候補",
+"stages": {
+"候補": {
+"t": "19:09:00",
+"mins": 5.0,
+"o3": [
+null,
+null,
+null,
+19.0,
+100.3,
+149.7,
+4.5,
+13.1,
+null,
+null,
+null,
+null,
+15.9,
+35.8,
+null,
+28.6,
+93.7,
+165.2,
+17.0,
+41.5,
+null,
+38.5,
+144.9,
+270.7,
+null,
+null,
+null,
+35.0,
+160.4,
+205.7,
+null,
+null,
+null,
+null,
+null,
+null,
+null,
+null,
+null,
+82.2,
+206.4,
+310.6,
+null,
+null,
+null,
+94.4,
+320.1,
+444.3,
+6.3,
+30.9,
+null,
+null,
+null,
+null,
+null,
+null,
+null,
+null,
+null,
+null,
+12.6,
+87.0,
+null,
+null,
+null,
+null,
+15.7,
+97.5,
+null,
+null,
+null,
+null,
+36.7,
+142.6,
+null,
+48.6,
+131.0,
+226.6,
+null,
+null,
+null,
+81.3,
+207.8,
+333.1,
+38.0,
+211.7,
+null,
+null,
+null,
+null,
+61.5,
+265.4,
+null,
+68.2,
+175.7,
+303.2,
+50.7,
+152.6,
+null,
+87.1,
+207.6,
+330.7,
+null,
+null,
+null,
+129.6,
+264.6,
+436.0,
+50.2,
+226.4,
+null,
+null,
+null,
+null,
+86.4,
+350.1,
+null,
+107.7,
+210.5,
+322.0
+],
+"o2": [
+2.7,
+7.1,
+null,
+9.9,
+33.2,
+44.2,
+null,
+null,
+null,
+20.6,
+59.5,
+53.7,
+4.5,
+17.4,
+null,
+null,
+null,
+null,
+14.2,
+48.1,
+null,
+21.8,
+54.7,
+46.2,
+23.5,
+40.9,
+null,
+25.0,
+48.5,
+56.2
+]
+}
+},
+"pred_version": "pre"
 }
 }
