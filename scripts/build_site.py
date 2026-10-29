@@ -211,6 +211,12 @@ h2+.card,h2+p+.card{margin-top:0;border-top:0;border-radius:0 0 4px 4px}
 .brow .bar{height:10px;border-radius:2px}.brow .bar i{border-radius:2px;background:#e2452b}
 .nx .dl small{color:var(--rd);font-weight:700}
 .res{padding:8px 2px}
+h1{border-bottom:2px solid var(--nv);padding-bottom:6px}
+.tg{display:inline-block;font-size:10.5px;font-weight:700;color:#fff;padding:0 5px;border-radius:2px;margin-left:3px;vertical-align:1px;line-height:1.6}
+.tg.up{background:var(--rd)}.tg.dn{background:#6b84b0}.tg.kk{background:var(--nv)}
+.card table th,.tt th{background:#f3f4f8;color:var(--nv);font-weight:700}
+.tt tr:nth-child(even) td{background:#fafbfc}
+.ptabs>label{border-radius:3px}.ptabs>input:checked+label{background:var(--nv);border-color:var(--nv)}
 .otabs>label{border-radius:3px}.otabs>input:checked+label{background:var(--nv);border-color:var(--nv)}
 """
 
@@ -491,10 +497,10 @@ def form_tags(s, n_series, info):
     seq = [x for x in str(s.get("seq", "")).split() if x.isdigit()]
     last3 = seq[-3:]
     if s.get("n", 0) >= 3 and (s.get("pt", 0) >= 7.0 or (len(last3) == 3 and all(int(x) <= 2 for x in last3))):
-        out += ' <span style="color:#E8542F;font-size:11px">🔥好調</span>'
+        out += ' <span class="tg up">好調</span>' if ENT else ' <span style="color:#E8542F;font-size:11px">🔥好調</span>'
     border = 18 if n_series >= 40 else max(6, round(n_series * 0.38))
     if "予選" in str(info.get("rtype", "")) and info.get("day", 0) >= 3 and abs(s.get("pos", 99) - border) <= 6:
-        out += ' <span style="color:#7A5AE0;font-size:11px">⚔勝負駆け</span>'
+        out += ' <span class="tg kk">勝負駆け</span>' if ENT else ' <span style="color:#7A5AE0;font-size:11px">⚔勝負駆け</span>'
     return out
 
 
@@ -552,6 +558,8 @@ def predict_page(date, info, pred, races, result_ready=False):
         rows = ""
         for b in sorted(vw["boats"], key=lambda b: b["waku"]):
             heat = "🔥" if b["heat"] > 0 else ("🧊" if b["heat"] < 0 else "")
+            if ENT:
+                heat = '<span class="tg up">上昇</span>' if b["heat"] > 0 else ('<span class="tg dn">低調</span>' if b["heat"] < 0 else "")
             rl = "".join(f'<span class="rl" style="background:{ROLE_COLOR[r]}">{r}</span>' for r in b["roles"])
             why = "・".join(b["good"]) + (("｜" if b["good"] else "") + "・".join(b["bad"]) if b["bad"] else "")
             rows += (f'<details class="brow"><summary>{chip(b["waku"])}<span class="nm">{html.escape(b["name"])} {heat}{rl}</span>'
@@ -3499,8 +3507,9 @@ def _recent_results_html(date, prog_day, preds, now, n=4):
             best = (f'<a class="ent-best" href="/{date}/{j}/{race:02d}-result.html"><div class="eb-h">本日の的中ハイライト</div><div class="eb-b"><span>'
                     f'<b>{VENUES[j]} {race}R</b><span class="s">3連単 {res["combo3t"]}（おすすめ5点で的中）</span></span>'
                     f'<span class="pay">{int(pay):,}円<small>100円あたりの払戻</small></span></div></a>')
-        best += (f'<div class="ent-score"><div class="sh">本日の戦績</div><div><b>{len(judged)}戦</b><span>結果が出たレース</span></div><div><b>{hit}勝</b><span>予想が当たった</span></div>'
-                 f'<div><b>{hit / len(judged):.0%}</b><span>勝率</span></div></div>')
+        h5n = sum(1 for *_, (lab, ok) in judged if ok and lab.startswith("3連単"))
+        best += (f'<div class="ent-score"><div class="sh">本日の戦績（おすすめ5点）</div><div><b>{len(judged)}</b><span>結果が出たレース</span></div><div><b>{h5n}</b><span>5点で的中</span></div>'
+                 f'<div><b>{h5n / len(judged):.0%}</b><span>的中率</span></div></div>')
     for dl, j, race, res, (lab, ok) in sorted(judged, reverse=True)[:n]:
         pay = f'{int(res["payout3t"]):,}円' if res.get("payout3t") else ""
         short = {"3連単5点 的中": "3単<br>的中", "2連単1番手 的中": "2単<br>的中", "本命1着": "本命<br>1着"}
@@ -3727,8 +3736,8 @@ def today_page(date, prog_day, preds, now):
                 + (f'<span class="big5" style="margin:4px 0 0">{picks}</span>' if picks else "")
                 + f'</span><span class="dl">{dl}</span></a>')
     s_html = "".join(card(it) for it in sorted(up_s)[:10]) or '<p class="sub" style="margin:8px 0">これからのSランクはありません</p>'
-    h_html = "".join(card(it, "・🔥" + "・".join(f'{b["waku"]}号艇' for b in it[6])) for it in sorted(up_hot)[:10]) \
-        or '<p class="sub" style="margin:8px 0">これからの🔥はありません</p>'
+    h_html = "".join(card(it, ("・調子上昇 " if ENT else "・🔥") + "・".join(f'{b["waku"]}号艇' for b in it[6])) for it in sorted(up_hot)[:10]) \
+        or f'<p class="sub" style="margin:8px 0">{"これからの該当レースはありません" if ENT else "これからの🔥はありません"}</p>'
     hit = sum(1 for _, ok, _ in done_s if ok)
     d_html = "".join(f'<div class="cell" style="display:flex;gap:6px;align-items:center"><span style="flex:1;min-width:0"><b>{VENUES[it[1]]} {it[2]}R</b>'
                      f'<span class="sub">結果 {c3}</span></span><b style="font-size:13px;color:{"var(--green)" if ok else "var(--sub)"}">{"的中" if ok else "はずれ"}</b></div>'
@@ -3736,7 +3745,7 @@ def today_page(date, prog_day, preds, now):
     body = (f'<h1>今日の注目レース <span class="sub">{jp(date)}</span></h1>'
             '<p class="sub">これから締切のレースから、堅い（Sランク）レースのおすすめ5点と、普段より調子のいい艇（🔥）がいるレースを集めました。</p>'
             f'<h2>堅いレース（S）</h2><div class="card" style="padding:2px 12px">{s_html}</div>'
-            f'<h2>🔥の艇がいるレース</h2><div class="card" style="padding:2px 12px">{h_html}</div>'
+            f'<h2>{"調子のいい艇がいるレース" if ENT else "🔥の艇がいるレース"}</h2><div class="card" style="padding:2px 12px">{h_html}</div>'
             + (f'<h2>今日のSランクの答え合わせ <span class="sub">5点で{hit}/{len(done_s)}的中</span></h2><div class="card g2 g3">{d_html}</div>' if done_s else "")
             + '<div class="btnrow"><a href="/record.html">的中実績</a><a href="/">トップへ</a></div>' + ad())
     return page(f"今日の注目レース {jp(date)}", body, f"{jp(date)}の競艇の注目レース。堅いレースのおすすめ5点と、調子のいい艇。", "/today.html")
