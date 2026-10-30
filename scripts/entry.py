@@ -162,6 +162,15 @@ def main():
                         rec["extra"] = ex
                 except Exception as e:
                     print(f"直前情報の選手欄を読めませんでした({key}): {e!r}")
+                try:   # オリジナル展示(一周・まわり足・直線)。出している場だけ。10/30から保存
+                    import fetch_orig
+                    if r.jcd in fetch_orig.RACE_SITES:
+                        og = fetch_orig.fetch_race(r.jcd, date, r.race)
+                        time.sleep(1.0)
+                        if og:
+                            rec["orig"] = og
+                except Exception as e:
+                    print(f"オリ展を読めませんでした({key}): {e!r}")
                 entries[key] = rec
                 todo.append(key)
     if fix_deadlines(date, prog0, found):
