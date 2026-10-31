@@ -1,6 +1,7 @@
 name: オリジナル展示の保存
 
 # 毎晩、オリジナル展示を出している場の公式サイトから、その節の数字を保存する(予想にはまだ使わない)
+# あわせて、レースごとにオリ展を出している7場の、ここ3日分をまとめて取る(展示の取り込み時に間に合わなかった分を埋める)
 on:
   schedule:
     - cron: "37 12 * * *"   # 21:37(日本時間)
@@ -16,7 +17,7 @@ concurrency:
 jobs:
   save:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
         with:
@@ -26,11 +27,17 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements.txt
       - run: cd scripts && python fetch_orig.py
+      - name: レースごとのオリ展(ここ3日分)
+        run: |
+          cd scripts
+          start=$(TZ=Asia/Tokyo date -d '2 days ago' +%Y%m%d)
+          end=$(TZ=Asia/Tokyo date +%Y%m%d)
+          for j in 06 08 10 13 20 21 23; do python backfill_orig.py --jcd $j --start $start --end $end --max-minutes 5 || true; done
       - name: 保存
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git add data/orig_tenji 2>/dev/null || true
+          git add data/orig_tenji data/orig_race 2>/dev/null || true
           git diff --cached --quiet || git commit -m "オリジナル展示 $(TZ=Asia/Tokyo date +%m/%d)"
           for i in 1 2 3 4 5; do
             git pull --rebase && git push && break
