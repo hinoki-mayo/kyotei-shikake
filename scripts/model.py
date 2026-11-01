@@ -55,7 +55,7 @@ def _meeting_momentum(hist: pd.DataFrame) -> dict:
     """場ごとに、直近の連続開催日(=今開催中の節、当日は含まない)の
     選手別の平均得点を返す。{jcd: Series(toban -> 平均pt)}"""
     d2 = hist[["date", "jcd", "toban", "rank"]].copy()
-    d2["pt"] = d2["rank"].map(PTS).fillna(0.0)
+    d2["pt"] = pd.to_numeric(d2["rank"].map(PTS), errors="coerce").fillna(0.0).astype(float)
     out = {}
     for jcd, g in d2.groupby("jcd"):
         dates = sorted(g["date"].unique(), reverse=True)

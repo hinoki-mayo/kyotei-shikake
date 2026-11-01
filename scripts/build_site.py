@@ -331,7 +331,7 @@ def load_results(since):
         return pd.DataFrame(columns=["date", "jcd", "race", "rank", "toban", "pt"])
     r = pd.concat(fr)
     r = r[r.date >= since].copy()
-    r["pt"] = r["rank"].map(PTS).fillna(0)
+    r["pt"] = pd.to_numeric(r["rank"].map(PTS), errors="coerce").fillna(0).astype(float)   # 期の初日など空でも数字の列にする
     return r
 
 
