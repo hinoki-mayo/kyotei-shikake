@@ -7626,7 +7626,7 @@
 "venue": "江戸川",
 "race": 4,
 "rtype": "一般",
-"deadline": "12:29",
+"deadline": "12:28",
 "version": "pre",
 "predicted_at": "2026-11-02 07:06",
 "boats": [
@@ -8083,7 +8083,7 @@
 "venue": "江戸川",
 "race": 5,
 "rtype": "一般",
-"deadline": "12:55",
+"deadline": "12:54",
 "version": "pre",
 "predicted_at": "2026-11-02 07:06",
 "boats": [
@@ -8576,7 +8576,7 @@
 "venue": "江戸川",
 "race": 6,
 "rtype": "一般",
-"deadline": "13:21",
+"deadline": "13:20",
 "version": "pre",
 "predicted_at": "2026-11-02 07:06",
 "boats": [
@@ -9035,7 +9035,7 @@
 "venue": "江戸川",
 "race": 7,
 "rtype": "一般",
-"deadline": "13:47",
+"deadline": "13:46",
 "version": "pre",
 "predicted_at": "2026-11-02 07:06",
 "boats": [
@@ -9594,7 +9594,7 @@
 "venue": "江戸川",
 "race": 8,
 "rtype": "一般",
-"deadline": "14:14",
+"deadline": "14:13",
 "version": "pre",
 "predicted_at": "2026-11-02 07:06",
 "boats": [
@@ -10075,7 +10075,7 @@
 "venue": "江戸川",
 "race": 9,
 "rtype": "一般特選",
-"deadline": "14:42",
+"deadline": "14:41",
 "version": "pre",
 "predicted_at": "2026-11-02 07:06",
 "boats": [
@@ -10487,7 +10487,7 @@
 "venue": "江戸川",
 "race": 10,
 "rtype": "選抜戦",
-"deadline": "15:11",
+"deadline": "15:10",
 "version": "pre",
 "predicted_at": "2026-11-02 07:06",
 "boats": [
@@ -11048,7 +11048,7 @@
 "venue": "江戸川",
 "race": 11,
 "rtype": "選抜戦",
-"deadline": "15:41",
+"deadline": "15:40",
 "version": "pre",
 "predicted_at": "2026-11-02 07:06",
 "boats": [
@@ -11600,7 +11600,7 @@
 "venue": "江戸川",
 "race": 12,
 "rtype": "優勝戦",
-"deadline": "16:12",
+"deadline": "16:11",
 "version": "pre",
 "predicted_at": "2026-11-02 07:06",
 "boats": [
