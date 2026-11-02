@@ -19,7 +19,8 @@ SITES = {"01": "https://www.kiryu-kyotei.com/modules/raceinfo/?page=index_timeda
 KINDS = ("まわり足", "半周ラップ", "展示タイム", "直線タイム")
 # 直前情報のオリジナル展示データ(kind=2)を出している場。同じ作りのページ
 RACE_SITES = {"06": "www.boatrace-hamanako.jp", "08": "www.boatrace-tokoname.jp", "10": "www.boatrace-mikuni.jp",
-              "13": "www.boatrace-amagasaki.jp", "20": "www.wmb.jp", "21": "www.boatrace-ashiya.com", "23": "www.boatrace-karatsu.jp"}
+              "13": "www.boatrace-amagasaki.jp", "20": "www.wmb.jp", "21": "www.boatrace-ashiya.com", "23": "www.boatrace-karatsu.jp",
+              "14": "www.n14.jp", "19": "www.boatrace-shimonoseki.jp"}
 RACE_URL = "https://{host}/modules/yosou/group-cyokuzen.php?day={date}&race={race}&if=1&kind=2"
 RACE_KINDS = ("一周", "まわり足", "直線", "半周")
 
@@ -40,7 +41,7 @@ def parse_race(h):
         w = next((re.sub(r"<[^>]+>", "", v).strip() for a, v in cells if re.search(r"\bwaku\b", a)), None)
         if not w or not w.isdigit():
             continue
-        i5 = next((i for i, (a, _) in enumerate(cells) if re.search(r"\bcol5\b", a)), None)
+        i5 = max((i for i, (a, _) in enumerate(cells) if re.search(r"\bcol5\b", a)), default=None)   # 鳴門はチルトもcol5なので最後のcol5(展示)の後ろから読む
         if i5 is None:
             continue
         vals = {}

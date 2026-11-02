@@ -32,7 +32,7 @@ jobs:
           cd scripts
           start=$(TZ=Asia/Tokyo date -d '2 days ago' +%Y%m%d)
           end=$(TZ=Asia/Tokyo date +%Y%m%d)
-          for j in 06 08 10 13 20 21 23; do python backfill_orig.py --jcd $j --start $start --end $end --max-minutes 5 || true; done
+          for j in 06 08 10 13 14 19 20 21 23; do python backfill_orig.py --jcd $j --start $start --end $end --max-minutes 5 || true; done
       - name: 保存
         run: |
           git config user.name "github-actions"
