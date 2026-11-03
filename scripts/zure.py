@@ -6,7 +6,9 @@
 ・ルール: 点数1.3以上・45秒前のオッズ100倍未満の目を全部、1点100円
 ・手がかり: 出走表・展示(進入・展示ST・展示タイム・風波)・選手のコース別成績(前2年)・節間の成績・当日の水面の流れ
   (その日それまでのレースのイン1着率・同じコースの1着数)・オリ展(取れている場だけ)
-・保存: data/zure/<日付>.json {レース: {"picks": [[目, 45秒前オッズ, 点数], ...], "res": 決まった目, "pay": 100円あたりの払戻, "orig": オリ展あり}}
+・外の嗅覚(11/4から): 4〜6コースが1着になる見込みを市場と比べ(外比)、1.2以上のレースで、外が頭・点数1.0以上・45秒前300倍未満の目を1点100円
+・保存: data/zure/<日付>.json {レース: {"picks": [[目, 45秒前オッズ, 点数], ...], "res": 決まった目, "pay": 100円あたりの払戻, "orig": オリ展あり,
+  "soto": 外比, "soto_picks": [[目, 45秒前オッズ, 点数], ...]}}
 ・その日の結果が全部出てから(夜)まとめて作る。使うのはレース前に出ていた情報だけ(当日の流れはそのレースより前のレースの結果だけ)
 
 例: python scripts/zure.py 20261103   (日付を省くと昨日と今日)
@@ -23,6 +25,11 @@ import bet as bet_mod
 from common import DATA, now_jst
 
 MODEL = DATA / "models" / "zure_v1.pkl"
+SOTO_MODEL = DATA / "models" / "soto_v1.pkl"   # 外の嗅覚: 4〜6コースが1着になるかをレースごとに学んだモデル(2024〜2025年)
+SOTO_MIN, SOTO_SC_MIN, SOTO_ODDS_MAX = 1.2, 1.0, 300.0   # 外比1.2以上のレースで、外が頭・点数1.0以上・300倍未満の目
+SOTO_BF = ["est", "est_rank", "est_in", "tenji", "tenji_rk", "nat_win", "loc_win", "nat_2r", "motor_2r", "boat_2r", "grade_n", "n_c", "w_c", "atk_c",
+           "sa_c", "r2_c", "stc_c", "f_pts", "f_last", "mh", "ms", "mt", "lap_rk", "mawari_rk", "choku_rk", "lap_dv", "mawari_dv", "choku_dv", "age", "weight"]
+SOTO_RF = ["wind", "wave", "jcd_n", "in_today", "n_today", "venue_c"]
 OUT = DATA / "zure"
 SCORE_MIN, ODDS_MAX, UNIT = 1.3, 100.0, 100
 SINCE = "20261103"   # この日からが本番の記録(前の日の分は参考)
@@ -204,6 +211,25 @@ def features(date, source="entries"):
     return D, mk
 
 
+def soto_ratio(D):
+    """レースごとの外比(外の嗅覚の見込み ÷ 市場の見込み)。{(jcd, race): 外比}"""
+    md, F = pickle.load(open(SOTO_MODEL, "rb"))
+    d = D[D.course.between(1, 6)]
+    d = d[d.groupby(["jcd", "race"]).course.transform("nunique") == 6]
+    if d.empty:
+        return {}
+    w = d.pivot_table(index=["jcd", "race"], columns="course", values=SOTO_BF, aggfunc="first", dropna=False)
+    w.columns = [f"{a}_c{b}" for a, b in w.columns]
+    W = w.join(d[d.course == 1].set_index(["jcd", "race"])[SOTO_RF])
+    W["m_out"] = W[["mh_c4", "mh_c5", "mh_c6"]].sum(axis=1)
+    W["lg_out"] = np.log(W.m_out.clip(1e-4) / (1 - W.m_out.clip(None, 0.9999)))
+    for c in F:
+        if c not in W:
+            W[c] = np.nan
+    p = md.predict_proba(W[F])[:, 1]
+    return {k: float(v) for k, v in zip(W.index, p / W.m_out.values)}
+
+
 def picks(date, source="entries"):
     M, F = pickle.load(open(MODEL, "rb"))
     got = features(date, source)
@@ -212,6 +238,7 @@ def picks(date, source="entries"):
     D, mk = got
     for t, m in (("y1", "mh"), ("y2", "ms"), ("y3", "mt")):
         D["r" + t[1]] = M[t].predict_proba(D[F])[:, 1] / D[m]
+    soto = soto_ratio(D)
     R = _results((int(date[:4]),))
     R = R[R.date == date].drop_duplicates(["jcd", "race"]).set_index(["jcd", "race"])
     out = {}
@@ -227,6 +254,18 @@ def picks(date, source="entries"):
             if sc >= SCORE_MIN and od < ODDS_MAX:
                 pk.append([combo, od, round(float(sc), 3)])
         rec = {"picks": sorted(pk, key=lambda x: -x[2]), "orig": bool(d.has_o.any())}
+        so = soto.get((jcd, race))
+        if so is not None:
+            rec["soto"] = round(so, 3)
+            if so >= SOTO_MIN:
+                crs = dict(zip(d.waku.astype(int), d.course))
+                sp = []
+                for combo, od in o3.items():
+                    a, b, c = (int(x) for x in combo.split("-"))
+                    sc = r[a][0] * r[b][1] * r[c][2]
+                    if crs.get(a, 0) >= 4 and sc >= SOTO_SC_MIN and od < SOTO_ODDS_MAX:
+                        sp.append([combo, od, round(float(sc), 3)])
+                rec["soto_picks"] = sorted(sp, key=lambda x: -x[2])
         if (jcd, race) in R.index:
             x = R.loc[(jcd, race)]
             if isinstance(x.combo3t, str):
@@ -247,6 +286,9 @@ def main(argv):
         n = sum(len(v["picks"]) for v in pk.values())
         hit = sum(v.get("pay", 0) for v in pk.values() for c, *_ in v["picks"] if c == v.get("res"))
         print(f"{date}: {len(pk)}レース {sum(1 for v in pk.values() if v['picks'])}レースで{n}点 投資{n * UNIT:,}円 払戻{hit:,}円")
+        sn = sum(len(v.get("soto_picks", [])) for v in pk.values())
+        sh = sum(v.get("pay", 0) for v in pk.values() for c, *_ in v.get("soto_picks", []) if c == v.get("res"))
+        print(f"  外の嗅覚: {sum(1 for v in pk.values() if v.get('soto_picks'))}レースで{sn}点 投資{sn * UNIT:,}円 払戻{sh:,}円")
 
 
 if __name__ == "__main__":
