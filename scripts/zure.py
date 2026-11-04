@@ -38,6 +38,12 @@ HM_ATK, HM_ODDS, HMO_ODDS = 0.12, 100.0, 300.0
 #   (2026年の確かめで A 107%・B 132%)。消し: 外比0.8以下のレースの外頭(4〜6コース)はどのランクでも59〜71%なので記録だけ別に数える
 RANKS = (("S", 0.5), ("A", 0.4), ("B", 0.3), ("C", 0.0))   # build_site.RANKS と同じ(おすすめ5点の確率の合計)
 AB_SOTO, AB_SC, AB_ODDS = 1.2, 1.0, 100.0
+# ズレ屋のまとめ(11/5から): 次の5つを合わせて買う(重なった目は1回)。確定オッズで2025年 119.7%・2026年 112.0%
+#   ① hmo_picks  ② z2_picks: B隠れまくりが頭・100倍未満・2着にオリ展の遅い艇(一周5位以下かまわり足6位)が無い(オリ展のある場)
+#   ③ z3_picks: 総合点1.65以上・100倍未満。総合点=点数×(B隠れまくりが頭1.25、その直線1〜4位でさらに1.2・5〜6位なら0.8)
+#               ×(2着にオリ展の遅い艇0.85、3着に0.9)×(外比1.2以上のレースの外頭は外比(1〜1.5))
+#   ④ ab_picks  ⑤ z5_picks: インが頭・点数1.4以上・100倍未満
+Z3_MIN, Z5_SC = 1.65, 1.4
 OUT = DATA / "zure"
 SCORE_MIN, ODDS_MAX, UNIT = 1.3, 100.0, 100
 SINCE = "20261103"   # この日からが本番の記録(前の日の分は参考)
@@ -288,6 +294,8 @@ def picks(date, source="entries"):
             if sc >= SCORE_MIN and od < ODDS_MAX:
                 pk.append([combo, od, round(float(sc), 3)])
         rec = {"picks": sorted(pk, key=lambda x: -x[2]), "orig": bool(d.has_o.any())}
+        rk_o = {int(x.waku): (x.lap_rk, x.mawari_rk, x.choku_rk) for x in d.itertuples()}
+        slow = {w for w, (l, m, _) in rk_o.items() if (pd.notna(l) and l >= 5) or (pd.notna(m) and m >= 6)}
         hm = [int(x.waku) for x in d.itertuples() if 3 <= x.course <= 5 and (x.n_c or 0) >= 10 and (x.atk_c or 0) >= HM_ATK
               and x.grade_n <= 2 and (x.est_in > 0 or x.est_rank >= 4)]
         if hm:
@@ -311,6 +319,30 @@ def picks(date, source="entries"):
                     ab.append([combo, od, round(float(sc), 3)])
             if ab:
                 rec["ab_picks"] = sorted(ab, key=lambda x: -x[2])
+        crs_all = dict(zip(d.waku.astype(int), d.course))
+        hmset = set(rec.get("hm", []))
+        z2, z3, z5 = [], [], []
+        for combo, od in o3.items():
+            a, b, c = (int(x) for x in combo.split("-"))
+            sc = r[a][0] * r[b][1] * r[c][2]
+            if a in hmset and od < HM_ODDS and pd.notna(rk_o[a][2]) and b not in slow:
+                z2.append([combo, od])
+            m = 1.0
+            if a in hmset:
+                m *= 1.25
+                ch = rk_o[a][2]
+                if pd.notna(ch):
+                    m *= 1.2 if ch <= 4 else 0.8
+            m *= (0.85 if b in slow else 1.0) * (0.9 if c in slow else 1.0)
+            if so is not None and so >= 1.2 and crs_all.get(a, 0) >= 4:
+                m *= min(max(so, 1.0), 1.5)
+            if od < 100 and sc * m >= Z3_MIN:
+                z3.append([combo, od, round(float(sc * m), 3)])
+            if crs_all.get(a) == 1 and sc >= Z5_SC and od < 100:
+                z5.append([combo, od, round(float(sc), 3)])
+        for key, v in (("z2_picks", z2), ("z3_picks", z3), ("z5_picks", z5)):
+            if v:
+                rec[key] = sorted(v, key=lambda x: x[1])
         if so is not None:
             rec["soto"] = round(so, 3)
             if so >= SOTO_MIN:
@@ -322,6 +354,12 @@ def picks(date, source="entries"):
                     if crs.get(a, 0) >= 4 and sc >= SOTO_SC_MIN and od < SOTO_ODDS_MAX:
                         sp.append([combo, od, round(float(sc), 3)])
                 rec["soto_picks"] = sorted(sp, key=lambda x: -x[2])
+        mt = {}
+        for key in ("hmo_picks", "z2_picks", "z3_picks", "ab_picks", "z5_picks"):
+            for x in rec.get(key, []):
+                mt.setdefault(x[0], x[1])
+        if mt:
+            rec["matome"] = sorted(([c, o] for c, o in mt.items()), key=lambda x: x[1])
         if (jcd, race) in R.index:
             x = R.loc[(jcd, race)]
             if isinstance(x.combo3t, str):
@@ -345,7 +383,8 @@ def main(argv):
         sn = sum(len(v.get("soto_picks", [])) for v in pk.values())
         sh = sum(v.get("pay", 0) for v in pk.values() for c, *_ in v.get("soto_picks", []) if c == v.get("res"))
         print(f"  外の嗅覚: {sum(1 for v in pk.values() if v.get('soto_picks'))}レースで{sn}点 投資{sn * UNIT:,}円 払戻{sh:,}円")
-        for key, nm in (("hm_picks", "B隠れまくり"), ("hmo_picks", "B隠れまくり(オリ展つき)"), ("ab_picks", "A・B×鼻で2・3コース頭")):
+        for key, nm in (("hm_picks", "B隠れまくり"), ("hmo_picks", "B隠れまくり(オリ展つき)"), ("ab_picks", "A・B×鼻で2・3コース頭"),
+                         ("z2_picks", "②隠れまくり・2着オリ展"), ("z3_picks", "③総合点1.65以上"), ("z5_picks", "⑤イン頭・点数1.4以上"), ("matome", "★ズレ屋のまとめ")):
             hn = sum(len(v.get(key, [])) for v in pk.values())
             hh = sum(v.get("pay", 0) for v in pk.values() for c, *_ in v.get(key, []) if c == v.get("res"))
             print(f"  {nm}: {sum(1 for v in pk.values() if v.get(key))}レースで{hn}点 投資{hn * UNIT:,}円 払戻{hh:,}円")
