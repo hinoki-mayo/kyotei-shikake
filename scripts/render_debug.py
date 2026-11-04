@@ -4,6 +4,7 @@
 ・robots.txt で止められているURLは開かない。断られた(403など)ページはそれ以上たどらない
 ・ページの中身と、裏で読み込んだデータ(XHR・JSON)に「まわり足・一周・直線」があればURLを記録する
 """
+import os
 import re
 import sys
 import time
@@ -54,8 +55,16 @@ def main():
                     idx.write(f"error {url} {e!r}\n")
                     pg.close()
                     continue
+                for word in [w for w in os.environ.get("CLICK", "").split(",") if w]:   # 指定の文字のタブを押して、読み込まれる中身も見る
+                    try:
+                        pg.get_by_text(word, exact=False).first.click(timeout=5000)
+                        pg.wait_for_timeout(4000)
+                        html += pg.content()
+                    except Exception as e:
+                        idx.write(f"click-NG {word} {url} {e!r}\n")
                 txt_hit = bool(HIT.search(html))
                 data_hit = []
+                idx.write("  requests: " + " ".join(sorted(set(u for u in hits if urllib.parse.urlparse(u).netloc == host)))[:3000] + "\n")
                 for u in hits:
                     if u == url or urllib.parse.urlparse(u).netloc != host:
                         continue

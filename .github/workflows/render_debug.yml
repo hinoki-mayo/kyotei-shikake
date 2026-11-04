@@ -7,6 +7,10 @@ on:
       urls:
         description: "空白区切りの開始URL"
         required: true
+      click:
+        description: "押すタブの文字(カンマ区切り。空なら押さない)"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -24,6 +28,7 @@ jobs:
       - name: 開いて保存
         env:
           URLS: ${{ inputs.urls }}
+          CLICK: ${{ inputs.click }}
           REPO: ${{ github.repository }}
           TOKEN: ${{ github.token }}
         run: |
