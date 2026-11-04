@@ -10,6 +10,8 @@
   使う時は当日気配の時刻(kehai_at)がそのレースの締切より前のものだけにする(後の時刻のものを使うと答えを見たことになる)
 ・宮島(17): トップページの「選手コメント」(race・date を POST)。data/comments/17/<日付>.json
   {"レース番号": {"boats": {"枠": {"toban", "comment", "upd": 更新時刻(あれば), "mark": 予想印}}}}。更新時刻が締切より後のものは使わない
+・丸亀(15): スマホの直前ページ(yoso05+レース)の「選手コメント」。{"レース番号": {"boats": {"枠": {"pre": 前日のコメント, "day": 当日のコメント}}}}
+  当日のコメントはレース後の話が混ざるので、そのレースには使わない(前日の分だけ使う)。その日の分しか置かれないので毎晩取る
 ・芦屋(21)・唐津(23): 節の全選手コメントの一覧(その時点の最新)。毎晩取って data/comments_series/<場>/<取った日>.json
   {"fetched_at": 時刻, "racers": {登番: {"name", "grade", "comment"}}}。使う時は、取った日より後のレースだけに使う
 ・空だった日は {} で残して次から取りに行かない。1Rが空の日が8日続いたら止める。1回ごとに1.2秒あける
@@ -118,6 +120,38 @@ def fetch_17(date, race):
     return parse_miyajima(seg)
 
 
+def parse_marugame(h):
+    out = {"boats": {}}
+    i = (h or "").find('<th class="col2">選手コメント</th>')
+    seg = h[i:h.find("</table>", i)] if i >= 0 else ""
+    for body in re.findall(r"<tbody>(.*?)</tbody>", seg, re.S):
+        w = re.search(r"<tr[^>]*>\s*<td>(\d)</td>", body)
+        if not w:
+            continue
+        b = {}
+        for cls, key in (("come02", "pre"), ("come01", "day")):
+            m = re.search(rf'<p class="{cls}"><span>[^<]*</span>(.*?)</p>', body, re.S)
+            if m:
+                b[key] = _txt(m.group(1))
+        if b:
+            out["boats"][w.group(1)] = b
+    return out if out["boats"] else {}
+
+
+def fetch_15(date, race):
+    import fetch_orig
+    url = fetch_orig.SP_YOSO_URL.format(host="www.marugameboat.jp", jcd="15", race=int(race))
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, headers=UA), timeout=30) as r:
+            h = r.read().decode("utf-8", errors="replace")
+    except Exception as e:
+        print(f"コメントを取れませんでした(15-{race} {date}): {e!r}")
+        return {}
+    if date not in set(re.findall(r"raceDate=(\d{8})", h)):   # その日のページでなければ使わない
+        return {}
+    return parse_marugame(h)
+
+
 SERIES = {"21": "https://www.boatrace-ashiya.com/modules/raceinfo/?page=index_racers_comment",
           "23": "https://www.boatrace-karatsu.jp/modules/raceinfo/?page=index_racers_comment"}
 
@@ -161,7 +195,7 @@ def fetch(date, race):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--jcd", default="24", help="24(大村) か 17(宮島)。series なら芦屋・唐津の一覧を今日の分だけ取る")
+    ap.add_argument("--jcd", default="24", help="24(大村)・17(宮島)・15(丸亀)。series なら芦屋・唐津の一覧を今日の分だけ取る")
     ap.add_argument("--start", default="20240101")
     ap.add_argument("--end", default=None)
     ap.add_argument("--max-minutes", type=float, default=330)
@@ -169,7 +203,7 @@ def main():
     if a.jcd == "series":
         fetch_series()
         return
-    get = fetch_17 if a.jcd == "17" else fetch
+    get = {"17": fetch_17, "15": fetch_15}.get(a.jcd, fetch)
     end = a.end or f"{now_jst() - dt.timedelta(days=1):%Y%m%d}"
     progs = [pd.read_parquet(p, columns=["date", "jcd", "race"]) for y in range(int(a.start[:4]), int(end[:4]) + 1)
              if (p := DATA / "programs" / f"{y}.parquet").exists()]
