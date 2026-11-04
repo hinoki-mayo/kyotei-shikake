@@ -2672,7 +2672,7 @@ def org_home():
     return _org_page("予想組織図", "/ops.html", body, upcoming=["kessai"])
 
 
-MONITOR = dict(name="モニター", role="組織の一番上。決裁者A・B・Cの成績を見張って、どの決裁者を本命にするか決める(判定は10/31・11/17)",
+MONITOR = dict(name="モニター", role="組織の一番上。決裁者A・B・Cと別会社ズレ屋の成績を見張って、どれを本命にするか決める(次の判定は11/17)",
                img="/img/monitor_face.jpg")
 
 
@@ -2699,19 +2699,165 @@ MQ_CARD = ('<div class="card"><b>市場以上に当てているか</b> <span cla
            '<div>決裁者B <span data-stat="mq:kessaiB"></span></div></div>')
 
 
+
+# 別会社ズレ屋(記録だけ)の買い方。(キー, 名前, 本番を数え始める日, 説明)
+ZURE_PLANS = (
+    ("hmo_picks", "B隠れまくり(オリ展つき)", "20261105", "B級のまくり屋・展示STが遅く見える・オリ展の直線1〜4位の艇が頭、300倍未満(過去2年 131%・116%)"),
+    ("ab_picks", "A・B×鼻で2・3コース頭", "20261105", "堅さA・Bで外比1.2以上のレースは2・3コース頭、点数1.0以上・100倍未満(2026年 A107%・B132%)"),
+    ("hm_picks", "B隠れまくり", "20261105", "B級のまくり屋・展示STが遅く見える艇が頭、100倍未満(過去2年 約95%)"),
+    ("soto_picks", "外の嗅覚", "20261104", "外比1.2以上のレースで4〜6コース頭・点数1.0以上・300倍未満(2026年 93%)"),
+    ("picks", "ズレ屋(全体)", "20261103", "1着×2着×3着の点数1.3以上・100倍未満を全部(2026年 99%・確定オッズ)"),
+)
+ZURE_REF_SINCE = "20261020"
+
+
+def _zure_rows():
+    """data/zure から買い方ごとに {キー: {"live": [レース, 点, 当たり, 払戻], "ref": [...], "days": {日付: [点, 払戻]}}}"""
+    out = {k: {"live": [0, 0, 0, 0], "ref": [0, 0, 0, 0], "days": {}} for k, *_ in ZURE_PLANS}
+    for f in sorted((DATA / "zure").glob("*.json")):
+        date = f.stem
+        if date < ZURE_REF_SINCE:
+            continue
+        for v in json.loads(f.read_text()).values():
+            if "res" not in v:
+                continue
+            for k, _, since, _ in ZURE_PLANS:
+                pk = v.get(k) or []
+                if not pk:
+                    continue
+                ret = sum(v.get("pay", 0) for x in pk if x[0] == v["res"])
+                a = out[k]["live" if date >= since else "ref"]
+                a[0] += 1
+                a[1] += len(pk)
+                a[2] += int(ret > 0)
+                a[3] += ret
+                if date >= since:
+                    dd = out[k]["days"].setdefault(date, [0, 0])
+                    dd[0] += len(pk)
+                    dd[1] += ret
+    return out
+
+
+def _roi_chip(st, ret):
+    if not st:
+        return '<span class="sub">-</span>'
+    r = ret / st
+    col = "#1f8a4c" if r >= 1 else ("#b26a00" if r >= 0.85 else "#c0392b")
+    return f'<b style="color:{col}">{r:.0%}</b>'
+
+
+def zure_board():
+    """モニターの部屋: 別会社ズレ屋の買い方を本番(固定した日から)と参考(その前)で並べる"""
+    rows = _zure_rows()
+    head = ('<tr style="background:#f3f5f9"><th style="text-align:left">買い方</th><th>本番</th><th>点</th><th>当たり</th>'
+            '<th>参考(前)</th><th>当たり</th></tr>')
+    body = ""
+    for k, nm, since, desc in ZURE_PLANS:
+        lv, rf = rows[k]["live"], rows[k]["ref"]
+        body += (f'<tr style="border-top:1px solid var(--bd)"><td style="text-align:left"><b>{nm}</b>'
+                 f'<span class="sub" style="display:block;font-size:11px">{desc} ・{since[4:6]}/{since[6:]}から本番</span></td>'
+                 f'<td>{_roi_chip(lv[1] * 100, lv[3])}</td><td>{lv[1]}</td><td>{lv[2]}</td>'
+                 f'<td>{_roi_chip(rf[1] * 100, rf[3])}</td><td>{rf[2]}</td></tr>')
+    days = sorted({d for k, *_ in ZURE_PLANS for d in rows[k]["days"]})[-7:]
+    dtab = ""
+    if days:
+        dtab = ('<div style="overflow-x:auto;margin-top:8px"><table class="tt" style="width:100%;border-collapse:collapse;font-size:12px;text-align:center">'
+                '<tr style="background:#f3f5f9"><th style="text-align:left">日ごと(本番)</th>'
+                + "".join(f"<th>{d[4:6]}/{d[6:]}</th>" for d in days) + "</tr>")
+        for k, nm, *_ in ZURE_PLANS:
+            dtab += f'<tr style="border-top:1px solid var(--bd)"><td style="text-align:left">{nm}</td>'
+            for d in days:
+                x = rows[k]["days"].get(d)
+                dtab += f"<td>{_roi_chip(x[0] * 100, x[1]) if x else '<span class=sub>-</span>'}</td>"
+            dtab += "</tr>"
+        dtab += "</table></div>"
+    return ('<div class="card"><b>別会社ズレ屋(記録だけ・1点100円)</b>'
+            '<p class="sub" style="margin:2px 0 6px">市場の見込みと結果のズレだけを学んだモデルと、そこから見つけた「嗅覚」の買い方。'
+            'ルールは本番の日に固定して変えない。参考はルールを決める前の分(45秒前のオッズで後から計算)。毎晩まとめて作る。</p>'
+            '<div style="overflow-x:auto"><table class="tt" style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:center">'
+            + head + body + "</table></div>" + dtab + "</div>")
+
+
+def _bar(label, v, lo=0.6, hi=1.8, note=""):
+    """実際÷市場の棒。1.0に線を引く"""
+    pos = lambda x: max(0, min(100, (x - lo) / (hi - lo) * 100))
+    col = "#1f8a4c" if v >= 1.1 else ("#c0392b" if v < 0.95 else "#8a93a6")
+    left, right = sorted((pos(1.0), pos(v)))
+    return (f'<div style="display:flex;align-items:center;gap:8px;margin:3px 0;font-size:12.5px">'
+            f'<span style="flex:0 0 46%">{label}</span>'
+            f'<span style="flex:1;position:relative;height:12px;background:#eef0f4;border-radius:2px">'
+            f'<i style="position:absolute;left:{left}%;width:{right - left}%;top:0;bottom:0;background:{col};border-radius:2px"></i>'
+            f'<i style="position:absolute;left:{pos(1.0)}%;top:-2px;bottom:-2px;width:1px;background:#333"></i></span>'
+            f'<b style="flex:0 0 38px;text-align:right;color:{col}">{v:.2f}</b></div>'
+            + (f'<div class="sub" style="font-size:11px;margin:-2px 0 4px 0">{note}</div>' if note else ""))
+
+
+RESEARCH = (
+    ("B隠れまくり × オリ展の直線", "3〜5コース・B級・まくり率12%以上・展示STが遅く見える艇の1着(実際÷市場、オリ展の9場・3年)",
+     (("直線 1〜2位", 1.56, "2024 1.53 / 2025 1.68 / 2026 1.47"), ("直線 3〜4位", 1.42, ""), ("直線 5〜6位", 0.97, "直線が遅いと見込みどおり"),
+      ("隠れまくり(全場)", 1.25, "1.29 / 1.21 / 1.24"), ("まくり屋(全部)", 1.02, "見えるまくり屋は値段どおり"))),
+    ("荒れのサインは買われすぎ", "外(4〜6コース)の1着(実際÷市場、3年)。見てわかるサインには、みんな飛びつく",
+     (("インの展示STが遅い(0.20以上)", 0.90, ""), ("今日はインが弱い", 0.94, ""), ("インがB級", 0.95, ""),
+      ("外にまくり屋(15%以上)", 1.02, "まくり屋だけは買われすぎていない"), ("鼻が反応したレース(2026)", 1.24, "隠れ荒れ: 見た目は平和でまくり屋がいる"))),
+    ("インのオリ展", "インの1着(実際÷市場、オリ展の場・3年とも同じ向き)。インは値段が正確なので差は小さい",
+     (("一周・まわり足が両方1〜2位", 1.04, ""), ("一周1位", 1.04, ""), ("一周5〜6位", 0.96, ""), ("鼻0.8以下 × 一周・まわり足1〜2位", 1.06, "2026年"))),
+    ("選手の言葉(大村・3年)", "その艇の1着(実際÷市場)。数字に出ない足の手応え",
+     (("「出足がいい」", 1.19, "1.22 / 1.15 / 1.20"), ("「乗り心地がいい」", 1.16, ""), ("「上位」", 1.14, ""),
+      ("「弱い」", 0.89, ""), ("当日気配「良くなった」", 0.87, "良くなった話は買われすぎ"), ("モーター評価2点以下", 0.82, ""))),
+)
+RANK_NOSE = (   # 2026年・ズレ点数1.0以上・100倍未満の回収率(頭のコース別)
+    ("A", (("鼻0.8以下", .80, .76, .59), ("0.8〜1.0", .79, .84, .83), ("1.0〜1.2", .76, .75, .90), ("鼻1.2以上", .76, 1.07, .79))),
+    ("B", (("鼻0.8以下", .80, .87, .68), ("0.8〜1.0", .80, .93, .92), ("1.0〜1.2", .74, .78, .90), ("鼻1.2以上", .81, 1.32, .85))),
+)
+DATA_STATUS = (("オリ展", "13場", "平和島・浜名湖・常滑・三国・尼崎・鳴門・丸亀・宮島・下関・若松・芦屋・唐津・大村(桐生は選手ごとの表で未使用)"),
+               ("選手コメント", "5場", "大村・宮島(レースごと・過去分あり)、丸亀(前日のコメント)、芦屋・唐津(節の一覧)"),
+               ("45秒前のオッズ", "全場", "10/19から"))
+
+
+def research_notes():
+    cards = ""
+    for title, sub, bars in RESEARCH:
+        cards += (f'<div class="card"><b>{title}</b><p class="sub" style="margin:2px 0 6px">{sub}</p>'
+                  + "".join(_bar(a, v, note=n) for a, v, n in bars) + "</div>")
+    rn = ""
+    for rk, rows in RANK_NOSE:
+        rn += (f'<div style="margin-top:6px"><b>{rk}ランク</b><table class="tt" style="width:100%;border-collapse:collapse;font-size:12.5px;text-align:center">'
+               '<tr style="background:#f3f5f9"><th style="text-align:left">鼻(外比)</th><th>イン頭</th><th>2・3コース頭</th><th>外頭</th></tr>')
+        for nm, a, b, c in rows:
+            rn += f'<tr style="border-top:1px solid var(--bd)"><td style="text-align:left">{nm}</td>' + "".join(
+                f"<td>{_roi_chip(1, x)}</td>" for x in (a, b, c)) + "</tr>"
+        rn += "</table></div>"
+    st = "".join(f'<div class="cell"><b>{a} {b}</b><span class="sub">{c}</span></div>' for a, b, c in DATA_STATUS)
+    return ('<h2>研究ノート(最近わかったこと)</h2>'
+            '<div class="card"><b>今の考え方</b><p class="sub" style="margin:4px 0 0">確率はそのレースの答えではなく、似たレースの平均。'
+            '市場も平均で値段をつけるので、勝てるのは「平均とは違う」を見抜ける所だけ。'
+            'イン側は値段が正確なので<b>絞る・2・3着で勝負</b>、外側は<b>嗅覚(外比・隠れまくり)×オリ展</b>で狙う。'
+            '1.0より上が市場より来ている所。お金にするには約1.33が要る。</p></div>'
+            + cards
+            + '<div class="card"><b>ランク × 鼻 × 頭のコース</b><p class="sub" style="margin:2px 0 4px">2026年の回収率。'
+              'A・Bで鼻1.2以上は2・3コース頭が強い。鼻0.8以下の外頭はどのランクでも弱い(消し)。インの頭はどこでも75〜80%。</p>'
+            + rn + "</div>"
+            + f'<div class="card"><b>集めているデータ</b><div class="g2" style="margin-top:4px">{st}</div></div>')
+
+
 def monitor_room():
     body = (f'<a class="back-lk" href="/ops.html">← 組織図に戻る</a>'
             f'<div class="room-head">{_monitor_img(76)}<div><h1 style="margin:0">{MONITOR["name"]}</h1>'
             f'<span class="sub">{MONITOR["role"]}</span></div></div>'
-            + '<div class="card"><b>見張っている決裁者</b><p class="sub" style="margin:4px 0 6px">どれもお金は使わず記録だけ。'
-              '同じレースでそれぞれ判断し、成績を並べる。r1・r2…は同じ決裁者の中で買い方を直した版。</p>'
-            + _kessai_tiles() + '</div>'
-            + '<div id="flow"></div>'
-            + '<div class="card"><b>決裁者Aの成績</b><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div></div>'
-            + SIDE_CARD + MQ_CARD
-            + '<div class="card"><b>決裁者Cの成績</b><div data-stat="plan:kessaiC"></div><div data-pnl="kessaiC" style="margin-top:6px"></div></div>'
-            + '<details class="card fold"><summary>判定の予定</summary><p class="sub" style="margin:4px 0 0">10/31(14日)と11/17(30日)に、A・Cの成績と社員候補を比べて、'
-              '本命の決裁者と社員の入れ替えを決める。決め方は運用メモに事前に書いてある。</p></details>'
+            + '<h2>いま見張っているもの</h2>'
+            + '<div class="card"><b>決裁者(本体)</b><p class="sub" style="margin:4px 0 6px">どれもお金は使わず記録だけ。同じレースでそれぞれ判断し、成績を並べる。</p>'
+            + _kessai_tiles()
+            + '<div style="margin-top:8px"><b>決裁者A</b> <span data-stat="kessai"></span></div>'
+            + '<div><b>決裁者C</b> <span data-stat="plan:kessaiC"></span></div></div>'
+            + zure_board()
+            + research_notes()
+            + '<h2>くわしく</h2>'
+            + '<details class="card fold"><summary>決裁者Aの成績のくわしい中身</summary><div data-stat="kessai"></div><div data-pnl="kessai" style="margin-top:6px"></div>'
+            + SIDE_CARD + MQ_CARD + '</details>'
+            + '<details class="card fold"><summary>決裁者Cの成績</summary><div data-stat="plan:kessaiC"></div><div data-pnl="kessaiC" style="margin-top:6px"></div></details>'
+            + '<details class="card fold"><summary>今の判断の流れ</summary><div id="flow"></div></details>'
+            + '<details class="card fold"><summary>判定の予定</summary><p class="sub" style="margin:4px 0 0">11/17(30日)に、A・Cの成績と社員候補を比べて、'
+              '本命の決裁者と社員の入れ替えを決める。ズレ屋の買い方は11月末に1回目の見直し。決め方は運用メモに事前に書いてある。</p></details>'
             + '<details class="card fold"><summary>社員同士の被り</summary><span class="sub">同じレースで同じ頭を推した社員がほかにもいたか。提案1つ4,000円で、採用されたかどうかに関係なく数える</span>'
               '<div data-stat="staff-ov" style="margin-top:6px"></div></details>'
             + '<a class="org-tile" href="/org/intern.html" style="margin-bottom:12px"><div><b>有力インターン生の部屋 →</b><span class="sub">説D・インの2着専門・E2・E3など、社員に上がる前の説</span></div></a>'

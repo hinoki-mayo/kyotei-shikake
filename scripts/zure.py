@@ -8,7 +8,8 @@
   (その日それまでのレースのイン1着率・同じコースの1着数)・オリ展(取れている場だけ)
 ・外の嗅覚(11/4から): 4〜6コースが1着になる見込みを市場と比べ(外比)、1.2以上のレースで、外が頭・点数1.0以上・45秒前300倍未満の目を1点100円
 ・保存: data/zure/<日付>.json {レース: {"picks": [[目, 45秒前オッズ, 点数], ...], "res": 決まった目, "pay": 100円あたりの払戻, "orig": オリ展あり,
-  "soto": 外比, "soto_picks": [[目, 45秒前オッズ, 点数], ...], "hm": [B隠れまくりの枠], "hm_picks": [[目, オッズ], ...], "hmo_picks": [...]}}
+  "soto": 外比, "soto_picks": [[目, 45秒前オッズ, 点数], ...], "hm": [B隠れまくりの枠], "hm_picks": [[目, オッズ], ...], "hmo_picks": [...],
+  "rank": 堅さのランク, "ab_picks": [[目, オッズ, 点数], ...]}}
 ・その日の結果が全部出てから(夜)まとめて作る。使うのはレース前に出ていた情報だけ(当日の流れはそのレースより前のレースの結果だけ)
 
 例: python scripts/zure.py 20261103   (日付を省くと昨日と今日)
@@ -33,6 +34,10 @@ SOTO_RF = ["wind", "wave", "jcd_n", "in_today", "n_today", "venue_c"]
 # B隠れまくり(11/5から): 3〜5コース・B級・そのコースのまくり率12%以上(10走以上)・展示STが内側より遅い か 4位以下 の艇
 #   本線: その艇が頭・45秒前100倍未満の目を全部 / オリ展つき: その艇の直線が1〜4位なら300倍未満まで
 HM_ATK, HM_ODDS, HMO_ODDS = 0.12, 100.0, 300.0
+# ランク×鼻(11/5から): サイトの堅さのランクがA・Bで外比1.2以上のレースは、2・3コースが頭・点数1.0以上・45秒前100倍未満の目
+#   (2026年の確かめで A 107%・B 132%)。消し: 外比0.8以下のレースの外頭(4〜6コース)はどのランクでも59〜71%なので記録だけ別に数える
+RANKS = (("S", 0.5), ("A", 0.4), ("B", 0.3), ("C", 0.0))   # build_site.RANKS と同じ(おすすめ5点の確率の合計)
+AB_SOTO, AB_SC, AB_ODDS = 1.2, 1.0, 100.0
 OUT = DATA / "zure"
 SCORE_MIN, ODDS_MAX, UNIT = 1.3, 100.0, 100
 SINCE = "20261103"   # この日からが本番の記録(前の日の分は参考)
@@ -214,6 +219,31 @@ def features(date, source="entries"):
     return D, mk
 
 
+def race_ranks(date):
+    """サイトの予想ページと同じ堅さのランク {(jcd, race): "S"/"A"/"B"/"C"}"""
+    import race_view
+    pp = DATA / "predictions" / f"{date}.json"
+    if not pp.exists():
+        return {}
+    preds = json.loads(pp.read_text()).get("races", {})
+    odds = race_view.load_odds(date)
+    pe = DATA / "entries" / f"{date}.json"
+    ent = json.loads(pe.read_text()) if pe.exists() else {}
+    out = {}
+    for k, pred in preds.items():
+        if pred.get("version") != "final":
+            continue
+        try:
+            lv = ent.get(k)
+            vw = race_view.view(pred, date, odds.get(k), lv if isinstance(lv, dict) else None)
+        except Exception:
+            continue
+        if vw:
+            p5 = sum(p for _, p in vw["top3"][:5])
+            out[(k[:2], int(k[3:]))] = next(r for r, th in RANKS if p5 >= th)
+    return out
+
+
 def soto_ratio(D):
     """レースごとの外比(外の嗅覚の見込み ÷ 市場の見込み)。{(jcd, race): 外比}"""
     md, F = pickle.load(open(SOTO_MODEL, "rb"))
@@ -242,6 +272,7 @@ def picks(date, source="entries"):
     for t, m in (("y1", "mh"), ("y2", "ms"), ("y3", "mt")):
         D["r" + t[1]] = M[t].predict_proba(D[F])[:, 1] / D[m]
     soto = soto_ratio(D)
+    ranks = race_ranks(date)
     R = _results((int(date[:4]),))
     R = R[R.date == date].drop_duplicates(["jcd", "race"]).set_index(["jcd", "race"])
     out = {}
@@ -267,6 +298,19 @@ def picks(date, source="entries"):
             if hmo:
                 rec["hmo_picks"] = sorted([[c, od] for c, od in o3.items() if int(c[0]) in hmo and od < HMO_ODDS], key=lambda x: x[1])
         so = soto.get((jcd, race))
+        rk = ranks.get((jcd, race))
+        if rk:
+            rec["rank"] = rk
+        if so is not None and rk in ("A", "B") and so >= AB_SOTO:
+            crs = dict(zip(d.waku.astype(int), d.course))
+            ab = []
+            for combo, od in o3.items():
+                a, b, c = (int(x) for x in combo.split("-"))
+                sc = r[a][0] * r[b][1] * r[c][2]
+                if crs.get(a) in (2, 3) and sc >= AB_SC and od < AB_ODDS:
+                    ab.append([combo, od, round(float(sc), 3)])
+            if ab:
+                rec["ab_picks"] = sorted(ab, key=lambda x: -x[2])
         if so is not None:
             rec["soto"] = round(so, 3)
             if so >= SOTO_MIN:
@@ -301,7 +345,7 @@ def main(argv):
         sn = sum(len(v.get("soto_picks", [])) for v in pk.values())
         sh = sum(v.get("pay", 0) for v in pk.values() for c, *_ in v.get("soto_picks", []) if c == v.get("res"))
         print(f"  外の嗅覚: {sum(1 for v in pk.values() if v.get('soto_picks'))}レースで{sn}点 投資{sn * UNIT:,}円 払戻{sh:,}円")
-        for key, nm in (("hm_picks", "B隠れまくり"), ("hmo_picks", "B隠れまくり(オリ展つき)")):
+        for key, nm in (("hm_picks", "B隠れまくり"), ("hmo_picks", "B隠れまくり(オリ展つき)"), ("ab_picks", "A・B×鼻で2・3コース頭")):
             hn = sum(len(v.get(key, [])) for v in pk.values())
             hh = sum(v.get("pay", 0) for v in pk.values() for c, *_ in v.get(key, []) if c == v.get("res"))
             print(f"  {nm}: {sum(1 for v in pk.values() if v.get(key))}レースで{hn}点 投資{hn * UNIT:,}円 払戻{hh:,}円")
