@@ -141,7 +141,7 @@ def fetch_miyajima(date, race):
     req = urllib.request.Request(MIYAJIMA_URL, data=data, headers=UA)
     with urllib.request.urlopen(req, timeout=30) as r:
         raw = r.read().decode("utf-8", errors="replace")
-    if not re.search(rf'value="{date}"\s+selected', raw):   # 今の節にない日付だと別の日の数字が返るので、その日が選ばれている時だけ使う
+    if f'value="{date}"' not in raw:   # 日付の一覧にその日が無い(=別の節の数字が返ってきた)時は使わない
         return {}
     dt = raw.split("####")
     seg = next((x for x in dt if "まわり足" in x), "")   # 直前情報の表(並び順が変わっても見つけられるよう、中身で探す)
