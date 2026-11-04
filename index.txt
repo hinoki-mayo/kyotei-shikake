@@ -1,0 +1,60 @@
+click-NG 直前情報 https://www.marugameboat.jp/sp/ TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/asp/kyogi/15/sp/syusso0101.htm https://www.marugameboat.jp/asp/marugame/json/timeline.json?_=1793779800066 https://www.marugameboat.jp/sp/
+p0000 200 text_hit=False data_hit=[] https://www.marugameboat.jp/sp/
+click-NG 直前情報 https://www.marugameboat.jp/s_pdf/date.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/s_pdf/date.htm
+p0001 200 text_hit=False data_hit=[] https://www.marugameboat.jp/s_pdf/date.htm
+click-NG 直前情報 https://www.marugameboat.jp/asp/htmlmade/Race/Tenbo/15/PC/jumper.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/asp/htmlmade/Race/Tenbo/15/PC/jumper.htm https://www.marugameboat.jp/asp/htmlmade/Race/Tenbo/15/PC/t119.htm
+p0002 200 text_hit=False data_hit=[] https://www.marugameboat.jp/asp/htmlmade/Race/Tenbo/15/PC/jumper.htm
+click-NG 直前情報 https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110401.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110401.htm
+p0003 200 text_hit=False data_hit=[] https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110401.htm
+click-NG 直前情報 https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110402.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110402.htm
+p0004 200 text_hit=False data_hit=[] https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110402.htm
+click-NG 直前情報 https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110403.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110403.htm
+p0005 200 text_hit=False data_hit=[] https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110403.htm
+click-NG 直前情報 https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110404.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110404.htm
+p0006 200 text_hit=False data_hit=[] https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110404.htm
+click-NG 直前情報 https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110405.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110405.htm
+p0007 404 text_hit=False data_hit=[] https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110405.htm
+click-NG 直前情報 https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110406.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110406.htm
+p0008 404 text_hit=False data_hit=[] https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110406.htm
+click-NG 直前情報 https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110407.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110407.htm
+p0009 404 text_hit=False data_hit=[] https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110407.htm
+click-NG 直前情報 https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110408.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110408.htm
+p0010 404 text_hit=False data_hit=[] https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110408.htm
+click-NG 直前情報 https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110409.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110409.htm
+p0011 404 text_hit=False data_hit=[] https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110409.htm
+click-NG 直前情報 https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110410.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110410.htm
+p0012 404 text_hit=False data_hit=[] https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110410.htm
+click-NG 直前情報 https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110411.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110411.htm
+p0013 404 text_hit=False data_hit=[] https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110411.htm
+click-NG 直前情報 https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110412.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110412.htm
+p0014 404 text_hit=False data_hit=[] https://www.marugameboat.jp/sp/replay/replay_movie/race/2026110412.htm
+click-NG 直前情報 https://www.marugameboat.jp/asp/htmlmade/Race/Tenbo/15/PC/t119.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/asp/htmlmade/Race/Tenbo/15/PC/t119.htm
+p0015 200 text_hit=False data_hit=[] https://www.marugameboat.jp/asp/htmlmade/Race/Tenbo/15/PC/t119.htm
+click-NG 直前情報 https://www.marugameboat.jp/asp/htmlmade/Race/Tenbo/15/PC/t117.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/asp/htmlmade/Race/Tenbo/15/PC/t117.htm
+p0016 200 text_hit=False data_hit=[] https://www.marugameboat.jp/asp/htmlmade/Race/Tenbo/15/PC/t117.htm
+click-NG 直前情報 https://www.marugameboat.jp/asp/htmlmade/Race/Syutujo/15/PC/s120.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/asp/htmlmade/Race/Syutujo/15/PC/s120.htm
+p0017 200 text_hit=False data_hit=[] https://www.marugameboat.jp/asp/htmlmade/Race/Syutujo/15/PC/s120.htm
+click-NG 直前情報 https://www.marugameboat.jp/asp/htmlmade/Race/Syutujo/15/PC/s121.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/asp/htmlmade/Race/Syutujo/15/PC/s121.htm
+p0018 200 text_hit=False data_hit=[] https://www.marugameboat.jp/asp/htmlmade/Race/Syutujo/15/PC/s121.htm
+click-NG 直前情報 https://www.marugameboat.jp/asp/htmlmade/Race/Syutujo/15/PC/s122.htm TimeoutError('Locator.click: Timeout 5000ms exceeded.\nCall log:\n  - waiting for get_by_text("直前情報").first\n')
+  requests: https://www.marugameboat.jp/asp/htmlmade/Race/Syutujo/15/PC/s122.htm
+p0019 200 text_hit=False data_hit=[] https://www.marugameboat.jp/asp/htmlmade/Race/Syutujo/15/PC/s122.htm

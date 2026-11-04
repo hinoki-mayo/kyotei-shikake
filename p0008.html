@@ -1,0 +1,52 @@
+<html><head>
+    <meta charset="utf-8">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="cache-control" content="no-cache">
+    <meta http-equiv="expires" content="0">
+    <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
+<link rel="icon" href="/favicon.ico" type="image/x-icon">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+    <meta name="format-detection" content="telephone=no">
+    <script type="text/javascript" src="js/jquery-1.8.3.min.js"></script>
+    <link rel="stylesheet" href="/css/reset.css">
+    <link rel="stylesheet" href="/css/error.css">
+    <script>
+        //spの場合spトップへ遷移するための処理
+        if (IsSmartPhone()) {
+            $(function() {
+                $('body').find('[data-sp-href]').each(function() {
+                    $(this).attr('href', $(this).attr('data-sp-href'));
+                });
+            });
+        }
+        function IsSmartPhone() {
+            var media = [
+                'iPhone',
+                'Windows Phone',
+                'Android'
+            ];
+            var pattern = new RegExp(media.join('|'), 'i');
+            return pattern.test(navigator.userAgent);
+        }
+    </script>
+</head>
+
+<body class="kaisai">
+
+    <div id="wrapper">
+
+        <div class="error">
+        </div>
+
+        <div class="home">
+            <a href="/" data-sp-href="/sp"><i></i>HOMEへ戻る</a>
+        </div>
+
+    </div>
+
+
+
+
+</body></html>
