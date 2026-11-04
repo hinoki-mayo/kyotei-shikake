@@ -1,0 +1,38 @@
+name: 選手コメントの過去分取り込み
+
+# 大村の選手コメント・記者の見解の過去分をさかのぼって取る(手で動かす)。予想にはまだ使わない
+on:
+  workflow_dispatch:
+    inputs:
+      start:
+        description: "さかのぼる下限の日 (例 20240101)"
+        required: true
+        default: "20240101"
+
+permissions:
+  contents: write
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 350
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - run: cd scripts && python fetch_comments.py --start ${{ inputs.start }} --max-minutes 330
+      - name: 保存
+        if: always()
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add data/comments 2>/dev/null || true
+          git diff --cached --quiet || git commit -m "選手コメントの過去分(大村)"
+          for i in 1 2 3 4 5 6; do
+            git pull --rebase && git push && break
+            sleep $((RANDOM % 20 + 5))
+          done

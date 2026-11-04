@@ -33,13 +33,17 @@ jobs:
           start=$(TZ=Asia/Tokyo date -d '2 days ago' +%Y%m%d)
           end=$(TZ=Asia/Tokyo date +%Y%m%d)
           for j in 04 06 08 10 13 14 15 17 19 20 21 23 24; do python backfill_orig.py --jcd $j --start $start --end $end --max-minutes 5 || true; done
+      - name: 選手コメント(大村・ここ3日分)
+        run: |
+          cd scripts
+          python fetch_comments.py --start $(TZ=Asia/Tokyo date -d '2 days ago' +%Y%m%d) --end $(TZ=Asia/Tokyo date +%Y%m%d) --max-minutes 5 || true
       - name: 別会社ズレ屋の記録(昨日と今日。昨日の分は結果が全部そろってから作り直す)
         run: cd scripts && python zure.py || true
       - name: 保存
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
-          git add data/orig_tenji data/orig_race data/zure 2>/dev/null || true
+          git add data/orig_tenji data/orig_race data/zure data/comments 2>/dev/null || true
           git diff --cached --quiet || git commit -m "オリジナル展示 $(TZ=Asia/Tokyo date +%m/%d)"
           for i in 1 2 3 4 5; do
             git pull --rebase && git push && break
