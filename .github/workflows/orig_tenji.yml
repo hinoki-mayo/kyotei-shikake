@@ -36,7 +36,7 @@ jobs:
       - name: 選手コメント(大村・宮島のここ3日分、芦屋・唐津の節の一覧)
         run: |
           cd scripts
-          for j in 24 17; do python fetch_comments.py --jcd $j --start $(TZ=Asia/Tokyo date -d '2 days ago' +%Y%m%d) --end $(TZ=Asia/Tokyo date +%Y%m%d) --max-minutes 5 || true; done
+          for j in 24 17 15; do python fetch_comments.py --jcd $j --start $(TZ=Asia/Tokyo date -d '2 days ago' +%Y%m%d) --end $(TZ=Asia/Tokyo date +%Y%m%d) --max-minutes 5 || true; done
           python fetch_comments.py --jcd series || true
       - name: 別会社ズレ屋の記録(昨日と今日。昨日の分は結果が全部そろってから作り直す)
         run: cd scripts && python zure.py || true
