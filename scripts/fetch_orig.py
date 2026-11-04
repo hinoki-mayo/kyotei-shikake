@@ -22,6 +22,9 @@ RACE_SITES = {"06": "www.boatrace-hamanako.jp", "08": "www.boatrace-tokoname.jp"
               "13": "www.boatrace-amagasaki.jp", "20": "www.wmb.jp", "21": "www.boatrace-ashiya.com", "23": "www.boatrace-karatsu.jp",
               "14": "www.n14.jp", "19": "www.boatrace-shimonoseki.jp"}
 RACE_URL = "https://{host}/modules/yosou/group-cyokuzen.php?day={date}&race={race}&if=1&kind=2"
+# 宮島は作りが違う: トップページの直前情報を POST(race, date) で読み込む。返事は「####」区切りで、その中の「まわり足」がある区切りが直前情報の表
+MIYAJIMA_URL = "https://www.boatrace-miyajima.com/race_common/require/kaisai_reload.php"
+RACE_SITES["17"] = "www.boatrace-miyajima.com"
 RACE_KINDS = ("一周", "まわり足", "直線", "半周")
 
 
@@ -55,12 +58,44 @@ def parse_race(h):
     return out
 
 
+def parse_miyajima(h):
+    """宮島の直前情報の表 → {枠: {一周, まわり足, 直線}}。列は 体重・チルト・展示・一周・まわり足・直線 の順"""
+    out = {}
+    for row in re.split(r"<tr[^>]*>", h or ""):
+        w = re.search(r'<p class="wakuban[^"]*">\s*(\d)\s*</p>', row)
+        if not w:
+            continue
+        vals = []
+        for v in re.findall(r'<i class="bold">([^<]*)</i>', row):
+            try:
+                vals.append(float(v.strip()))
+            except ValueError:
+                vals.append(None)
+        if len(vals) >= 6:
+            o = dict(zip(("一周", "まわり足", "直線"), vals[3:6]))
+            if any(x is not None for x in o.values()):
+                out[w.group(1)] = o
+    return out
+
+
+def fetch_miyajima(date, race):
+    import urllib.parse
+    data = urllib.parse.urlencode({"race": int(race), "date": date}).encode()
+    req = urllib.request.Request(MIYAJIMA_URL, data=data, headers=UA)
+    with urllib.request.urlopen(req, timeout=30) as r:
+        dt = r.read().decode("utf-8", errors="replace").split("####")
+    seg = next((x for x in dt if "まわり足" in x), "")   # 直前情報の表(並び順が変わっても見つけられるよう、中身で探す)
+    return parse_miyajima(seg)
+
+
 def fetch_race(jcd, date, race):
     """その場がオリ展を出していれば、そのレースのオリ展 {枠: {...}}。出していない・取れなければ{}"""
     host = RACE_SITES.get(jcd)
     if not host:
         return {}
     try:
+        if jcd == "17":
+            return fetch_miyajima(date, race)
         req = urllib.request.Request(RACE_URL.format(host=host, date=date, race=int(race)), headers=UA)
         with urllib.request.urlopen(req, timeout=30) as r:
             return parse_race(r.read().decode("utf-8", errors="replace"))
