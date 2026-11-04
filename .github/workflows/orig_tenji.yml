@@ -32,7 +32,7 @@ jobs:
           cd scripts
           start=$(TZ=Asia/Tokyo date -d '2 days ago' +%Y%m%d)
           end=$(TZ=Asia/Tokyo date +%Y%m%d)
-          for j in 06 08 10 13 14 17 19 20 21 23 24; do python backfill_orig.py --jcd $j --start $start --end $end --max-minutes 5 || true; done
+          for j in 04 06 08 10 13 14 17 19 20 21 23 24; do python backfill_orig.py --jcd $j --start $start --end $end --max-minutes 5 || true; done
       - name: 別会社ズレ屋の記録(昨日と今日。昨日の分は結果が全部そろってから作り直す)
         run: cd scripts && python zure.py || true
       - name: 保存
