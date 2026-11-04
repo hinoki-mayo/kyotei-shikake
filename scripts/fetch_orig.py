@@ -28,9 +28,10 @@ RACE_SITES["17"] = "www.boatrace-miyajima.com"
 # 大村は予想サイトの「展示航走終了後の直前生予想」の表(一周・回り足・直線)。過去の日付も選べる
 OMURA_URL = "https://omurakyotei.jp/yosou/include/chokuzen_comment.php?day={date}&race={race:02d}"
 RACE_SITES["24"] = "omurakyotei.jp"
-# 平和島はスマホの「直前&展示」のページ。URLは節の何日目(番組表の day)とレース番号で決まる。今の節の分しか置かれていない
-HEIWAJIMA_URL = "https://www.heiwajima.gr.jp/asp/kyogi/04/sp/yoso{day:02d}{race:02d}.htm"
+# 平和島・丸亀はスマホのレース情報のページ。yoso05(5番目のタブ=直前)+レース番号。その日の分しか置かれていない
+SP_YOSO_URL = "https://{host}/asp/kyogi/{jcd}/sp/yoso05{race:02d}.htm"
 RACE_SITES["04"] = "www.heiwajima.gr.jp"
+RACE_SITES["15"] = "www.marugameboat.jp"
 RACE_KINDS = ("一周", "まわり足", "直線", "半周")
 
 
@@ -124,15 +125,25 @@ def parse_heiwajima(h):
     return out
 
 
-def _series_day(jcd, date):
-    """番組表から、その日が節の何日目か"""
-    import pandas as pd
-    p = DATA / "programs" / f"{date[:4]}.parquet"
-    if not p.exists():
-        return None
-    x = pd.read_parquet(p, columns=["date", "jcd", "day"])
-    x = x[(x.date == date) & (x.jcd == jcd)]
-    return int(x.day.iloc[0]) if len(x) and str(x.day.iloc[0]).isdigit() else None
+def parse_marugame(h):
+    """丸亀の「オリジナル展示データ」の表 → {枠: {一周, まわり足, 直線}}。列は 枠・体重・チルト・展示・一周・まわり足・直線 の順"""
+    i = (h or "").find("オリジナル展示データ")
+    t = re.search(r"<table.*?</table>", h[h.rfind("<table", 0, i):] if i >= 0 else "", re.S)
+    out = {}
+    for body in re.findall(r"<tbody>(.*?)</tbody>", t.group(0) if t else "", re.S):
+        tr = re.search(r"<tr[^>]*>(.*?)</tr>", body, re.S)
+        tds = [re.sub(r"<[^>]+>", "", v).strip() for v in re.findall(r"<td[^>]*>(.*?)</td>", tr.group(1) if tr else "", re.S)]
+        if len(tds) < 7 or not tds[0].isdigit():
+            continue
+        vals = []
+        for v in tds[4:7]:
+            try:
+                vals.append(float(v))
+            except ValueError:
+                vals.append(None)
+        if any(x is not None for x in vals):
+            out[tds[0]] = dict(zip(("一周", "まわり足", "直線"), vals))
+    return out
 
 
 def fetch_miyajima(date, race):
@@ -156,16 +167,14 @@ def fetch_race(jcd, date, race):
     try:
         if jcd == "17":
             return fetch_miyajima(date, race)
-        if jcd == "04":
-            day = _series_day("04", date)
-            if not day:
-                return {}
-            req = urllib.request.Request(HEIWAJIMA_URL.format(day=day, race=int(race)), headers=UA)
+        if jcd in ("04", "15"):
+            req = urllib.request.Request(SP_YOSO_URL.format(host=host, jcd=jcd, race=int(race)), headers=UA)
             with urllib.request.urlopen(req, timeout=30) as r:
                 h = r.read().decode("utf-8", errors="replace")
-            # ページは節が変わると上書きされるので、動画のリンクの日付(raceDate=)がその日と合う時だけ使う(過去の日付で別の節の数字を取らないため)
-            ds = set(re.findall(r"raceDate=(\d{8})", h))
-            return parse_heiwajima(h) if date in ds else {}
+            # その日の分しか置かれないので、動画のリンクの日付(raceDate=)がその日と合う時だけ使う(過去の日付で別の日の数字を取らないため)
+            if date not in set(re.findall(r"raceDate=(\d{8})", h)):
+                return {}
+            return parse_heiwajima(h) if jcd == "04" else parse_marugame(h)
         if jcd == "24":
             req = urllib.request.Request(OMURA_URL.format(date=date, race=int(race)), headers=UA)
             with urllib.request.urlopen(req, timeout=30) as r:
