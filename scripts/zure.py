@@ -8,7 +8,7 @@
   (その日それまでのレースのイン1着率・同じコースの1着数)・オリ展(取れている場だけ)
 ・外の嗅覚(11/4から): 4〜6コースが1着になる見込みを市場と比べ(外比)、1.2以上のレースで、外が頭・点数1.0以上・45秒前300倍未満の目を1点100円
 ・保存: data/zure/<日付>.json {レース: {"picks": [[目, 45秒前オッズ, 点数], ...], "res": 決まった目, "pay": 100円あたりの払戻, "orig": オリ展あり,
-  "soto": 外比, "soto_picks": [[目, 45秒前オッズ, 点数], ...]}}
+  "soto": 外比, "soto_picks": [[目, 45秒前オッズ, 点数], ...], "hm": [B隠れまくりの枠], "hm_picks": [[目, オッズ], ...], "hmo_picks": [...]}}
 ・その日の結果が全部出てから(夜)まとめて作る。使うのはレース前に出ていた情報だけ(当日の流れはそのレースより前のレースの結果だけ)
 
 例: python scripts/zure.py 20261103   (日付を省くと昨日と今日)
@@ -30,6 +30,9 @@ SOTO_MIN, SOTO_SC_MIN, SOTO_ODDS_MAX = 1.2, 1.0, 300.0   # 外比1.2以上のレ
 SOTO_BF = ["est", "est_rank", "est_in", "tenji", "tenji_rk", "nat_win", "loc_win", "nat_2r", "motor_2r", "boat_2r", "grade_n", "n_c", "w_c", "atk_c",
            "sa_c", "r2_c", "stc_c", "f_pts", "f_last", "mh", "ms", "mt", "lap_rk", "mawari_rk", "choku_rk", "lap_dv", "mawari_dv", "choku_dv", "age", "weight"]
 SOTO_RF = ["wind", "wave", "jcd_n", "in_today", "n_today", "venue_c"]
+# B隠れまくり(11/5から): 3〜5コース・B級・そのコースのまくり率12%以上(10走以上)・展示STが内側より遅い か 4位以下 の艇
+#   本線: その艇が頭・45秒前100倍未満の目を全部 / オリ展つき: その艇の直線が1〜4位なら300倍未満まで
+HM_ATK, HM_ODDS, HMO_ODDS = 0.12, 100.0, 300.0
 OUT = DATA / "zure"
 SCORE_MIN, ODDS_MAX, UNIT = 1.3, 100.0, 100
 SINCE = "20261103"   # この日からが本番の記録(前の日の分は参考)
@@ -254,6 +257,15 @@ def picks(date, source="entries"):
             if sc >= SCORE_MIN and od < ODDS_MAX:
                 pk.append([combo, od, round(float(sc), 3)])
         rec = {"picks": sorted(pk, key=lambda x: -x[2]), "orig": bool(d.has_o.any())}
+        hm = [int(x.waku) for x in d.itertuples() if 3 <= x.course <= 5 and (x.n_c or 0) >= 10 and (x.atk_c or 0) >= HM_ATK
+              and x.grade_n <= 2 and (x.est_in > 0 or x.est_rank >= 4)]
+        if hm:
+            chk = {int(x.waku): x.choku_rk for x in d.itertuples()}
+            rec["hm"] = hm
+            rec["hm_picks"] = sorted([[c, od] for c, od in o3.items() if int(c[0]) in hm and od < HM_ODDS], key=lambda x: x[1])
+            hmo = [w for w in hm if pd.notna(chk.get(w)) and chk[w] <= 4]
+            if hmo:
+                rec["hmo_picks"] = sorted([[c, od] for c, od in o3.items() if int(c[0]) in hmo and od < HMO_ODDS], key=lambda x: x[1])
         so = soto.get((jcd, race))
         if so is not None:
             rec["soto"] = round(so, 3)
@@ -289,6 +301,10 @@ def main(argv):
         sn = sum(len(v.get("soto_picks", [])) for v in pk.values())
         sh = sum(v.get("pay", 0) for v in pk.values() for c, *_ in v.get("soto_picks", []) if c == v.get("res"))
         print(f"  外の嗅覚: {sum(1 for v in pk.values() if v.get('soto_picks'))}レースで{sn}点 投資{sn * UNIT:,}円 払戻{sh:,}円")
+        for key, nm in (("hm_picks", "B隠れまくり"), ("hmo_picks", "B隠れまくり(オリ展つき)")):
+            hn = sum(len(v.get(key, [])) for v in pk.values())
+            hh = sum(v.get("pay", 0) for v in pk.values() for c, *_ in v.get(key, []) if c == v.get("res"))
+            print(f"  {nm}: {sum(1 for v in pk.values() if v.get(key))}レースで{hn}点 投資{hn * UNIT:,}円 払戻{hh:,}円")
 
 
 if __name__ == "__main__":
