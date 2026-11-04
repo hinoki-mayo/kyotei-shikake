@@ -25,6 +25,9 @@ RACE_URL = "https://{host}/modules/yosou/group-cyokuzen.php?day={date}&race={rac
 # 宮島は作りが違う: トップページの直前情報を POST(race, date) で読み込む。返事は「####」区切りで、その中の「まわり足」がある区切りが直前情報の表
 MIYAJIMA_URL = "https://www.boatrace-miyajima.com/race_common/require/kaisai_reload.php"
 RACE_SITES["17"] = "www.boatrace-miyajima.com"
+# 大村は予想サイトの「展示航走終了後の直前生予想」の表(一周・回り足・直線)。過去の日付も選べる
+OMURA_URL = "https://omurakyotei.jp/yosou/include/chokuzen_comment.php?day={date}&race={race:02d}"
+RACE_SITES["24"] = "omurakyotei.jp"
 RACE_KINDS = ("一周", "まわり足", "直線", "半周")
 
 
@@ -78,6 +81,26 @@ def parse_miyajima(h):
     return out
 
 
+def parse_omura(h):
+    """大村の直前の表 → {枠: {一周, まわり足, 直線}}。行は展示の進入順で、先頭の見出しが枠番。列は ST・展示T・一周・回り足・直線 の順"""
+    t = re.search(r'<table[^>]*id="tblchokuzen_detail"[^>]*>(.*?)</table>', h or "", re.S)
+    out = {}
+    for row in re.findall(r"<tr>(.*?)</tr>", t.group(1) if t else "", re.S):
+        w = re.search(r'<th class="tei\d">\s*(\d)\s*</th>', row)
+        tds = [re.sub(r"<[^>]+>", "", v).strip() for v in re.findall(r"<td[^>]*>(.*?)</td>", row, re.S)]
+        if not w or len(tds) < 5:
+            continue
+        vals = []
+        for v in tds[2:5]:
+            try:
+                vals.append(float(v))
+            except ValueError:
+                vals.append(None)
+        if any(x is not None for x in vals):
+            out[w.group(1)] = dict(zip(("一周", "まわり足", "直線"), vals))
+    return out
+
+
 def fetch_miyajima(date, race):
     import urllib.parse
     data = urllib.parse.urlencode({"race": int(race), "date": date}).encode()
@@ -96,6 +119,10 @@ def fetch_race(jcd, date, race):
     try:
         if jcd == "17":
             return fetch_miyajima(date, race)
+        if jcd == "24":
+            req = urllib.request.Request(OMURA_URL.format(date=date, race=int(race)), headers=UA)
+            with urllib.request.urlopen(req, timeout=30) as r:
+                return parse_omura(r.read().decode("utf-8", errors="replace"))
         req = urllib.request.Request(RACE_URL.format(host=host, date=date, race=int(race)), headers=UA)
         with urllib.request.urlopen(req, timeout=30) as r:
             return parse_race(r.read().decode("utf-8", errors="replace"))
