@@ -13,7 +13,7 @@ import traceback
 
 from common import DATA, now_jst
 
-KEYS = ("matome", "hmo_picks", "z2_picks", "z3_picks", "ab_picks", "z5_picks", "hm_picks", "soto_picks", "picks", "rank", "soto", "hm", "orig")
+KEYS = ("matome", "c6_picks", "hmo_picks", "z2_picks", "z3_picks", "ab_picks", "z5_picks", "hm_picks", "soto_picks", "picks", "rank", "soto", "hm", "orig")
 _lock = threading.Lock()
 _done = set()
 
