@@ -15,6 +15,7 @@
 例: python scripts/zure.py 20261103   (日付を省くと昨日と今日)
 """
 import datetime as dt
+import functools
 import json
 import pickle
 import sys
@@ -53,6 +54,7 @@ PTS = {1: 10, 2: 8, 3: 6, 4: 4, 5: 2, 6: 1}
 K3 = ["-".join(str(i + 1) for i in t) for t in bet_mod.ODDS_ORDER]
 
 
+@functools.lru_cache(maxsize=4)
 def _results(years):
     out = []
     for y in years:
@@ -70,6 +72,7 @@ def _results(years):
     return r
 
 
+@functools.lru_cache(maxsize=2)
 def _profiles(y):
     """選手のコース別成績と、場×コースの1着率(前2年)"""
     P = _results((y - 2, y - 1))
@@ -105,13 +108,22 @@ def _before(date, source):
 
 def _orig(date):
     rows = []
+    have = set()
     for f in (DATA / "orig_race").glob(f"*/{date}.json"):
         jcd = f.parent.name
         for race, o in json.loads(f.read_text()).items():
             if len(o) != 6:
                 continue
+            have.add((jcd, int(race)))
             for w, v in o.items():
                 rows.append(dict(jcd=jcd, race=int(race), waku=int(w), lap=v.get("一周"), mawari=v.get("まわり足"), choku=v.get("直線")))
+    pe = DATA / "entries" / f"{date}.json"   # 展示の時に取れていたオリ展(リアルタイムで判断する時はこれしか無い)
+    E = json.loads(pe.read_text()) if pe.exists() else {}
+    for k, e in E.items():
+        o = (e or {}).get("orig") if isinstance(e, dict) else None
+        if o and len(o) == 6 and (k[:2], int(k[3:])) not in have:
+            for w, v in o.items():
+                rows.append(dict(jcd=k[:2], race=int(k[3:]), waku=int(w), lap=v.get("一周"), mawari=v.get("まわり足"), choku=v.get("直線")))
     O = pd.DataFrame(rows, columns=["jcd", "race", "waku", "lap", "mawari", "choku"])
     if O.empty:
         return O
@@ -153,7 +165,24 @@ def market(date, source):
     return res
 
 
-def features(date, source="entries"):
+def _live_winners(date):
+    """その日の結果がまだ結果ファイルに無い時(リアルタイム)は、速報の結果と展示の進入から1着のコースを出す"""
+    import live_result
+    pe = DATA / "entries" / f"{date}.json"
+    E = json.loads(pe.read_text()) if pe.exists() else {}
+    rows = []
+    for k, v in live_result.load(date).items():
+        c = (v or {}).get("combo3t")
+        e = E.get(k)
+        if isinstance(c, str) and isinstance(e, dict) and e.get("order"):
+            w = int(c.split("-")[0])
+            if w in e["order"]:
+                rows.append(dict(jcd=k[:2], race=int(k[3:]), wcrs=e["order"].index(w) + 1))
+    return pd.DataFrame(rows, columns=["jcd", "race", "wcrs"])
+
+
+def features(date, source="entries", only=None):
+    """only: {"場-R", ...} ならそのレースだけ作る(リアルタイム用)"""
     y = int(date[:4])
     prof, vb = _profiles(y)
     R = _results((y - 1, y))
@@ -167,6 +196,8 @@ def features(date, source="entries"):
     mk = market(date, source)
     rows = []
     for jcd, race, order, est, tj, wind, wave in _before(date, source):
+        if only and f"{jcd}-{race:02d}" not in only:
+            continue
         if not order or len(order) != 6 or est is None or len(est) != 6 or (jcd, race) not in mk:
             continue
         est = np.asarray(est, dtype=float)
@@ -201,6 +232,8 @@ def features(date, source="entries"):
     # 当日の流れ: そのレースより前のレースの結果だけ
     td = cur[cur.date == date]
     tw = td[td.fin == 1][["jcd", "race", "course"]].rename(columns={"course": "wcrs"})
+    if tw.empty and source == "entries":
+        tw = _live_winners(date)
     ins, crs_t, n_t = [], [], []
     for r in D.itertuples():
         e = tw[(tw.jcd == r.jcd) & (tw.race < r.race)]
@@ -225,7 +258,7 @@ def features(date, source="entries"):
     return D, mk
 
 
-def race_ranks(date):
+def race_ranks(date, only=None):
     """サイトの予想ページと同じ堅さのランク {(jcd, race): "S"/"A"/"B"/"C"}"""
     import race_view
     pp = DATA / "predictions" / f"{date}.json"
@@ -237,7 +270,7 @@ def race_ranks(date):
     ent = json.loads(pe.read_text()) if pe.exists() else {}
     out = {}
     for k, pred in preds.items():
-        if pred.get("version") != "final":
+        if pred.get("version") != "final" or (only and k not in only):
             continue
         try:
             lv = ent.get(k)
@@ -269,16 +302,21 @@ def soto_ratio(D):
     return {k: float(v) for k, v in zip(W.index, p / W.m_out.values)}
 
 
-def picks(date, source="entries"):
-    M, F = pickle.load(open(MODEL, "rb"))
-    got = features(date, source)
+@functools.lru_cache(maxsize=1)
+def _model():
+    return pickle.load(open(MODEL, "rb"))
+
+
+def picks(date, source="entries", only=None):
+    M, F = _model()
+    got = features(date, source, only)
     if not isinstance(got, tuple):
         return {}
     D, mk = got
     for t, m in (("y1", "mh"), ("y2", "ms"), ("y3", "mt")):
         D["r" + t[1]] = M[t].predict_proba(D[F])[:, 1] / D[m]
     soto = soto_ratio(D)
-    ranks = race_ranks(date)
+    ranks = race_ranks(date, only)
     R = _results((int(date[:4]),))
     R = R[R.date == date].drop_duplicates(["jcd", "race"]).set_index(["jcd", "race"])
     out = {}

@@ -2742,6 +2742,24 @@ def _zure_rows():
     return out
 
 
+def _zure_live_row():
+    """リアルタイム記録(購入係が45秒前に決めたまとめ)を、速報の結果と突き合わせる [レース, 点, 当たり, 払戻]"""
+    a = [0, 0, 0, 0]
+    for f in sorted((DATA / "zure_live").glob("*.json")):
+        res = live_result.load(f.stem)
+        for k, v in json.loads(f.read_text()).items():
+            r = res.get(k) or {}
+            m = v.get("matome") or []
+            if not m or not isinstance(r.get("combo3t"), str):
+                continue
+            ret = sum(r.get("payout3t") or 0 for c, _ in m if c == r["combo3t"])
+            a[0] += 1
+            a[1] += len(m)
+            a[2] += int(ret > 0)
+            a[3] += ret
+    return a
+
+
 def _roi_chip(st, ret):
     if not st:
         return '<span class="sub">-</span>'
@@ -2762,6 +2780,10 @@ def zure_board():
                  f'<span class="sub" style="display:block;font-size:11px">{desc} ・{since[4:6]}/{since[6:]}から本番</span></td>'
                  f'<td>{_roi_chip(lv[1] * 100, lv[3])}</td><td>{lv[1]}</td><td>{lv[2]}</td>'
                  f'<td>{_roi_chip(rf[1] * 100, rf[3])}</td><td>{rf[2]}</td></tr>')
+    lv = _zure_live_row()
+    body = (f'<tr style="border-top:2px solid var(--bd);background:#fffbea"><td style="text-align:left"><b>★まとめ(リアルタイム記録)</b>'
+            '<span class="sub" style="display:block;font-size:11px">購入係が締切45秒前にその場で決めた買い目。上の夜の計算と同じになるはず(ずれたら取りこぼし)</span></td>'
+            f'<td>{_roi_chip(lv[1] * 100, lv[3])}</td><td>{lv[1]}</td><td>{lv[2]}</td><td class="sub">-</td><td class="sub">-</td></tr>') + body
     days = sorted({d for k, *_ in ZURE_PLANS for d in rows[k]["days"]})[-7:]
     dtab = ""
     if days:
