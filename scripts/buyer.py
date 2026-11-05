@@ -26,6 +26,7 @@ import bet
 import build_site
 import live_result
 import notify
+import zure_live
 import race_view
 from common import DATA, JST, ROOT, now_jst
 
@@ -46,7 +47,7 @@ def git(*args, check=False):
 def sync(commit_msg=None):
     """自分の買い目をコミットして、展示反映の更新が作った予想などを取り込む"""
     if commit_msg:
-        git("add", "data/bets", "data/live_results_fast", "data/odds_live", "data/odds_live_hist")
+        git("add", "data/bets", "data/live_results_fast", "data/odds_live", "data/odds_live_hist", "data/zure_live")
         git("commit", "-q", "-m", commit_msg)
     if not git("pull", "-q", "--rebase", "--autostash"):
         git("rebase", "--abort")
@@ -243,6 +244,10 @@ def main():
                 notify.after_decide(now, done)
             except Exception as e:
                 print("通知で失敗:", repr(e), file=sys.stderr)
+            try:   # 別会社ズレ屋: 45秒前に決まったレースの買い目をその場で決めて残す(裏で動く)
+                zure_live.on_decide(now, done)
+            except Exception as e:
+                print("ズレ屋で失敗:", repr(e), file=sys.stderr)
         except Exception as e:   # 1回の見回りで失敗しても常駐は続ける
             print("見回りで失敗:", repr(e), file=sys.stderr)
             done = []
