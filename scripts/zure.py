@@ -45,6 +45,12 @@ AB_SOTO, AB_SC, AB_ODDS = 1.2, 1.0, 100.0
 #               ×(2着にオリ展の遅い艇0.85、3着に0.9)×(外比1.2以上のレースの外頭は外比(1〜1.5))
 #   ④ ab_picks  ⑤ z5_picks: インが頭・点数1.4以上・100倍未満
 Z3_MIN, Z5_SC = 1.65, 1.4
+# ⑥仮(11/6から・記録だけ・まとめには入れない): 大村だけ。選手コメントの言葉と記者・モーター評価で、点数に係数を掛ける
+#   (2024〜2025年の大村で決めた係数 (1着, 3着以内)。2024年だけで決めて2025・2026年で確かめても上位は110〜118%)
+C6 = {"deashi": (r"出足[はがも]?(?:いい|良い|良く|ある|強い|上位|抜群)", 1.19, 1.08), "nori": (r"乗り心地[はがも]?(?:いい|良い|良く|ある)", 1.13, 0.99),
+      "joui": (r"上位", 1.12, 1.02), "yowai": (r"弱い", 0.86, 0.99)}
+C6_KEHAI_UP = (r"良くなった|上積み|上向|手応え", 0.88, 0.98)
+C6_MIN = 1.5
 OUT = DATA / "zure"
 SCORE_MIN, ODDS_MAX, UNIT = 1.3, 100.0, 100
 SINCE = "20261103"   # この日からが本番の記録(前の日の分は参考)
@@ -307,6 +313,34 @@ def _model():
     return pickle.load(open(MODEL, "rb"))
 
 
+def _c6_factors(date, race, deadline, live):
+    """大村のそのレースの艇ごとの係数 {枠: (1着の係数, 3着以内の係数)}。当日気配は締切より前に書かれたものだけ"""
+    import re
+    p = DATA / "comments" / "24" / f"{date}.json"
+    rec = (json.loads(p.read_text()) if p.exists() else {}).get(str(race))
+    if not rec and live:
+        import fetch_comments
+        rec = fetch_comments.fetch(date, race)
+    out = {}
+    for w, b in ((rec or {}).get("boats") or {}).items():
+        kw = k3 = 1.0
+        c = b.get("comment") or ""
+        for pat, a, t in C6.values():
+            if re.search(pat, c):
+                kw, k3 = kw * a, k3 * t
+        ke = b.get("kehai") or ""
+        if ke and b.get("kehai_at") and deadline and b["kehai_at"] < deadline and "レース後" not in ke and re.search(C6_KEHAI_UP[0], ke):
+            kw, k3 = kw * C6_KEHAI_UP[1], k3 * C6_KEHAI_UP[2]
+        t = b.get("tenji")
+        if isinstance(t, int):
+            kw, k3 = (kw * 1.06, k3 * 1.05) if t >= 6 else ((kw * 0.95, k3 * 0.94) if t <= 3 else (kw, k3))
+        m = b.get("motor")
+        if isinstance(m, int):
+            kw, k3 = (kw * 1.05, k3 * 1.05) if m >= 6 else ((kw * 0.77, k3 * 0.87) if m <= 2 else (kw, k3))
+        out[int(w)] = (min(max(kw, 0.7), 1.4), min(max(k3, 0.8), 1.25))
+    return out
+
+
 def picks(date, source="entries", only=None):
     M, F = _model()
     got = features(date, source, only)
@@ -392,6 +426,21 @@ def picks(date, source="entries", only=None):
                     if crs.get(a, 0) >= 4 and sc >= SOTO_SC_MIN and od < SOTO_ODDS_MAX:
                         sp.append([combo, od, round(float(sc), 3)])
                 rec["soto_picks"] = sorted(sp, key=lambda x: -x[2])
+        if jcd == "24":
+            dl = None
+            pp = DATA / "predictions" / f"{date}.json"
+            if pp.exists():
+                dl = (json.loads(pp.read_text()).get("races", {}).get(f"{jcd}-{race:02d}") or {}).get("deadline")
+            fc = _c6_factors(date, race, dl, live=(source == "entries" and date == f"{now_jst():%Y%m%d}"))
+            if fc:
+                c6 = []
+                for combo, od in o3.items():
+                    a, b, c = (int(x) for x in combo.split("-"))
+                    sc = r[a][0] * r[b][1] * r[c][2] * fc.get(a, (1, 1))[0] * fc.get(b, (1, 1))[1] * fc.get(c, (1, 1))[1]
+                    if od < 100 and sc >= C6_MIN:
+                        c6.append([combo, od, round(float(sc), 3)])
+                if c6:
+                    rec["c6_picks"] = sorted(c6, key=lambda x: -x[2])
         mt = {}
         for key in ("hmo_picks", "z2_picks", "z3_picks", "ab_picks", "z5_picks"):
             for x in rec.get(key, []):
@@ -422,7 +471,7 @@ def main(argv):
         sh = sum(v.get("pay", 0) for v in pk.values() for c, *_ in v.get("soto_picks", []) if c == v.get("res"))
         print(f"  外の嗅覚: {sum(1 for v in pk.values() if v.get('soto_picks'))}レースで{sn}点 投資{sn * UNIT:,}円 払戻{sh:,}円")
         for key, nm in (("hm_picks", "B隠れまくり"), ("hmo_picks", "B隠れまくり(オリ展つき)"), ("ab_picks", "A・B×鼻で2・3コース頭"),
-                         ("z2_picks", "②隠れまくり・2着オリ展"), ("z3_picks", "③総合点1.65以上"), ("z5_picks", "⑤イン頭・点数1.4以上"), ("matome", "★ズレ屋のまとめ")):
+                         ("z2_picks", "②隠れまくり・2着オリ展"), ("z3_picks", "③総合点1.65以上"), ("z5_picks", "⑤イン頭・点数1.4以上"), ("matome", "★ズレ屋のまとめ"), ("c6_picks", "⑥仮 大村×コメント")):
             hn = sum(len(v.get(key, [])) for v in pk.values())
             hh = sum(v.get("pay", 0) for v in pk.values() for c, *_ in v.get(key, []) if c == v.get("res"))
             print(f"  {nm}: {sum(1 for v in pk.values() if v.get(key))}レースで{hn}点 投資{hn * UNIT:,}円 払戻{hh:,}円")
