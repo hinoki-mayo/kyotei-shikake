@@ -25,6 +25,7 @@ import yoso
 import shadow_staff
 import live_result
 import share
+import articles
 from common import DATA, JST, ROOT, apply_deadlines, now_jst
 from draw import slit_svg, turn_svg
 from parse import VENUES
@@ -222,7 +223,7 @@ h1{border-bottom:2px solid var(--nv);padding-bottom:6px}
 
 
 ENT_NAV = ('<nav class="gnav"><a href="/">本日のレース</a><a href="/today.html">今日の注目</a>'
-           '<a href="/record.html">的中実績</a><a href="/venue/">場の特徴</a></nav>')
+           '<a href="/record.html">的中実績</a><a href="/venue/">場の特徴</a><a href="/guide/">読み物</a></nav>')
 _TICKER = [""]   # お試し: 画面上に流す今日の当たり
 ENT_JS = """<script>
 (function(){const els=[...document.querySelectorAll('[data-dl]')];if(!els.length)return;
@@ -276,6 +277,8 @@ def _gauge(p):
 
 
 def page(title, body, desc="", path="", noindex=False):
+    if path[1:2].isdigit():   # 日付のページ(/20261106/...)は翌日に消えるので検索には出さない
+        noindex = True
     robots = '<meta name="robots" content="noindex">' if noindex else ""
     gsc = f'<meta name="google-site-verification" content="{html.escape(CFG["gsc_verify"])}">' if CFG.get("gsc_verify") else ""
     return f"""<!doctype html><html lang="ja"><head><meta charset="utf-8">{robots}
@@ -286,7 +289,7 @@ def page(title, body, desc="", path="", noindex=False):
 {ENT_HEAD if ENT else ""}<style>{CSS}{ENT_CSS if ENT else ""}</style>{CFG.get('ad_head', '')}</head><body>
 <header><a href="/">{CFG['site_name']}</a></header>{ENT_NAV if ENT else ""}{_TICKER[0] if ENT else ""}<main>{body}</main>
 <footer>{CFG['site_name']}は、展示の進入をもとにデータから見た1マークの展開の傾向を掲載しています。着順を保証するものではありません。舟券の購入は20歳から。<br>
-<a href="/record.html">的中実績</a>・<a href="/venue/">全24場の特徴</a>・<a href="/about.html">運営者情報</a>・<a href="/privacy.html">プライバシーポリシー</a>・<a href="/disclaimer.html">免責事項</a>・<a href="/contact.html">お問い合わせ</a></footer>
+<a href="/record.html">的中実績</a>・<a href="/venue/">全24場の特徴</a>・<a href="/guide/">読み物</a>・<a href="/about.html">運営者情報</a>・<a href="/privacy.html">プライバシーポリシー</a>・<a href="/disclaimer.html">免責事項</a>・<a href="/contact.html">お問い合わせ</a></footer>
 </body></html>"""
 
 
@@ -3816,6 +3819,62 @@ def _venue_lines(jcd, st):
     return out
 
 
+TIDAL = {"03", "04", "06", "07", "08", "09", "10", "14", "15", "16", "17", "18", "19", "20", "22", "23", "24"}   # 潮の影響がある場(fetch_tide.VENUE_STATION)
+
+
+@functools.lru_cache(maxsize=1)
+def _venue_wind():
+    """場ごと・風速ごとの1コースの1着の割合 {場: [(区分, 割合, レース数)]}"""
+    fs = [DATA / "results" / f"{y}.parquet" for y in (2024, 2025, 2026)]
+    fs = [f for f in fs if f.exists()]
+    if not fs:
+        return {}
+    d = pd.concat([pd.read_parquet(f, columns=["date", "jcd", "race", "rank", "course", "wind"]) for f in fs])
+    d = d[pd.to_numeric(d["rank"], errors="coerce") == 1].drop_duplicates(["date", "jcd", "race"])
+    d = d.assign(w=pd.to_numeric(d.wind, errors="coerce"), inw=pd.to_numeric(d.course, errors="coerce") == 1).dropna(subset=["w"])
+    d["b"] = pd.cut(d.w, [-1, 2, 4, 6, 99], labels=["0〜2m", "3〜4m", "5〜6m", "7m以上"])
+    out = {}
+    for (j, b), g in d.groupby(["jcd", "b"], observed=True):
+        if len(g) >= 30:
+            out.setdefault(j, []).append((str(b), float(g.inw.mean()), len(g)))
+    return out
+
+
+def _venue_water(jcd, st):
+    """場の水面の説明(文章)と、風速ごとのインの強さ"""
+    v = VENUES[jcd]
+    allc = _venue_stats().get("_all", {}).get("course", [0.55])
+    c1 = st["course"][0][0] if st else None
+    txt = []
+    if c1 is not None:
+        if c1 >= allc[0] + 0.03:
+            txt.append(f"{v}は1コースの1着が{c1:.0%}と全国平均（{allc[0]:.0%}）より高く、インを中心に組み立てやすい場です。"
+                       "そのぶん本命の配当は低くなりやすいので、2着・3着の組み合わせで妙味を探すことになります。")
+        elif c1 <= allc[0] - 0.03:
+            txt.append(f"{v}は1コースの1着が{c1:.0%}と全国平均（{allc[0]:.0%}）より低く、外のコースの攻めが決まりやすい場です。"
+                       "1コースの選手の力やスタートの速さを確かめてから、逃げを信じるかを決めたいところです。")
+        else:
+            txt.append(f"{v}の1コースの1着は{c1:.0%}で、全国平均（{allc[0]:.0%}）とほぼ同じです。"
+                       "レースごとの選手の力関係や展示の気配がそのまま結果に出やすい場といえます。")
+    if jcd in TIDAL:
+        txt.append(f"{v}は海や河口の水面で、潮の満ち引きの影響を受けます。満潮と干潮で水位や流れが変わるので、"
+                   'レースの時刻がどちらに近いかも予想のヒントになります（<a href="/guide/wind.html" style="color:var(--ac)">風・波・潮の話</a>）。')
+    else:
+        txt.append(f"{v}は潮の満ち引きの影響を受けない水面です。水面の変化は主に風と波で起きます。")
+    rows = _venue_wind().get(jcd) or []
+    tbl = ""
+    if len(rows) >= 2:
+        tbl = "".join(f'<div class="boat" style="padding:4px 0"><span style="width:6em;font-size:13px">風 {b}</span>'
+                      f'<span style="flex:1;font-size:13px">1コースの1着 <b>{p:.0%}</b> <span class="sub">{n:,}レース</span></span>'
+                      f'<span class="bar" style="width:90px"><i style="width:{p * 100 / 0.8:.0f}%"></i></span></div>' for b, p, n in rows)
+        lo, hi = rows[0][1], rows[-1][1]
+        txt.append(f"風が弱いとき（{rows[0][0]}）の1コースの1着は{lo:.0%}、強いとき（{rows[-1][0]}）は{hi:.0%}でした。"
+                   + ("風が強くなるほどインが崩れやすい場です。" if hi <= lo - 0.05 else "風の強さによるインの崩れは比較的小さい場です。"))
+    body = "".join(f"<p>{t}</p>" for t in txt)
+    return (f'<h2>{v}の水面と風</h2><div class="card" style="font-size:14px">{body}'
+            + (f'<p class="sub" style="margin:8px 0 2px">2024年〜・風速ごとの1コースの1着</p>{tbl}' if tbl else "") + '</div>')
+
+
 def venue_home(jcd, date, prog_day, preds, now, recent=None):
     """場の常設ページ(/venue/場.html): 今日のレースとランク、場の特徴、この場での的中実績"""
     v = VENUES[jcd]
@@ -3864,7 +3923,7 @@ def venue_home(jcd, date, prog_day, preds, now, recent=None):
                   if st.get("manshu") is not None else "")
                + f'<p style="margin-bottom:0"><b>予想はいつ出る？</b><br>展示の進入が出たあと（締切の約20分前）に、1着・2着・3着の確率と堅さのランクを公開します。</p></div>')
     body = (f'<h1>{v}の競艇予想</h1><p class="sub">ボートレース{v}の今日のレースの予想（堅さのランクと本命）と、'
-            f'コース別の成績などの特徴をまとめています。</p>' + today + feat + rc + record + faq
+            f'コース別の成績などの特徴をまとめています。</p>' + today + feat + _venue_water(jcd, st) + rc + record + faq
             + '<p class="sub"><a href="/venue/" style="color:var(--ac)">ほかの場を見る</a>・<a href="/record.html" style="color:var(--ac)">全体の的中実績</a></p>' + ad())
     return page(f"{v}の競艇予想・特徴", body, f"ボートレース{v}の今日の予想と、コース別の勝率・決まり手・万舟率などの特徴。", f"/venue/{SLUG[jcd]}.html")
 
@@ -3967,6 +4026,8 @@ def grid_page(date, dates, prog_day, preds, now, path, payouts=None):
             + f'<h2>開催場 <span class="sub">場を選ぶと全レース</span></h2><div class="grid">{tiles}</div>'
             + (f'<details class="help"><summary>本日の高配当（万舟以上）を見る</summary>{_payout_html(date, payouts, preds)}</details>' if payouts else "")
             + '<div class="btnrow"><a href="/today.html">今日の注目</a><a href="/record.html">的中実績</a><a href="/venue/">場の特徴</a></div>'
+            + '<h2>読み物 <span class="sub">データで見るボートレース</span></h2><div class="card list">'
+            + "".join(f'<a href="/guide/{x["slug"]}.html"><span>{x["title"]}</span></a>' for x in articles.ARTICLES) + '</div>'
             + f'{ad()}{NUDGE_UPDATE}')
     return page(f"{jp(date)} 全24場の展開予想", body, "全24場のスタートスリット・1マーク展開予想を展示後に公開", path)
 
@@ -4131,6 +4192,12 @@ def main():
         (OUT / "venue" / f"{SLUG[j]}.html").write_text(venue_home(j, top or today, vday, vpreds, now, stats.recent(j, top or today)))
         urls.append(f"/venue/{SLUG[j]}.html")
     (OUT / "venue" / "index.html").write_text(venue_index())
+    (OUT / "guide").mkdir(exist_ok=True)   # 読み物(ずっと残る解説記事)
+    (OUT / "guide" / "index.html").write_text(page("読み物", articles.index_body(), "ボートレース予想に役立つ知識を、実際のレースデータで解説。", "/guide/"))
+    urls.append("/guide/")
+    for a in articles.ARTICLES:
+        (OUT / "guide" / f'{a["slug"]}.html').write_text(page(a["title"], articles.article_body(a, rank_record()) + ad(), a["desc"], f'/guide/{a["slug"]}.html'))
+        urls.append(f'/guide/{a["slug"]}.html')
     (OUT / "record.html").write_text(record_page())
     (OUT / "today.html").write_text(today_page(top or today, vday, vpreds, now))
     urls += ["/venue/", "/record.html", "/today.html"]
