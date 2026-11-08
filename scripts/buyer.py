@@ -40,22 +40,75 @@ ODDS_EVERY = 120    # サイトの「当てる予想」用に、締切前のオ�
 def git(*args, check=False):
     r = subprocess.run(["git", *args], cwd=ROOT, capture_output=True, text=True)
     if check and r.returncode:
-        print(r.stdout, r.stderr, file=sys.stderr)
+        print(f"git {args[0]} で失敗:", (r.stdout + r.stderr).strip()[-300:], file=sys.stderr, flush=True)
     return r.returncode == 0
 
 
+MINE = ["data/bets", "data/live_results_fast", "data/odds_live", "data/odds_live_hist", "data/zure_live"]   # 購入係だけが書くファイル
+_sync = {"fail": 0}
+
+
+def _add_mine():
+    git("add", *[d for d in MINE if (ROOT / d).exists()], check=True)   # 無いフォルダを混ぜると全部まとめて失敗する
+
+
+def _repair():
+    """GitHubへの保存が通らなくなった時の立て直し(11/8 12:53〜14:08、保存だけが1時間以上止まった)。
+    途中の rebase やぶつかったままのファイルを片付け、mainの最新に合わせてから、購入係のファイルだけ手元の内容で戻す"""
+    files = {}
+    for d in MINE:
+        for f in (ROOT / d).glob("*.json"):
+            r = subprocess.run(["git", "diff", "--quiet", "origin/main", "--", str(f.relative_to(ROOT))], cwd=ROOT)
+            if r.returncode:   # mainと中身が違う(まだ送れていない)ものだけ取っておく
+                try:
+                    files[f] = f.read_bytes()
+                except OSError:
+                    pass
+    git("rebase", "--abort")
+    git("merge", "--abort")
+    if not git("reset", "-q", "--hard", "origin/main", check=True):
+        return False
+    for f, b in files.items():
+        try:
+            json.loads(b)   # ぶつかった印の入った壊れたファイルは戻さない
+        except ValueError:
+            print("壊れたファイルは戻しません:", f.relative_to(ROOT), file=sys.stderr, flush=True)
+            continue
+        f.write_bytes(b)
+    print(f"GitHubへの保存を立て直しました(購入係のファイル{len(files)}件を戻した)", file=sys.stderr, flush=True)
+    return True
+
+
 def sync(commit_msg=None):
-    """自分の買い目をコミットして、展示反映の更新が作った予想などを取り込む"""
+    """自分の買い目をコミットして、展示反映の更新が作った予想などを取り込む。
+    失敗したら理由をログに出し、3回続いたら立て直す(失敗を黙って続けると、記録が丸ごと送れなくなる)"""
     if commit_msg:
-        git("add", "data/bets", "data/live_results_fast", "data/odds_live", "data/odds_live_hist", "data/zure_live")
+        _add_mine()
         git("commit", "-q", "-m", commit_msg)
-    if not git("pull", "-q", "--rebase", "--autostash"):
+    ok = True
+    if not git("pull", "-q", "--rebase", "--autostash", check=True):
         git("rebase", "--abort")
-    if commit_msg:
+        ok = False
+    if subprocess.run(["git", "diff", "--name-only", "--diff-filter=U"], cwd=ROOT, capture_output=True, text=True).stdout.strip():
+        print("ぶつかったままのファイルがあります", file=sys.stderr, flush=True)   # 取り込み時の自動退避が戻せなかった
+        ok = False
+    if ok and subprocess.run(["git", "rev-list", "--count", "origin/main..HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip() not in ("", "0"):
         for _ in range(3):
-            if git("push", "-q"):
+            if git("push", "-q", check=True):
                 break
             git("pull", "-q", "--rebase", "--autostash")
+        else:
+            ok = False
+    _sync["fail"] = 0 if ok else _sync["fail"] + 1
+    if _sync["fail"] >= 3:
+        print(f"GitHubへの保存が{_sync['fail']}回続けて失敗。立て直します", file=sys.stderr, flush=True)
+        git("fetch", "-q", "origin", "main", check=True)
+        if _repair():
+            _add_mine()
+            git("commit", "-q", "-m", commit_msg or "購入係 立て直し")
+            if git("push", "-q", check=True):
+                _sync["fail"] = 0
+    return ok
 
 
 _deploy = {"proc": None, "again": False}
