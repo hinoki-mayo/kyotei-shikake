@@ -563,7 +563,7 @@
 "venue": "江戸川",
 "race": 2,
 "rtype": "予選",
-"deadline": "11:28",
+"deadline": "11:26",
 "version": "pre",
 "predicted_at": "2026-11-16 07:04",
 "boats": [
@@ -1115,7 +1115,7 @@
 "venue": "江戸川",
 "race": 3,
 "rtype": "予選",
-"deadline": "11:54",
+"deadline": "11:52",
 "version": "pre",
 "predicted_at": "2026-11-16 07:04",
 "boats": [
@@ -1677,7 +1677,7 @@
 "venue": "江戸川",
 "race": 4,
 "rtype": "予選",
-"deadline": "12:20",
+"deadline": "12:18",
 "version": "pre",
 "predicted_at": "2026-11-16 07:04",
 "boats": [
@@ -2240,7 +2240,7 @@
 "venue": "江戸川",
 "race": 5,
 "rtype": "予選",
-"deadline": "12:46",
+"deadline": "12:44",
 "version": "pre",
 "predicted_at": "2026-11-16 07:04",
 "boats": [
@@ -2805,7 +2805,7 @@
 "venue": "江戸川",
 "race": 6,
 "rtype": "予選",
-"deadline": "13:12",
+"deadline": "13:10",
 "version": "pre",
 "predicted_at": "2026-11-16 07:04",
 "boats": [
@@ -3297,7 +3297,7 @@
 "venue": "江戸川",
 "race": 7,
 "rtype": "予選",
-"deadline": "13:38",
+"deadline": "13:36",
 "version": "pre",
 "predicted_at": "2026-11-16 07:04",
 "boats": [
@@ -3857,7 +3857,7 @@
 "venue": "江戸川",
 "race": 8,
 "rtype": "予選",
-"deadline": "14:05",
+"deadline": "14:03",
 "version": "pre",
 "predicted_at": "2026-11-16 07:04",
 "boats": [
@@ -4276,7 +4276,7 @@
 "venue": "江戸川",
 "race": 9,
 "rtype": "予選特賞",
-"deadline": "14:33",
+"deadline": "14:31",
 "version": "pre",
 "predicted_at": "2026-11-16 07:04",
 "boats": [
@@ -4806,7 +4806,7 @@
 "venue": "江戸川",
 "race": 10,
 "rtype": "予選特賞",
-"deadline": "15:02",
+"deadline": "15:00",
 "version": "pre",
 "predicted_at": "2026-11-16 07:04",
 "boats": [
@@ -5298,7 +5298,7 @@
 "venue": "江戸川",
 "race": 11,
 "rtype": "予選特選",
-"deadline": "15:32",
+"deadline": "15:30",
 "version": "pre",
 "predicted_at": "2026-11-16 07:04",
 "boats": [
@@ -5750,7 +5750,7 @@
 "venue": "江戸川",
 "race": 12,
 "rtype": "記者選抜戦",
-"deadline": "16:03",
+"deadline": "16:01",
 "version": "pre",
 "predicted_at": "2026-11-16 07:04",
 "boats": [
