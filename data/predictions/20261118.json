@@ -60631,7 +60631,7 @@
 "venue": "若松",
 "race": 1,
 "rtype": "一般戦",
-"deadline": "15:30",
+"deadline": "15:35",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -61191,7 +61191,7 @@
 "venue": "若松",
 "race": 2,
 "rtype": "一般戦",
-"deadline": "15:54",
+"deadline": "15:59",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -61712,7 +61712,7 @@
 "venue": "若松",
 "race": 3,
 "rtype": "一般戦",
-"deadline": "16:18",
+"deadline": "16:23",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -62237,7 +62237,7 @@
 "venue": "若松",
 "race": 4,
 "rtype": "一般戦",
-"deadline": "16:45",
+"deadline": "16:50",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -62694,7 +62694,7 @@
 "venue": "若松",
 "race": 5,
 "rtype": "進入固定戦隊",
-"deadline": "17:11",
+"deadline": "17:16",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -63111,7 +63111,7 @@
 "venue": "若松",
 "race": 6,
 "rtype": "一般戦",
-"deadline": "17:38",
+"deadline": "17:43",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -63573,7 +63573,7 @@
 "venue": "若松",
 "race": 7,
 "rtype": "一般戦",
-"deadline": "18:05",
+"deadline": "18:10",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -64036,7 +64036,7 @@
 "venue": "若松",
 "race": 8,
 "rtype": "エイトビート",
-"deadline": "18:33",
+"deadline": "18:38",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -64453,7 +64453,7 @@
 "venue": "若松",
 "race": 9,
 "rtype": "一般特選",
-"deadline": "19:04",
+"deadline": "19:09",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -64941,7 +64941,7 @@
 "venue": "若松",
 "race": 10,
 "rtype": "選抜戦",
-"deadline": "19:35",
+"deadline": "19:40",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -65465,7 +65465,7 @@
 "venue": "若松",
 "race": 11,
 "rtype": "選抜戦",
-"deadline": "20:08",
+"deadline": "20:13",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -65952,7 +65952,7 @@
 "venue": "若松",
 "race": 12,
 "rtype": "優勝戦",
-"deadline": "20:40",
+"deadline": "20:45",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
