@@ -62241,7 +62241,7 @@
 "venue": "若松",
 "race": 4,
 "rtype": "一般戦",
-"deadline": "16:40",
+"deadline": "16:35",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -62698,7 +62698,7 @@
 "venue": "若松",
 "race": 5,
 "rtype": "進入固定戦隊",
-"deadline": "16:50",
+"deadline": "16:46",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -63115,7 +63115,7 @@
 "venue": "若松",
 "race": 6,
 "rtype": "一般戦",
-"deadline": "17:00",
+"deadline": "16:56",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -63577,7 +63577,7 @@
 "venue": "若松",
 "race": 7,
 "rtype": "一般戦",
-"deadline": "17:10",
+"deadline": "17:06",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -64040,7 +64040,7 @@
 "venue": "若松",
 "race": 8,
 "rtype": "エイトビート",
-"deadline": "17:20",
+"deadline": "17:16",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -64457,7 +64457,7 @@
 "venue": "若松",
 "race": 9,
 "rtype": "一般特選",
-"deadline": "17:30",
+"deadline": "17:26",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -64945,7 +64945,7 @@
 "venue": "若松",
 "race": 10,
 "rtype": "選抜戦",
-"deadline": "17:40",
+"deadline": "17:36",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -65469,7 +65469,7 @@
 "venue": "若松",
 "race": 11,
 "rtype": "選抜戦",
-"deadline": "17:50",
+"deadline": "17:46",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
@@ -65956,7 +65956,7 @@
 "venue": "若松",
 "race": 12,
 "rtype": "優勝戦",
-"deadline": "18:00",
+"deadline": "17:56",
 "version": "pre",
 "predicted_at": "2026-11-18 07:04",
 "boats": [
