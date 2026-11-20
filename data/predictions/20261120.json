@@ -18649,7 +18649,7 @@
 "venue": "津",
 "race": 2,
 "rtype": "予選",
-"deadline": "10:10",
+"deadline": "10:05",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -19199,7 +19199,7 @@
 "venue": "津",
 "race": 3,
 "rtype": "予選",
-"deadline": "10:20",
+"deadline": "10:16",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -19754,7 +19754,7 @@
 "venue": "津",
 "race": 4,
 "rtype": "予選",
-"deadline": "10:30",
+"deadline": "10:26",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -20241,7 +20241,7 @@
 "venue": "津",
 "race": 5,
 "rtype": "5ールドレー",
-"deadline": "10:40",
+"deadline": "10:36",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -20661,7 +20661,7 @@
 "venue": "津",
 "race": 6,
 "rtype": "予選",
-"deadline": "10:50",
+"deadline": "10:46",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -21192,7 +21192,7 @@
 "venue": "津",
 "race": 7,
 "rtype": "予選",
-"deadline": "11:00",
+"deadline": "10:56",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -21750,7 +21750,7 @@
 "venue": "津",
 "race": 8,
 "rtype": "予選",
-"deadline": "11:10",
+"deadline": "11:06",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -22239,7 +22239,7 @@
 "venue": "津",
 "race": 9,
 "rtype": "予選特賞",
-"deadline": "11:20",
+"deadline": "11:16",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -22722,7 +22722,7 @@
 "venue": "津",
 "race": 10,
 "rtype": "予選特賞",
-"deadline": "11:30",
+"deadline": "11:26",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -23169,7 +23169,7 @@
 "venue": "津",
 "race": 11,
 "rtype": "予選特選",
-"deadline": "11:40",
+"deadline": "11:36",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -23660,7 +23660,7 @@
 "venue": "津",
 "race": 12,
 "rtype": "ツッキー選抜",
-"deadline": "11:50",
+"deadline": "11:46",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
