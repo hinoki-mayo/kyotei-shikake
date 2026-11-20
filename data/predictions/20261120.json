@@ -7264,7 +7264,7 @@
 "venue": "戸田",
 "race": 4,
 "rtype": "予選",
-"deadline": "12:06",
+"deadline": "12:16",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -7811,7 +7811,7 @@
 "venue": "戸田",
 "race": 5,
 "rtype": "ウインウイン",
-"deadline": "12:33",
+"deadline": "12:43",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -8307,7 +8307,7 @@
 "venue": "戸田",
 "race": 6,
 "rtype": "予選",
-"deadline": "13:00",
+"deadline": "13:10",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -8858,7 +8858,7 @@
 "venue": "戸田",
 "race": 7,
 "rtype": "ウインウイン",
-"deadline": "13:28",
+"deadline": "13:38",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -9347,7 +9347,7 @@
 "venue": "戸田",
 "race": 8,
 "rtype": "予選",
-"deadline": "13:56",
+"deadline": "14:06",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -9906,7 +9906,7 @@
 "venue": "戸田",
 "race": 9,
 "rtype": "予選",
-"deadline": "14:25",
+"deadline": "14:35",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -10462,7 +10462,7 @@
 "venue": "戸田",
 "race": 10,
 "rtype": "戸田特賞",
-"deadline": "14:54",
+"deadline": "15:04",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -10978,7 +10978,7 @@
 "venue": "戸田",
 "race": 11,
 "rtype": "戸田特選",
-"deadline": "15:24",
+"deadline": "15:34",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
@@ -11439,7 +11439,7 @@
 "venue": "戸田",
 "race": 12,
 "rtype": "記者選抜戦",
-"deadline": "15:55",
+"deadline": "16:05",
 "version": "pre",
 "predicted_at": "2026-11-20 07:03",
 "boats": [
