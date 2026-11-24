@@ -1,0 +1,1204 @@
+{
+"10-01": {
+"pickura": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickgen": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickoutfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickinwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankabin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankagap": {
+"skip": false,
+"bet": "2t",
+"head": 1,
+"himo": null,
+"stake": 4000,
+"heads": [
+{
+"head": 1,
+"p": 0.768,
+"q": 0.6422,
+"win_odds": 1.2,
+"tags": []
+}
+],
+"scenario": "インの1号艇が逃げる(予想77%・市場64%・単勝相当1.2倍)",
+"tickets": [
+{
+"combo": "1-2-3",
+"units": 2,
+"odds": 28.0,
+"role": "頭1号艇(予想77%・市場64%)",
+"bet": "3t"
+},
+{
+"combo": "1-2-4",
+"units": 4,
+"odds": 12.9,
+"role": "頭1号艇(予想77%・市場64%)",
+"bet": "3t"
+},
+{
+"combo": "1-2-5",
+"units": 1,
+"odds": 44.0,
+"role": "頭1号艇(予想77%・市場64%)",
+"bet": "3t"
+},
+{
+"combo": "1-2-6",
+"units": 1,
+"odds": 74.7,
+"role": "頭1号艇(予想77%・市場64%)",
+"bet": "3t"
+},
+{
+"combo": "1-3",
+"units": 9,
+"odds": 5.5,
+"role": "頭1号艇(予想77%・市場64%)",
+"bet": "2t"
+},
+{
+"combo": "1-4-2",
+"units": 5,
+"odds": 9.2,
+"role": "頭1号艇(予想77%・市場64%)",
+"bet": "3t"
+},
+{
+"combo": "1-4-3",
+"units": 7,
+"odds": 6.5,
+"role": "頭1号艇(予想77%・市場64%)",
+"bet": "3t"
+},
+{
+"combo": "1-4-5",
+"units": 5,
+"odds": 9.5,
+"role": "頭1号艇(予想77%・市場64%)",
+"bet": "3t"
+},
+{
+"combo": "1-4-6",
+"units": 2,
+"odds": 20.2,
+"role": "頭1号艇(予想77%・市場64%)",
+"bet": "3t"
+},
+{
+"combo": "1-5",
+"units": 3,
+"odds": 17.5,
+"role": "頭1号艇(予想77%・市場64%)",
+"bet": "2t"
+},
+{
+"combo": "1-6",
+"units": 1,
+"odds": 49.8,
+"role": "頭1号艇(予想77%・市場64%)",
+"bet": "2t"
+}
+],
+"logic": "2026-10-14c"
+}
+},
+"10-02": {
+"pickura": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickgen": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickoutfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickinwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankabin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankagap": {
+"skip": false,
+"bet": "2t",
+"head": 1,
+"himo": null,
+"stake": 4000,
+"heads": [
+{
+"head": 1,
+"p": 0.72,
+"q": 0.6085,
+"win_odds": 1.3,
+"tags": []
+}
+],
+"scenario": "インの1号艇が逃げる(予想72%・市場61%・単勝相当1.3倍)",
+"tickets": [
+{
+"combo": "1-2-3",
+"units": 7,
+"odds": 7.4,
+"role": "頭1号艇(予想72%・市場61%)",
+"bet": "3t"
+},
+{
+"combo": "1-2-4",
+"units": 2,
+"odds": 32.0,
+"role": "頭1号艇(予想72%・市場61%)",
+"bet": "3t"
+},
+{
+"combo": "1-2-5",
+"units": 4,
+"odds": 13.0,
+"role": "頭1号艇(予想72%・市場61%)",
+"bet": "3t"
+},
+{
+"combo": "1-2-6",
+"units": 1,
+"odds": 36.7,
+"role": "頭1号艇(予想72%・市場61%)",
+"bet": "3t"
+},
+{
+"combo": "1-3-2",
+"units": 8,
+"odds": 6.5,
+"role": "頭1号艇(予想72%・市場61%)",
+"bet": "3t"
+},
+{
+"combo": "1-3-4",
+"units": 2,
+"odds": 25.9,
+"role": "頭1号艇(予想72%・市場61%)",
+"bet": "3t"
+},
+{
+"combo": "1-3-5",
+"units": 7,
+"odds": 7.1,
+"role": "頭1号艇(予想72%・市場61%)",
+"bet": "3t"
+},
+{
+"combo": "1-3-6",
+"units": 2,
+"odds": 31.5,
+"role": "頭1号艇(予想72%・市場61%)",
+"bet": "3t"
+},
+{
+"combo": "1-4",
+"units": 2,
+"odds": 32.0,
+"role": "頭1号艇(予想72%・市場61%)",
+"bet": "2t"
+},
+{
+"combo": "1-5",
+"units": 5,
+"odds": 11.5,
+"role": "頭1号艇(予想72%・市場61%)",
+"bet": "2t"
+}
+],
+"logic": "2026-10-14c"
+}
+},
+"10-03": {
+"pickura": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickgen": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickoutfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickinwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankabin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankagap": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+}
+},
+"10-04": {
+"pickura": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickgen": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickoutfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickinwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankabin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankagap": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+}
+},
+"18-01": {
+"pickura": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickgen": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickoutfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickinwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankabin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankagap": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+}
+},
+"18-02": {
+"pickura": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickgen": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickoutfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickinwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankabin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankagap": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+}
+},
+"18-03": {
+"pickura": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickgen": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickfav": {
+"skip": false,
+"bet": "2t",
+"head": 1,
+"himo": null,
+"stake": 1000,
+"scenario": "インの1号艇が逃げて、市場が軽く見ている5号艇が2着",
+"tickets": [
+{
+"combo": "1-5",
+"units": 10,
+"odds": 8.6,
+"prob": 0.1513,
+"role": "2着5号艇(予想15.1%・比1.77)",
+"bet": "2t"
+}
+],
+"logic": "2026-10-14c"
+},
+"pickoutfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickinwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankabin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankagap": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+}
+},
+"18-04": {
+"pickura": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickgen": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickoutfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickinwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankabin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankagap": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+}
+},
+"21-01": {
+"pickura": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickgen": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickoutfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickinwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankabin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankagap": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+}
+},
+"21-02": {
+"pickura": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickgen": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickoutfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickinwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankabin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankagap": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+}
+},
+"21-03": {
+"pickura": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickgen": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickoutfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickinwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankabin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankagap": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+}
+},
+"21-04": {
+"pickura": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinc": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbint": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickbinx": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pick6a": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickgen": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickfav": {
+"skip": false,
+"bet": "2t",
+"head": 1,
+"himo": null,
+"stake": 1000,
+"scenario": "インの1号艇が逃げて、市場が軽く見ている4号艇が2着",
+"tickets": [
+{
+"combo": "1-4-2",
+"units": 2,
+"odds": 44.3,
+"role": "2着4号艇(予想18.9%・比2.22)",
+"bet": "3t"
+},
+{
+"combo": "1-4-3",
+"units": 1,
+"odds": 69.7,
+"role": "2着4号艇(予想18.9%・比2.22)",
+"bet": "3t"
+},
+{
+"combo": "1-4-5",
+"units": 4,
+"odds": 21.0,
+"role": "2着4号艇(予想18.9%・比2.22)",
+"bet": "3t"
+},
+{
+"combo": "1-4-6",
+"units": 3,
+"odds": 33.8,
+"role": "2着4号艇(予想18.9%・比2.22)",
+"bet": "3t"
+}
+],
+"logic": "2026-10-14c"
+},
+"pickoutfav": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"pickinwin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankabin": {
+"skip": true,
+"bet": "2t",
+"logic": "2026-10-14c"
+},
+"sankagap": {
+"skip": false,
+"bet": "2t",
+"head": 1,
+"himo": null,
+"stake": 4000,
+"heads": [
+{
+"head": 1,
+"p": 0.733,
+"q": 0.5599,
+"win_odds": 1.4,
+"tags": []
+}
+],
+"scenario": "インの1号艇が逃げる(予想73%・市場56%・単勝相当1.4倍)",
+"tickets": [
+{
+"combo": "1-2",
+"units": 8,
+"odds": 7.5,
+"role": "頭1号艇(予想73%・市場56%)",
+"bet": "2t"
+},
+{
+"combo": "1-3-4",
+"units": 1,
+"odds": 84.2,
+"role": "頭1号艇(予想73%・市場56%)",
+"bet": "3t"
+},
+{
+"combo": "1-3-5",
+"units": 1,
+"odds": 59.8,
+"role": "頭1号艇(予想73%・市場56%)",
+"bet": "3t"
+},
+{
+"combo": "1-4-2",
+"units": 1,
+"odds": 44.3,
+"role": "頭1号艇(予想73%・市場56%)",
+"bet": "3t"
+},
+{
+"combo": "1-4-3",
+"units": 1,
+"odds": 69.7,
+"role": "頭1号艇(予想73%・市場56%)",
+"bet": "3t"
+},
+{
+"combo": "1-4-5",
+"units": 3,
+"odds": 21.0,
+"role": "頭1号艇(予想73%・市場56%)",
+"bet": "3t"
+},
+{
+"combo": "1-4-6",
+"units": 2,
+"odds": 33.8,
+"role": "頭1号艇(予想73%・市場56%)",
+"bet": "3t"
+},
+{
+"combo": "1-5-2",
+"units": 6,
+"odds": 9.1,
+"role": "頭1号艇(予想73%・市場56%)",
+"bet": "3t"
+},
+{
+"combo": "1-5-3",
+"units": 2,
+"odds": 32.1,
+"role": "頭1号艇(予想73%・市場56%)",
+"bet": "3t"
+},
+{
+"combo": "1-5-4",
+"units": 6,
+"odds": 10.2,
+"role": "頭1号艇(予想73%・市場56%)",
+"bet": "3t"
+},
+{
+"combo": "1-5-6",
+"units": 5,
+"odds": 11.1,
+"role": "頭1号艇(予想73%・市場56%)",
+"bet": "3t"
+},
+{
+"combo": "1-6-2",
+"units": 1,
+"odds": 62.9,
+"role": "頭1号艇(予想73%・市場56%)",
+"bet": "3t"
+},
+{
+"combo": "1-6-4",
+"units": 1,
+"odds": 58.3,
+"role": "頭1号艇(予想73%・市場56%)",
+"bet": "3t"
+},
+{
+"combo": "1-6-5",
+"units": 2,
+"odds": 29.8,
+"role": "頭1号艇(予想73%・市場56%)",
+"bet": "3t"
+}
+],
+"logic": "2026-10-14c"
+}
+}
+}
