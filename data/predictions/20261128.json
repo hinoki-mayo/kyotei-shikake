@@ -5606,7 +5606,7 @@
 "venue": "桐生",
 "race": 12,
 "rtype": "桐生特選",
-"deadline": "20:38",
+"deadline": "20:45",
 "version": "pre",
 "predicted_at": "2026-11-28 07:02",
 "boats": [
@@ -48511,7 +48511,7 @@
 "venue": "丸亀",
 "race": 1,
 "rtype": "予選",
-"deadline": "15:23",
+"deadline": "12:45",
 "version": "pre",
 "predicted_at": "2026-11-28 07:02",
 "boats": [
@@ -49039,7 +49039,7 @@
 "venue": "丸亀",
 "race": 2,
 "rtype": "予選",
-"deadline": "15:52",
+"deadline": "12:51",
 "version": "pre",
 "predicted_at": "2026-11-28 07:02",
 "boats": [
@@ -49562,7 +49562,7 @@
 "venue": "丸亀",
 "race": 3,
 "rtype": "予選",
-"deadline": "16:24",
+"deadline": "12:57",
 "version": "pre",
 "predicted_at": "2026-11-28 07:02",
 "boats": [
@@ -50110,7 +50110,7 @@
 "venue": "丸亀",
 "race": 4,
 "rtype": "予選",
-"deadline": "16:50",
+"deadline": "13:03",
 "version": "pre",
 "predicted_at": "2026-11-28 07:02",
 "boats": [
@@ -50632,7 +50632,7 @@
 "venue": "丸亀",
 "race": 5,
 "rtype": "予選",
-"deadline": "17:16",
+"deadline": "13:09",
 "version": "pre",
 "predicted_at": "2026-11-28 07:02",
 "boats": [
@@ -51193,7 +51193,7 @@
 "venue": "丸亀",
 "race": 6,
 "rtype": "かけうどん6",
-"deadline": "17:42",
+"deadline": "13:15",
 "version": "pre",
 "predicted_at": "2026-11-28 07:02",
 "boats": [
@@ -51719,7 +51719,7 @@
 "venue": "丸亀",
 "race": 7,
 "rtype": "ざるうどん7",
-"deadline": "18:10",
+"deadline": "13:21",
 "version": "pre",
 "predicted_at": "2026-11-28 07:02",
 "boats": [
@@ -52235,7 +52235,7 @@
 "venue": "丸亀",
 "race": 8,
 "rtype": "釜揚げ8",
-"deadline": "18:40",
+"deadline": "13:27",
 "version": "pre",
 "predicted_at": "2026-11-28 07:02",
 "boats": [
@@ -52689,7 +52689,7 @@
 "venue": "丸亀",
 "race": 9,
 "rtype": "まるがめ特賞",
-"deadline": "19:10",
+"deadline": "13:33",
 "version": "pre",
 "predicted_at": "2026-11-28 07:02",
 "boats": [
@@ -53108,7 +53108,7 @@
 "venue": "丸亀",
 "race": 10,
 "rtype": "蒼月まるる特",
-"deadline": "19:42",
+"deadline": "13:39",
 "version": "pre",
 "predicted_at": "2026-11-28 07:02",
 "boats": [
@@ -53533,7 +53533,7 @@
 "venue": "丸亀",
 "race": 11,
 "rtype": "一般選抜",
-"deadline": "20:12",
+"deadline": "13:45",
 "version": "pre",
 "predicted_at": "2026-11-28 07:02",
 "boats": [
@@ -54018,7 +54018,7 @@
 "venue": "丸亀",
 "race": 12,
 "rtype": "一般選抜",
-"deadline": "20:42",
+"deadline": "13:56",
 "version": "pre",
 "predicted_at": "2026-11-28 07:02",
 "boats": [
